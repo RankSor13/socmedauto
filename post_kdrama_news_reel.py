@@ -166,14 +166,14 @@ CATEGORIES = {
 }
 
 SLIDE_LABELS = [
-    "",                  # 0 — hook
-    "WHAT HAPPENED?",    # 1
-    "KEY DETAILS",       # 2
-    "THE TEA ☕",        # 3
-    "WHY IT MATTERS",    # 4
-    "KDRAMA FANS SAY",   # 5
-    "IN SHORT",          # 6
-    "",                  # 7 — CTA
+    "",                      # 0 — hook
+    "THE PLOT TWIST 🌸",    # 1
+    "THE RECEIPTS 📜",       # 2
+    "OPPA'S SECRET 🤫",     # 3
+    "HALLYU IMPACT 💫",     # 4
+    "FANDOM REACTS 💜",     # 5
+    "DRAMA ALERT 🚨",       # 6
+    "",                      # 7 — CTA
 ]
 
 BG_DARK  = (13,  10,  28)   # deep drama purple-black
@@ -533,35 +533,53 @@ def fetch_all_article_images(article: dict) -> list[Image.Image]:
 # SLIDE CONTENT — Groq or fallback (8 slides for Reel)
 # ─────────────────────────────────────────────────────────────────────────────
 def generate_slides_groq(article: dict) -> list[str] | None:
-    prompt = f"""You are a viral Korean drama and K-entertainment social media content writer.
-Your page covers Korean dramas, K-movies, celebrity gossip, actor/actress news, and scandals.
-Write content for an 8-slide Facebook video Reel about this K-drama/entertainment story:
+    prompt = f"""You are a passionate Korean drama superfan writing viral content for a Facebook Reel page.
+You LIVE for K-dramas — you know every trope, every cliché, every fandom reaction.
+Write 8 dramatic, emotion-packed slides about this K-drama/K-entertainment story:
 
 HEADLINE: {article['title']}
 DETAILS: {article['desc']}
 CATEGORY: {article['category']}
 
 CATEGORY GUIDE:
-- KDRAMA = upcoming or ongoing Korean dramas, plot details, casting news
-- KMOVIE = Korean movies, box office, trailers, releases
-- ACTORS = actor/actress personal news, new projects, relationships, awards
-- GOSSIP = trending gossip, rumors, fan theories, celebrity sightings
-- SCANDAL = controversies, disputes, agency drama, public incidents
-- TRENDING = viral moments, fan reactions, chart-topping shows
+- KDRAMA   = ongoing/upcoming dramas, casting, plot twists, premiere dates
+- KMOVIE   = Korean films, box office, trailers, award buzz
+- ACTORS   = personal news, new projects, couple rumors, award wins
+- GOSSIP   = behind-the-scenes rumors, feuds, surprise announcements
+- SCANDAL  = controversies, agency drama, public disputes, dating news
+- TRENDING = viral moments, streaming records, fandom meltdowns
 
-INSTRUCTIONS:
-- Write in punchy, fun, engaging English — exactly like a K-drama fan gossip page
-- Use K-drama fan culture language (e.g., "the chemistry is REAL", "we are not okay", "our hearts")
-- Slide 1 (Hook): Attention-grabbing, dramatic headline. No character limit. This is the TITLE.
-- Slide 2 (What Happened?): Simple explanation of the story. STRICTLY MAX 120 CHARACTERS.
-- Slide 3 (Key Details): An important detail or fact. STRICTLY MAX 120 CHARACTERS.
-- Slide 4 (The Tea ☕): The juiciest or most interesting angle. STRICTLY MAX 120 CHARACTERS.
-- Slide 5 (Why It Matters): Why K-drama fans should care. STRICTLY MAX 120 CHARACTERS.
-- Slide 6 (KDrama Fans Say): Fan reaction or community sentiment. STRICTLY MAX 120 CHARACTERS.
-- Slide 7 (In Short): One punchy summary sentence. STRICTLY MAX 120 CHARACTERS.
-- Slide 8 (CTA): "Follow us for daily K-drama news and gossip!" — no character limit.
+WRITING STYLE — lean HARD into K-drama culture:
+- Use iconic K-drama tropes: "enemies to lovers", "second lead syndrome", "chaebol heir",
+  "noble idiocy", "slow burn", "our OTP", "living rent-free in my head"
+- Reference classic K-drama emotions: heart-fluttering, ugly crying, binge-watching,
+  rewinding the same scene 10 times, "I am NOT okay"
+- Use Korean cultural expressions naturally: "unnie", "oppa", "daebak", "aish", "jinjja?!"
+- Sound like a passionate fan who CANNOT contain themselves — not a journalist
+- Be dramatic, emotional, and relatable to the global K-drama fandom
 
-IMPORTANT: For slides 2–7, each text MUST be 120 characters or fewer. Be as juicy as possible within the limit.
+SLIDE INSTRUCTIONS:
+- Slide 1 (Hook): The most dramatic, attention-grabbing headline possible. K-drama fan energy.
+  Make fans STOP scrolling. Example style: "WE ARE NOT OKAY 😭 [Drama] just dropped a BOMB 💣"
+  No character limit.
+- Slide 2 (The Plot Twist 🌸): What actually happened — told like a drama episode recap.
+  STRICTLY MAX 120 CHARACTERS.
+- Slide 3 (The Receipts 📜): One key fact, detail, or confirmed detail that changes everything.
+  STRICTLY MAX 120 CHARACTERS.
+- Slide 4 (Oppa's Secret 🤫): The juiciest, most shocking or heartwarming angle of the story.
+  STRICTLY MAX 120 CHARACTERS.
+- Slide 5 (Hallyu Impact 💫): Why the global K-drama community should care about this story.
+  STRICTLY MAX 120 CHARACTERS.
+- Slide 6 (Fandom Reacts 💜): Capture the collective fandom energy — what fans are feeling RIGHT NOW.
+  Use specific emotional reactions ("Twitter is sobbing", "comment sections are flooding with 💜").
+  STRICTLY MAX 120 CHARACTERS.
+- Slide 7 (Drama Alert 🚨): One powerful, punchy summary sentence — make it land like a cliffhanger.
+  STRICTLY MAX 120 CHARACTERS.
+- Slide 8 (CTA): Warm, fan-to-fan call to action. No character limit. Invite people to follow
+  and comment. Mention a relatable K-drama fan habit.
+
+IMPORTANT: Slides 2–7 MUST be 120 characters or fewer. Make every word count — K-drama fans
+feel deeply. Write for broken hearts, fluttering hearts, and everything in between.
 
 Format your answer as a JSON array ONLY (no other text):
 [
@@ -612,32 +630,43 @@ def generate_slides_fallback(article: dict) -> list[str]:
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", desc) if len(s.strip()) > 20]
     def gs(i, default): return sentences[i] if i < len(sentences) else default
 
+    # Slide 1 (Hook) — dramatic, fan-energy K-drama style
     cat_hooks = {
-        "KDRAMA":   "K-drama fans, this one is for you — you're going to want to see this.",
-        "KMOVIE":   "A Korean movie story that has everyone talking right now.",
-        "ACTORS":   "The latest from your favorite Korean actor — and it's a lot.",
-        "GOSSIP":   "The K-drama world is buzzing and this story explains why.",
-        "SCANDAL":  "Things just got messy in the K-entertainment world.",
-        "TRENDING": "This K-drama story is trending everywhere right now.",
+        "KDRAMA":   f"WE ARE NOT OKAY 😭 This K-drama just changed everything and fans are LOSING IT 🎭",
+        "KMOVIE":   f"DAEBAK! 🎬 The Korean film world just dropped news and we need to talk about it 🔥",
+        "ACTORS":   f"JINJJA?! ⭐ Your favorite oppa/unnie is making headlines and our hearts can't handle it 💜",
+        "GOSSIP":   f"AISH 😱 The K-drama world is BUZZING with this story — second lead syndrome ACTIVATED",
+        "SCANDAL":  f"THE DRAMA IS REAL 🔥 K-entertainment just served us a plot twist nobody saw coming 😤",
+        "TRENDING": f"THE FANDOM IS ON FIRE 📈 This K-drama story has everyone rewinding and sobbing 💜",
     }
-    cat_fan_says = {
-        "KDRAMA":   _truncate("Fans are already calling this the drama of the year — the wait is real."),
-        "KMOVIE":   _truncate("Movie fans are clearing their schedules and buying tickets already."),
-        "ACTORS":   _truncate("Fan communities are going wild — this actor never disappoints."),
-        "GOSSIP":   _truncate("K-drama Twitter is losing it — comment sections are on fire right now."),
-        "SCANDAL":  _truncate("Netizens are divided — the debate is fierce on all platforms."),
-        "TRENDING": _truncate("This is the only thing K-drama fans are talking about today."),
+    # Slide 6 (Fandom Reacts) — raw fan emotion
+    cat_fan_reacts = {
+        "KDRAMA":   _truncate("Twitter is SOBBING. Fans are rewinding the same scene 10 times 😭💜 we are NOT okay."),
+        "KMOVIE":   _truncate("Cinema fans are already clearing their schedules — comment sections flooding with 💜💜💜"),
+        "ACTORS":   _truncate("Fan cafes are GOING WILD 💜 \"Our oppa never misses\" is trending everywhere right now."),
+        "GOSSIP":   _truncate("K-drama Twitter divided into two camps and the debate is FIERCE — whose side are you on? 👀"),
+        "SCANDAL":  _truncate("Netizens are typing novels in the comments 😤 the discourse is LOUD and unfiltered 🔥"),
+        "TRENDING": _truncate("This is the ONLY thing K-drama fans are talking about today — and rightfully so 💜"),
+    }
+    # Slide 7 (Drama Alert) — cliffhanger summary
+    cat_alerts = {
+        "KDRAMA":   _truncate("This drama just earned a spot on every \"must-watch\" list — our OTP era begins NOW 🌸"),
+        "KMOVIE":   _truncate("Mark your calendar, set your alarms — this Korean film is about to break records 🎬"),
+        "ACTORS":   _truncate("One announcement, infinite feelings — this actor continues to live rent-free in our heads 💜"),
+        "GOSSIP":   _truncate("The slow burn is REAL and the fandom is not surviving this storyline 😩🔥"),
+        "SCANDAL":  _truncate("The plot thickens and nobody is okay — stay tuned because this is far from over 👀🔥"),
+        "TRENDING": _truncate("From enemies to lovers, from tears to cheers — this K-drama story has it ALL 🌸💜"),
     }
 
     return [
-        title,  # Slide 1: Title — no character limit
-        _truncate(gs(0, cat_hooks.get(cat, "Here's the K-drama story everyone is talking about right now."))),
-        _truncate(gs(1, "The details are emerging fast — and every new update is more interesting.")),
-        _truncate(gs(2, "This is the juicy part you've been waiting for — it does not disappoint.")),
-        _truncate("K-drama fans around the world are watching this story unfold very closely."),
-        cat_fan_says.get(cat, _truncate("The fan reaction has been absolutely massive — check the comments.")),
-        _truncate(f"One of today's biggest {cat} stories — and it's just getting started."),
-        f"Follow {PAGE_NAME} for daily K-drama news, gossip & updates! 🎭🔥",
+        cat_hooks.get(cat, f"WE ARE NOT OKAY 😭 This K-drama story just dropped and it is A LOT 🎭🔥"),   # Slide 1
+        _truncate(gs(0, "The plot twist nobody expected just dropped — and the details are even more dramatic than we thought.")),  # Slide 2
+        _truncate(gs(1, "Here are the confirmed receipts — every new detail is making fans spiral harder 👀")),  # Slide 3
+        _truncate(gs(2, "This is the scene we'll be rewinding forever — it hits different every single time 💜")),  # Slide 4
+        _truncate("The global K-drama fandom is watching closely — Hallyu wave just got stronger 💫"),  # Slide 5
+        cat_fan_reacts.get(cat, _truncate("The comment sections are overflowing with 💜 — the fandom has spoken loudly.")),  # Slide 6
+        cat_alerts.get(cat, _truncate(f"One of the biggest {cat} moments this year — and we are HERE for all of it 🌸")),  # Slide 7
+        f"💜 Follow {PAGE_NAME} for daily K-drama news, gossip & fandom updates!\n🌸 Drop a 💜 if this gave you second lead syndrome!",  # Slide 8
     ]
 
 
@@ -904,13 +933,13 @@ def create_slide(text: str, idx: int, total: int, category: str,
                   font=get_font(40, bold=False), anchor="mm", fill=accent)
 
         draw.rectangle([(200, centre_y + 330), (IMG_W - 200, centre_y + 338)], fill=accent)
-        draw.text((IMG_W // 2, centre_y + 395), "Daily K-Drama News & Gossip! 🎭",
+        draw.text((IMG_W // 2, centre_y + 395), "Your daily dose of K-drama feels 🌸💜",
                   font=get_font(38, bold=False), anchor="mm", fill=C_GRAY)
-        draw.text((IMG_W // 2, centre_y + 460), "Follow now — it is free! 💜",
+        draw.text((IMG_W // 2, centre_y + 460), "Follow — it's free & our OTP needs you! 💜",
                   font=get_font(34, bold=False), anchor="mm", fill=C_GRAY)
 
         draw.text((IMG_W // 2, IMG_H - 130),
-                  "Share this with a fellow K-drama fan! 🔥",
+                  "Tag a friend with second lead syndrome! 😭🔥",
                   font=get_font(32, bold=False), anchor="mm", fill=C_GRAY)
 
     # ── Bottom branding bar
@@ -1160,21 +1189,32 @@ def build_caption(article: dict) -> str:
     tags  = HASHTAG_MAP.get(cat, "#KDrama #KoreanDrama")
 
     cat_cta = {
-        "KDRAMA":   "🎭 Watch the full story above — are you excited for this drama?",
-        "KMOVIE":   "🎬 Watch the breakdown above — will you be watching this?",
-        "ACTORS":   "⭐ Watch for all the details — comment your thoughts below!",
-        "GOSSIP":   "☕ Watch above for the full tea — drop your reaction below!",
-        "SCANDAL":  "🔥 Watch the full story above — what do YOU think happened?",
-        "TRENDING": "📈 Watch above and tell us — are you watching this drama?",
+        "KDRAMA":   "🌸 Watch the full reel above — are you watching this drama? Drop a 💜 if YES!",
+        "KMOVIE":   "🎬 Watch above for the full breakdown — will you be clearing your schedule for this?",
+        "ACTORS":   "⭐ Watch for all the details — is this your oppa/unnie? Tell us below! 💜",
+        "GOSSIP":   "🤫 Watch above for the FULL tea — did you see this coming? Spill in the comments!",
+        "SCANDAL":  "🔥 Watch the full story — whose side are you on? The discourse is REAL 👀",
+        "TRENDING": "📈 Watch above — are you binge-watching this? Drop your episode count below 😅💜",
+    }
+    cat_fan_prompt = {
+        "KDRAMA":   "👇 Tell us: are you binge-watching this in one sitting or pacing yourself? 😅",
+        "KMOVIE":   "👇 Cinema or streaming? Tell us how you plan to watch this! 🍿",
+        "ACTORS":   "👇 Comment their name if they live rent-free in your head 💜",
+        "GOSSIP":   "👇 React below — 😱 for shocked, 😤 for \"saw this coming\"",
+        "SCANDAL":  "👇 Drop a 💜 for support or a 🔥 if the drama is TOO much right now",
+        "TRENDING": "👇 Tag a friend who needs to start watching this IMMEDIATELY 💜🌸",
     }
 
-    cta_line = cat_cta.get(cat, "👆 Watch for the full story — drop your thoughts below!")
+    cta_line    = cat_cta.get(cat, "👆 Watch the full reel — drop your K-drama thoughts below! 💜")
+    fan_prompt  = cat_fan_prompt.get(cat, "👇 Share with a fellow K-drama fan who needs to see this! 🌸")
 
     return (
         f"{emoji} {article['title']}\n\n"
         f"{cta_line}\n"
-        "📤 Share this with your K-drama fan friends!\n\n"
-        f"{tags} #KDramaNews #HallyuWave #KoreanEntertainment"
+        f"{fan_prompt}\n\n"
+        "📤 Share this reel with your K-drama watchlist buddy!\n"
+        "💜 Follow us for daily K-drama news, gossip & Hallyu updates!\n\n"
+        f"{tags} #KDramaNews #HallyuWave #KoreanEntertainment #SecondLeadSyndrome #OTPgoals"
     )
 
 
