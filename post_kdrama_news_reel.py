@@ -1,0 +1,1285 @@
+"""
+post_kdrama_news_reel.py
+=========================
+Korean Drama News Facebook REEL Poster — Animated Video Edition (English)
+Same pipeline as the world news version BUT:
+  - Pulls Korean drama news (Soompi, Dramabeans, Koreaboo, Allkpop, HanCinema, etc.)
+  - Posts straight to a Facebook Page as a video (not Instagram)
+  - One-step upload (Facebook Page Video API doesn't need a separate
+    container/publish step like Instagram does)
+  - Covers: Upcoming series, movies, trending gossip, actor/actress news, scandals & more!
+
+Required GitHub Secrets:
+  FB_ACCESS_TOKEN  — Facebook Page Access Token with pages_manage_posts + publish_video
+  FB_PAGE_ID        — Your Facebook Page ID (numeric)
+  (No IMGBB_API_KEY needed — video is hosted via a throwaway
+   GitHub Release in this repo, using the built-in GITHUB_TOKEN.)
+  PAGE_NAME        — Optional, your Page name for captions
+
+Optional:
+  GROQ_API_KEY     — Free at console.groq.com — gives better K-drama slide content
+
+GitHub Actions dependencies (add to your workflow pip install line):
+  pip install requests Pillow "moviepy<2" numpy
+"""
+
+import os, sys, json, random, requests, re, time, base64, math, tempfile, wave, struct
+import xml.etree.ElementTree as ET
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance, ImageOps
+from io import BytesIO
+from html import unescape
+from urllib.parse import urljoin
+
+# moviepy — graceful import so we can show a clear error if missing
+try:
+    from moviepy.editor import (
+        ImageClip, AudioFileClip, CompositeVideoClip,
+        concatenate_videoclips, ColorClip, VideoClip
+    )
+    import moviepy.video.fx.all as vfx
+    MOVIEPY_OK = True
+except ImportError:
+    MOVIEPY_OK = False
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONFIG
+# ─────────────────────────────────────────────────────────────────────────────
+FB_PAGE_ID      = os.environ["FB_PAGE_ID"]
+FB_ACCESS_TOKEN = os.environ["FB_ACCESS_TOKEN"]
+GH_RELEASE_TOKEN = os.environ.get("GH_RELEASE_TOKEN", os.environ.get("GITHUB_TOKEN", ""))
+GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
+PAGE_NAME       = os.environ.get("PAGE_NAME", "kdramaworld")
+
+# ── Canvas: vertical 9:16 for Reels
+IMG_W, IMG_H    = 1080, 1920
+FB_BASE         = "https://graph.facebook.com/v21.0"
+
+FONT_BOLD_URL   = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Bold.ttf"
+FONT_REG_URL    = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Regular.ttf"
+FONT_BOLD_PATH  = "/tmp/Poppins-Bold.ttf"
+FONT_REG_PATH   = "/tmp/Poppins-Regular.ttf"
+
+# ── Video settings
+SLIDE_DURATION  = 4.0      # seconds each slide is shown
+FADE_DURATION   = 0.4      # crossfade between slides (seconds)
+FPS             = 30
+ZOOM_AMOUNT     = 0.08     # Ken Burns zoom: 8% scale increase over slide duration
+
+# ── Background music — generated in pure Python, no download, no fail-state
+MUSIC_PATH       = "/tmp/bg_music.wav"
+MUSIC_VOLUME     = 0.18     # keep music subtle under the visuals
+BEAT_SAMPLE_RATE = 44100
+BEAT_BPM         = 72       # slow lofi tempo — default/fallback
+
+# ── Mood presets: each mood picks a tempo + chord progression (semitones
+# from A4) + drum intensity, so the beat matches the article's category.
+MOOD_PRESETS = {
+    "chill": {
+        "bpm": 72,
+        "minor": False,
+        "kick_amp": 0.9, "snare_amp": 0.6,
+        "chords": [
+            [-9, -5, -2],     # Cmaj-ish
+            [-14, -10, -7],   # Gmaj-ish
+            [-12, -8, -5],    # Amin-ish
+            [-17, -13, -10],  # Fmaj-ish
+        ],
+    },
+    "dramatic": {
+        "bpm": 60,
+        "minor": True,
+        "kick_amp": 1.15, "snare_amp": 0.75,
+        "chords": [
+            [-12, -8, -5],    # Amin
+            [-17, -13, -10],  # Fmaj (relative major lift)
+            [-19, -15, -12],  # Dmin
+            [-14, -11, -7],   # Gmaj-ish (tension)
+        ],
+    },
+    "upbeat": {
+        "bpm": 100,
+        "minor": False,
+        "kick_amp": 1.0, "snare_amp": 0.7,
+        "chords": [
+            [-9, -5, -2],     # Cmaj
+            [-2, 2, 5],       # Gmaj
+            [0, 4, 7],        # Amaj-ish (bright lift)
+            [-5, -1, 2],      # Fmaj
+        ],
+    },
+    "juicy": {
+        "bpm": 88,
+        "minor": True,
+        "kick_amp": 1.1, "snare_amp": 0.8,
+        "chords": [
+            [-12, -8, -5],    # Amin (intense)
+            [-7, -3, 0],      # Emin
+            [-17, -13, -10],  # Fmaj
+            [-14, -11, -7],   # Gmaj (suspense)
+        ],
+    },
+}
+
+# Which article category leans toward which mood
+CATEGORY_MOOD = {
+    "KDRAMA":   "dramatic",
+    "KMOVIE":   "upbeat",
+    "ACTORS":   "chill",
+    "GOSSIP":   "juicy",
+    "SCANDAL":  "dramatic",
+    "TRENDING": "upbeat",
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RSS FEEDS — Korean Drama & Entertainment News
+# ─────────────────────────────────────────────────────────────────────────────
+FEEDS = [
+    # Soompi — #1 English Korean entertainment news site
+    {"url": "https://www.soompi.com/feed/",                         "category": "KDRAMA"},
+    # Dramabeans — premier Korean drama recap & news blog
+    {"url": "https://www.dramabeans.com/feed/",                     "category": "KDRAMA"},
+    # Koreaboo — Korean celebrity & drama news
+    {"url": "https://www.koreaboo.com/feed/",                       "category": "ACTORS"},
+    # Allkpop — Kpop & Kdrama celebrity news, gossip, scandals
+    {"url": "https://www.allkpop.com/feed/",                        "category": "GOSSIP"},
+    # HanCinema — Korean film & drama database news
+    {"url": "https://www.hancinema.net/rss.xml",                    "category": "KMOVIE"},
+    # Hellokpop — Korean entertainment general news
+    {"url": "https://www.hellokpop.com/feed/",                      "category": "TRENDING"},
+    # Korea JoongAng Daily — Entertainment section
+    {"url": "https://koreajoongangdaily.joins.com/rss/entertainment","category": "ACTORS"},
+    # AsianWiki News — Asian drama & movie news
+    {"url": "https://asianwiki.com/index.php?title=Special:RecentChanges&feed=rss", "category": "KMOVIE"},
+]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CATEGORY DESIGN TOKENS — K-Drama palette (vibrant & trendy)
+# ─────────────────────────────────────────────────────────────────────────────
+CATEGORIES = {
+    "KDRAMA":   {"rgb": (199,  55, 138), "emoji": "🎭"},   # hot pink/magenta
+    "KMOVIE":   {"rgb": (234, 153,  28), "emoji": "🎬"},   # golden orange
+    "ACTORS":   {"rgb": (129,  90, 213), "emoji": "⭐"},   # purple/violet
+    "GOSSIP":   {"rgb": (236,  72, 153), "emoji": "💬"},   # gossip pink
+    "SCANDAL":  {"rgb": (220,  38,  38), "emoji": "🔥"},   # bold red
+    "TRENDING": {"rgb": ( 20, 184, 166), "emoji": "📈"},   # teal/cyan
+}
+
+SLIDE_LABELS = [
+    "",                  # 0 — hook
+    "WHAT HAPPENED?",    # 1
+    "KEY DETAILS",       # 2
+    "THE TEA ☕",        # 3
+    "WHY IT MATTERS",    # 4
+    "KDRAMA FANS SAY",   # 5
+    "IN SHORT",          # 6
+    "",                  # 7 — CTA
+]
+
+BG_DARK  = (13,  10,  28)   # deep drama purple-black
+BG_CARD  = (28,  16,  48)   # dark violet card
+C_WHITE  = (255, 255, 255)
+C_GRAY   = (196, 180, 220)  # soft lavender-gray
+
+HASHTAG_MAP = {
+    "KDRAMA":   "#KDrama #KoreanDrama #KDramaNews #NewKDrama #KoreanTV",
+    "KMOVIE":   "#KMovie #KoreanMovie #KoreanFilm #KMovieNews",
+    "ACTORS":   "#KDramaActors #KoreanActress #KoreanActor #HallyuStar",
+    "GOSSIP":   "#KDramaGossip #KoreanEntertainment #KpopGossip #TheRealTea",
+    "SCANDAL":  "#KDramaScandal #KoreanScandal #KpopDrama #EntertainmentNews",
+    "TRENDING": "#TrendingKDrama #KDramaFandom #HallyuWave #KoreanCulture",
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FONTS
+# ─────────────────────────────────────────────────────────────────────────────
+def setup_fonts():
+    for url, path in [(FONT_BOLD_URL, FONT_BOLD_PATH), (FONT_REG_URL, FONT_REG_PATH)]:
+        if not os.path.exists(path):
+            print(f"  Downloading font: {url} …")
+            r = requests.get(url, timeout=30)
+            r.raise_for_status()
+            with open(path, "wb") as f:
+                f.write(r.content)
+            print(f"  Saved → {path}")
+
+
+def get_font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
+    path = FONT_BOLD_PATH if bold else FONT_REG_PATH
+    try:
+        return ImageFont.truetype(path, size)
+    except Exception:
+        return ImageFont.load_default()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MUSIC — pure-Python lofi beat generator (no download, no external service)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _note_freq(semitones_from_a4: float) -> float:
+    return 440.0 * (2.0 ** (semitones_from_a4 / 12.0))
+
+
+def _sine(freq: float, dur: float, sr: int, amp: float = 1.0) -> np.ndarray:
+    t = np.linspace(0, dur, int(sr * dur), endpoint=False)
+    return amp * np.sin(2 * np.pi * freq * t)
+
+
+def _envelope(n: int, attack: float = 0.02, release: float = 0.3) -> np.ndarray:
+    env = np.ones(n)
+    a = max(1, int(n * attack))
+    r = max(1, int(n * release))
+    env[:a] = np.linspace(0, 1, a)
+    env[-r:] = np.minimum(env[-r:], np.linspace(1, 0, r))
+    return env
+
+
+def _lowpass(signal: np.ndarray, strength: float = 0.85) -> np.ndarray:
+    out = np.zeros_like(signal)
+    out[0] = signal[0]
+    for i in range(1, len(signal)):
+        out[i] = strength * out[i - 1] + (1 - strength) * signal[i]
+    return out
+
+
+def _kick(sr: int, dur: float = 0.25) -> np.ndarray:
+    n = int(sr * dur)
+    t = np.linspace(0, dur, n, endpoint=False)
+    freq = np.linspace(150, 45, n)
+    wave_ = np.sin(2 * np.pi * np.cumsum(freq) / sr)
+    return wave_ * np.exp(-t * 18) * 0.9
+
+
+def _snare(sr: int, dur: float = 0.18) -> np.ndarray:
+    n = int(sr * dur)
+    t = np.linspace(0, dur, n, endpoint=False)
+    noise = np.random.uniform(-1, 1, n)
+    body = np.sin(2 * np.pi * 180 * t) * 0.3
+    return (noise * 0.7 + body) * np.exp(-t * 14) * 0.6
+
+
+def _hat(sr: int, dur: float = 0.06) -> np.ndarray:
+    n = int(sr * dur)
+    t = np.linspace(0, dur, n, endpoint=False)
+    noise = np.random.uniform(-1, 1, n)
+    return noise * np.exp(-t * 40) * 0.25
+
+
+def _vinyl_crackle(n: int, amount: float = 0.02) -> np.ndarray:
+    crackle = np.zeros(n)
+    pops = np.random.choice(n, size=n // 800, replace=False)
+    crackle[pops] = np.random.uniform(-1, 1, len(pops))
+    return crackle * amount
+
+
+def _mix(base: np.ndarray, addition: np.ndarray, at_sample: int) -> None:
+    end = min(at_sample + len(addition), len(base))
+    seg = end - at_sample
+    if seg > 0:
+        base[at_sample:end] += addition[:seg]
+
+
+def generate_lofi_beat(duration: float, path: str, mood: str = "chill",
+                        sr: int = BEAT_SAMPLE_RATE) -> str:
+    preset = MOOD_PRESETS.get(mood, MOOD_PRESETS["chill"])
+    bpm = preset["bpm"]
+
+    n_samples = int(sr * duration)
+    mix = np.zeros(n_samples)
+
+    beat_dur = 60.0 / bpm
+    bar_dur  = beat_dur * 4
+
+    chord_progression = preset["chords"]
+
+    n_bars = max(1, int(math.ceil(duration / bar_dur)))
+    for bar in range(n_bars):
+        chord = chord_progression[bar % len(chord_progression)]
+        start_sample = int(bar * bar_dur * sr)
+
+        for semis in chord:
+            freq = _note_freq(semis)
+            tone = _sine(freq, bar_dur, sr, amp=0.10)
+            tone *= _envelope(len(tone), attack=0.05, release=0.6)
+            _mix(mix, tone, start_sample)
+
+        for beat in range(4):
+            beat_sample = start_sample + int(beat * beat_dur * sr)
+            if beat in (0, 2):
+                _mix(mix, _kick(sr) * preset["kick_amp"], beat_sample)
+            if beat in (1, 3):
+                _mix(mix, _snare(sr) * preset["snare_amp"], beat_sample)
+            _mix(mix, _hat(sr), beat_sample + int(beat_dur * sr * 0.5))
+
+    if len(mix) < n_samples:
+        mix = np.pad(mix, (0, n_samples - len(mix)))
+    mix = mix[:n_samples]
+
+    mix = _lowpass(mix, strength=0.6)
+    mix += _vinyl_crackle(n_samples, amount=0.015)
+
+    peak = np.max(np.abs(mix)) or 1.0
+    mix = (mix / peak) * 0.85
+    pcm = (mix * 32767).astype(np.int16)
+
+    with wave.open(path, "w") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sr)
+        wf.writeframes(pcm.tobytes())
+
+    return path
+
+
+def setup_music(duration: float = 60.0, mood: str = "chill") -> bool:
+    try:
+        print(f"  🎵 Smashing rocks to make drama beat (mood: {mood})…")
+        generate_lofi_beat(duration, MUSIC_PATH, mood=mood)
+        print(f"  🎵 Beat ready! → {MUSIC_PATH}")
+        return True
+    except Exception as e:
+        print(f"  ⚠️  Beat generator failed: {e} — video will be silent.")
+        return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RSS FETCH & MULTI-IMAGE SCRAPER
+# ─────────────────────────────────────────────────────────────────────────────
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; KDramaNewsBot/1.0)"}
+
+def strip_html(raw: str) -> str:
+    return re.sub(r"<[^>]+>", "", unescape(raw)).strip()
+
+
+def _looks_like_image(url: str) -> bool:
+    return bool(re.search(r'\.(jpg|jpeg|png|webp)(\?.*)?$', url, re.IGNORECASE))
+
+
+_LOGO_SKIP_PATTERNS = re.compile(
+    r'(logo|favicon|icon|sprite|brand|header|badge|avatar|watermark|placeholder|blank|spinner|loading|arrow|button|play|pause|search|menu|close|next|prev)',
+    re.IGNORECASE
+)
+
+
+def _is_article_image(url: str) -> bool:
+    return _looks_like_image(url) and not _LOGO_SKIP_PATTERNS.search(url)
+
+
+def scrape_all_article_images(article_url: str) -> list[str]:
+    """
+    Scrape the article page for ALL relevant images.
+    Filters out logos and icons based on URL patterns.
+    """
+    urls = []
+    if not article_url:
+        return urls
+    try:
+        r = requests.get(article_url, headers=HEADERS, timeout=10, allow_redirects=True)
+        r.raise_for_status()
+        html = r.text
+
+        # 1. og:image first (usually high quality)
+        m = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', html, re.IGNORECASE)
+        if not m:
+            m = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', html, re.IGNORECASE)
+        if m:
+            url = m.group(1).strip()
+            if _is_article_image(url):
+                urls.append(url)
+
+        # 2. All img tags
+        img_tags = re.findall(r'<img[^>]+src=["\']([^"\']+)["\']', html, re.IGNORECASE)
+        for img_url in img_tags:
+            if img_url.startswith('//'):
+                img_url = 'https:' + img_url
+            elif img_url.startswith('/'):
+                img_url = urljoin(article_url, img_url)
+
+            if _is_article_image(img_url) and img_url not in urls:
+                urls.append(img_url)
+
+        return urls[:8]
+    except Exception as e:
+        print(f"    ⚠️  Multi-image scrape failed for {article_url[:60]}: {e}")
+    return []
+
+
+def extract_image_from_item(item, raw_xml_text: str = "") -> str:
+    for tag in [
+        "{http://search.yahoo.com/mrss/}content",
+        "{http://search.yahoo.com/mrss/}thumbnail",
+        "media:content", "media:thumbnail",
+    ]:
+        el = item.find(tag)
+        if el is not None:
+            url = el.get("url", "")
+            if url and _is_article_image(url):
+                return url
+
+    enc = item.find("enclosure")
+    if enc is not None:
+        url = enc.get("url", "")
+        t   = enc.get("type", "")
+        if url and ("image" in t or _is_article_image(url)):
+            return url
+
+    desc_raw = item.findtext("description", "") or ""
+    m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', desc_raw, re.IGNORECASE)
+    if m:
+        url = m.group(1)
+        if _is_article_image(url):
+            return url
+
+    try:
+        item_xml = ET.tostring(item, encoding="unicode")
+    except Exception:
+        item_xml = ""
+    if item_xml:
+        matches = re.findall(
+            r'https?://[^\s\'"<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s\'"<>]*)?',
+            item_xml, re.IGNORECASE
+        )
+        for url in matches:
+            if "1x1" not in url and "pixel" not in url.lower() and _is_article_image(url):
+                return url
+
+    return ""
+
+
+def fetch_articles() -> list[dict]:
+    articles = []
+    for feed in FEEDS:
+        try:
+            r = requests.get(feed["url"], headers=HEADERS, timeout=12)
+            r.raise_for_status()
+            raw_text = r.text
+            root = ET.fromstring(r.content)
+            for item in root.findall(".//item")[:8]:
+                title     = strip_html(item.findtext("title", ""))
+                desc      = strip_html(item.findtext("description", ""))
+                link      = (item.findtext("link") or "").strip()
+                image_url = extract_image_from_item(item, raw_text)
+                if title and link and len(title) > 10:
+                    if not image_url:
+                        image_url = scrape_og_image(link)
+                    articles.append({
+                        "title":    title,
+                        "desc":     desc[:800],
+                        "link":     link,
+                        "category": feed["category"],
+                        "image_url": image_url,
+                    })
+        except Exception as e:
+            print(f"  ⚠️  Feed error [{feed['url']}]: {e}")
+    return articles
+
+
+def scrape_og_image(article_url: str) -> str:
+    """Fallback single image scraper"""
+    imgs = scrape_all_article_images(article_url)
+    return imgs[0] if imgs else ""
+
+
+def fetch_article_image(image_url: str):
+    """
+    Download article photo at NATIVE resolution.
+    Filters out tiny icons/UI elements by checking dimensions.
+    """
+    if not image_url:
+        return None
+    try:
+        print(f"  📷 Fetching image: {image_url[:80]}…")
+        r = requests.get(image_url, headers=HEADERS, timeout=15)
+        r.raise_for_status()
+        img = Image.open(BytesIO(r.content)).convert("RGB")
+        w, h = img.size
+
+        if w < 300 or h < 200:
+            print(f"  ⚠️ Image too small ({w}x{h}), likely an icon. Skipping.")
+            return None
+
+        print(f"  ✅ Image loaded at native size: {w}×{h}")
+        return img
+    except Exception as e:
+        print(f"  ⚠️  Could not fetch image: {e}")
+        return None
+
+
+def fetch_all_article_images(article: dict) -> list[Image.Image]:
+    """
+    Fetches the main RSS image, then scrapes the article page for up to 8 images.
+    Downloads them all and returns a list of PIL Image objects.
+    """
+    urls = []
+    if article.get("image_url"):
+        urls.append(article["image_url"])
+
+    scraped_urls = scrape_all_article_images(article["link"])
+    for u in scraped_urls:
+        if u not in urls:
+            urls.append(u)
+
+    images = []
+    for url in urls[:8]:
+        img = fetch_article_image(url)
+        if img:
+            images.append(img)
+
+    return images
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SLIDE CONTENT — Groq or fallback (8 slides for Reel)
+# ─────────────────────────────────────────────────────────────────────────────
+def generate_slides_groq(article: dict) -> list[str] | None:
+    prompt = f"""You are a viral Korean drama and K-entertainment social media content writer.
+Your page covers Korean dramas, K-movies, celebrity gossip, actor/actress news, and scandals.
+Write content for an 8-slide Facebook video Reel about this K-drama/entertainment story:
+
+HEADLINE: {article['title']}
+DETAILS: {article['desc']}
+CATEGORY: {article['category']}
+
+CATEGORY GUIDE:
+- KDRAMA = upcoming or ongoing Korean dramas, plot details, casting news
+- KMOVIE = Korean movies, box office, trailers, releases
+- ACTORS = actor/actress personal news, new projects, relationships, awards
+- GOSSIP = trending gossip, rumors, fan theories, celebrity sightings
+- SCANDAL = controversies, disputes, agency drama, public incidents
+- TRENDING = viral moments, fan reactions, chart-topping shows
+
+INSTRUCTIONS:
+- Write in punchy, fun, engaging English — exactly like a K-drama fan gossip page
+- Use K-drama fan culture language (e.g., "the chemistry is REAL", "we are not okay", "our hearts")
+- Slide 1 (Hook): Attention-grabbing, dramatic headline. No character limit. This is the TITLE.
+- Slide 2 (What Happened?): Simple explanation of the story. STRICTLY MAX 120 CHARACTERS.
+- Slide 3 (Key Details): An important detail or fact. STRICTLY MAX 120 CHARACTERS.
+- Slide 4 (The Tea ☕): The juiciest or most interesting angle. STRICTLY MAX 120 CHARACTERS.
+- Slide 5 (Why It Matters): Why K-drama fans should care. STRICTLY MAX 120 CHARACTERS.
+- Slide 6 (KDrama Fans Say): Fan reaction or community sentiment. STRICTLY MAX 120 CHARACTERS.
+- Slide 7 (In Short): One punchy summary sentence. STRICTLY MAX 120 CHARACTERS.
+- Slide 8 (CTA): "Follow us for daily K-drama news and gossip!" — no character limit.
+
+IMPORTANT: For slides 2–7, each text MUST be 120 characters or fewer. Be as juicy as possible within the limit.
+
+Format your answer as a JSON array ONLY (no other text):
+[
+  {{"slide": 1, "text": "..."}},
+  {{"slide": 2, "text": "..."}},
+  {{"slide": 3, "text": "..."}},
+  {{"slide": 4, "text": "..."}},
+  {{"slide": 5, "text": "..."}},
+  {{"slide": 6, "text": "..."}},
+  {{"slide": 7, "text": "..."}},
+  {{"slide": 8, "text": "..."}}
+]"""
+    try:
+        r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+            json={
+                "model":       "llama-3.3-70b-versatile",
+                "messages":    [{"role": "user", "content": prompt}],
+                "temperature": 0.80,
+                "max_tokens":  800,
+            },
+            timeout=30,
+        )
+        r.raise_for_status()
+        raw = r.json()["choices"][0]["message"]["content"].strip()
+        m   = re.search(r"\[.*?\]", raw, re.DOTALL)
+        if m:
+            data = json.loads(m.group())
+            return [s["text"].strip() for s in data if "text" in s]
+    except Exception as e:
+        print(f"  ⚠️  Groq error: {e}")
+    return None
+
+
+def _truncate(text: str, max_chars: int = 120) -> str:
+    """Truncate text to max_chars at a word boundary."""
+    if len(text) <= max_chars:
+        return text
+    truncated = text[:max_chars].rsplit(" ", 1)[0]
+    return truncated.rstrip(".,!?") + "."
+
+
+def generate_slides_fallback(article: dict) -> list[str]:
+    title     = article["title"]
+    desc      = article["desc"]
+    cat       = article["category"]
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", desc) if len(s.strip()) > 20]
+    def gs(i, default): return sentences[i] if i < len(sentences) else default
+
+    cat_hooks = {
+        "KDRAMA":   "K-drama fans, this one is for you — you're going to want to see this.",
+        "KMOVIE":   "A Korean movie story that has everyone talking right now.",
+        "ACTORS":   "The latest from your favorite Korean actor — and it's a lot.",
+        "GOSSIP":   "The K-drama world is buzzing and this story explains why.",
+        "SCANDAL":  "Things just got messy in the K-entertainment world.",
+        "TRENDING": "This K-drama story is trending everywhere right now.",
+    }
+    cat_fan_says = {
+        "KDRAMA":   _truncate("Fans are already calling this the drama of the year — the wait is real."),
+        "KMOVIE":   _truncate("Movie fans are clearing their schedules and buying tickets already."),
+        "ACTORS":   _truncate("Fan communities are going wild — this actor never disappoints."),
+        "GOSSIP":   _truncate("K-drama Twitter is losing it — comment sections are on fire right now."),
+        "SCANDAL":  _truncate("Netizens are divided — the debate is fierce on all platforms."),
+        "TRENDING": _truncate("This is the only thing K-drama fans are talking about today."),
+    }
+
+    return [
+        title,  # Slide 1: Title — no character limit
+        _truncate(gs(0, cat_hooks.get(cat, "Here's the K-drama story everyone is talking about right now."))),
+        _truncate(gs(1, "The details are emerging fast — and every new update is more interesting.")),
+        _truncate(gs(2, "This is the juicy part you've been waiting for — it does not disappoint.")),
+        _truncate("K-drama fans around the world are watching this story unfold very closely."),
+        cat_fan_says.get(cat, _truncate("The fan reaction has been absolutely massive — check the comments.")),
+        _truncate(f"One of today's biggest {cat} stories — and it's just getting started."),
+        f"Follow {PAGE_NAME} for daily K-drama news, gossip & updates! 🎭🔥",
+    ]
+
+
+def generate_slides(article: dict) -> list[str]:
+    if GROQ_API_KEY:
+        print("  🤖 Generating K-drama content with Groq (Llama 3)…")
+        texts = generate_slides_groq(article)
+        if texts and len(texts) >= 6:
+            while len(texts) < 8:
+                texts.append(f"Follow {PAGE_NAME} for more K-drama news! 🎭🔥")
+            texts = texts[:8]
+            # Enforce 120-char cap on content slides (2–7), skip title (0) and CTA (7)
+            for i in range(1, 7):
+                texts[i] = _truncate(texts[i], max_chars=120)
+            return texts
+    print("  ✍️  Using K-drama text fallback…")
+    return generate_slides_fallback(article)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SLIDE IMAGE GENERATION — 1080×1920 vertical
+# ─────────────────────────────────────────────────────────────────────────────
+def draw_rounded_rect(draw, x0, y0, x1, y1, r, fill):
+    draw.rectangle([x0 + r, y0, x1 - r, y1], fill=fill)
+    draw.rectangle([x0, y0 + r, x1, y1 - r], fill=fill)
+    draw.ellipse([x0, y0, x0 + 2*r, y0 + 2*r], fill=fill)
+    draw.ellipse([x1 - 2*r, y0, x1, y0 + 2*r], fill=fill)
+    draw.ellipse([x0, y1 - 2*r, x0 + 2*r, y1], fill=fill)
+    draw.ellipse([x1 - 2*r, y1 - 2*r, x1, y1], fill=fill)
+
+
+def draw_text_shadow(draw, xy, text, font, fill, shadow_offset=3, shadow_color=(0, 0, 0, 180)):
+    sx, sy = xy[0] + shadow_offset, xy[1] + shadow_offset
+    draw.text((sx, sy), text, font=font, fill=shadow_color)
+    draw.text(xy, text, font=font, fill=fill)
+
+
+def fit_text(draw, text: str, font_size: int, max_w: int, max_lines: int, bold=True):
+    """Return (font, lines) fitting within max_w and max_lines."""
+    while font_size >= 32:
+        font  = get_font(font_size, bold=bold)
+        words = text.split()
+        lines, cur = [], []
+        for word in words:
+            test = " ".join(cur + [word])
+            if draw.textbbox((0, 0), test, font=font)[2] > max_w and cur:
+                lines.append(" ".join(cur))
+                cur = [word]
+            else:
+                cur.append(word)
+        if cur:
+            lines.append(" ".join(cur))
+        if len(lines) <= max_lines:
+            return font, lines
+        font_size -= 4
+    return get_font(32, bold=bold), lines
+
+
+def crop_needed_size(img: Image.Image, target_w: int, target_h: int, centering_y: float = 0.35) -> Image.Image:
+    src_w, src_h = img.size
+    scale = max(target_w / src_w, target_h / src_h)
+    new_w = int(src_w * scale)
+    new_h = int(src_h * scale)
+
+    img_resized = img.resize((new_w, new_h), Image.LANCZOS)
+
+    crop_x = int((new_w - target_w) * 0.5)
+    crop_y = int((new_h - target_h) * centering_y)
+    crop_y = max(0, min(crop_y, new_h - target_h))
+
+    return img_resized.crop((crop_x, crop_y, crop_x + target_w, crop_y + target_h))
+
+
+def create_blurred_bg_and_fg(img: Image.Image, target_w: int, target_h: int):
+    # 1. Blurred Background
+    bg = crop_needed_size(img, target_w, target_h)
+    bg = bg.filter(ImageFilter.GaussianBlur(radius=35))
+    bg = ImageEnhance.Brightness(bg).enhance(0.45)
+
+    # 2. Sharp Foreground
+    src_w, src_h = img.size
+    max_w = target_w - 80
+    max_h = int(target_h * 0.65)
+
+    scale = min(max_w / src_w, max_h / src_h)
+    if scale > 1.2: scale = 1.2
+
+    new_w = int(src_w * scale)
+    new_h = int(src_h * scale)
+    fg = img.resize((new_w, new_h), Image.LANCZOS)
+    fg = fg.filter(ImageFilter.UnsharpMask(radius=1.2, percent=120, threshold=3))
+
+    return bg, fg, new_w, new_h
+
+
+def create_slide(text: str, idx: int, total: int, category: str,
+                 article_photos=None) -> Image.Image:
+    """Draw a single 1080×1920 slide image."""
+    cat    = CATEGORIES.get(category, CATEGORIES["KDRAMA"])
+    accent = cat["rgb"]
+    emoji  = cat["emoji"]
+
+    is_hook = idx == 0
+    is_cta  = idx == total - 1
+
+    current_photo = None
+    if article_photos:
+        current_photo = article_photos[idx % len(article_photos)]
+
+    use_photo = current_photo is not None and not is_cta
+
+    # Start with a deep drama purple-black base
+    img  = Image.new("RGB", (IMG_W, IMG_H), BG_DARK)
+    draw = ImageDraw.Draw(img)
+
+    # ── Top accent stripe
+    draw.rectangle([(0, 0), (IMG_W, 14)], fill=accent)
+
+    # ── Category pill (top-left)
+    pill_font = get_font(34)
+    pill_text = f"{emoji} {category}"
+    pill_bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
+    pw = pill_bbox[2] + 44
+    ph = 58
+    px, py = 56, 46
+    draw_rounded_rect(draw, px, py, px + pw, py + ph, 12, accent)
+    draw.text((px + 22, py + 12), pill_text, font=pill_font, fill=C_WHITE)
+
+    # ── Slide counter (top-right)
+    ctr_font = get_font(30, bold=False)
+    draw.text((IMG_W - 64, 58), f"{idx+1}/{total}",
+              font=ctr_font, anchor="rm", fill=C_GRAY)
+
+    # ── HOOK & CONTENT SLIDES
+    if not is_cta:
+        if use_photo:
+            bg_photo, fg_photo, fg_w, fg_h = create_blurred_bg_and_fg(current_photo, IMG_W, IMG_H)
+            img.paste(bg_photo, (0, 0))
+
+            paste_x = (IMG_W - fg_w) // 2
+            paste_y = 100
+            img.paste(fg_photo, (paste_x, paste_y))
+
+            overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
+            od = ImageDraw.Draw(overlay)
+            for y in range(IMG_H):
+                alpha = int(230 * (y / IMG_H) ** 1.2)
+                if 700 < y < 1100:
+                    alpha += 70
+                alpha = min(255, alpha)
+                od.line([(0, y), (IMG_W, y)], fill=(0, 0, 0, alpha))
+            img_rgba = img.convert("RGBA")
+            img_rgba.alpha_composite(overlay)
+            img = img_rgba.convert("RGB")
+            draw = ImageDraw.Draw(img)
+
+        else:
+            overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
+            od = ImageDraw.Draw(overlay)
+            for y in range(IMG_H):
+                alpha = int(140 * (y / IMG_H))
+                od.line([(0, y), (IMG_W, y)], fill=(0, 0, 0, alpha))
+            img_rgba = img.convert("RGBA")
+            img_rgba.alpha_composite(overlay)
+            img = img_rgba.convert("RGB")
+            draw = ImageDraw.Draw(img)
+
+        # Reapply pill + counter on top
+        draw_rounded_rect(draw, px, py, px + pw, py + ph, 12, accent)
+        draw.text((px + 22, py + 12), pill_text, font=pill_font, fill=C_WHITE)
+        draw.text((IMG_W - 64, 58), f"{idx+1}/{total}",
+                  font=ctr_font, anchor="rm", fill=C_GRAY)
+
+        pad = 64
+        max_w = IMG_W - pad * 2
+
+        if is_hook:
+            words = text.split()
+            mid   = max(1, len(words) // 2)
+            line1_text = " ".join(words[:mid])
+            line2_text = " ".join(words[mid:])
+
+            font_h, _ = fit_text(draw, text, 76, max_w, 6)
+            fs = font_h.size
+            lh = fs + 20
+
+            all_lines = []
+            for chunk, colour in [(line1_text, accent), (line2_text, C_WHITE)]:
+                if not chunk.strip():
+                    continue
+                _, chunk_lines = fit_text(draw, chunk.upper(), fs, max_w, 3)
+                all_lines.extend([(l, colour) for l in chunk_lines])
+
+            total_text_h = len(all_lines) * lh
+            y = ((IMG_H - 90) // 2) - ((total_text_h + 40) // 2)
+
+            for line_txt, line_col in all_lines:
+                bx = draw.textbbox((0, 0), line_txt, font=font_h)[2]
+                x  = (IMG_W - bx) // 2
+                draw_text_shadow(draw, (x, y), line_txt, font_h, line_col,
+                                 shadow_offset=5, shadow_color=(0, 0, 0, 220))
+                y += lh
+
+            draw.rectangle([(IMG_W//2 - 100, y + 18), (IMG_W//2 + 100, y + 25)], fill=accent)
+
+        else:
+            label = SLIDE_LABELS[idx] if idx < len(SLIDE_LABELS) else ""
+            font, lines = fit_text(draw, text, 64, max_w, 6)
+            fs = font.size
+            lh = fs + 24
+            th = len(lines) * lh
+
+            label_h = 80 if label else 0
+            ty = ((IMG_H - 90) // 2) - ((th + label_h) // 2) + label_h
+
+            if label:
+                lbl_font = get_font(36)
+                lbl_bbox = draw.textbbox((0, 0), label, font=lbl_font)
+                lbl_w = lbl_bbox[2]
+                lbl_x = (IMG_W - lbl_w) // 2
+                lbl_y = ty - 80
+                draw.text((lbl_x, lbl_y), label, font=lbl_font, fill=accent)
+                draw.rectangle([(lbl_x, lbl_y + lbl_bbox[3] + 6),
+                                (lbl_x + lbl_w, lbl_y + lbl_bbox[3] + 12)], fill=accent)
+
+            for i, line in enumerate(lines):
+                colour = accent if i == 0 else C_WHITE
+                bx = draw.textbbox((0, 0), line, font=font)[2]
+                x  = (IMG_W - bx) // 2
+                draw_text_shadow(draw, (x, ty), line, font, colour,
+                                 shadow_offset=4, shadow_color=(0, 0, 0, 200))
+                ty += lh
+
+    # ── CTA SLIDE
+    else:
+        overlay  = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 120))
+        img_rgba = img.convert("RGBA")
+        img_rgba.alpha_composite(overlay)
+        img  = img_rgba.convert("RGB")
+        draw = ImageDraw.Draw(img)
+
+        centre_y = IMG_H // 2 - 60
+
+        import math as _math
+        star_cx, star_cy = IMG_W // 2, centre_y - 130
+        for _angle in range(0, 360, 20):
+            _r_inner = 38
+            _r_outer = 82
+            _x1 = star_cx + int(_r_inner * _math.cos(_math.radians(_angle)))
+            _y1 = star_cy + int(_r_inner * _math.sin(_math.radians(_angle)))
+            _x2 = star_cx + int(_r_outer * _math.cos(_math.radians(_angle + 10)))
+            _y2 = star_cy + int(_r_outer * _math.sin(_math.radians(_angle + 10)))
+            draw.line([(_x1, _y1), (_x2, _y2)], fill=accent, width=7)
+        draw.ellipse([(star_cx - 30, star_cy - 30), (star_cx + 30, star_cy + 30)], fill=accent)
+
+        draw.text((IMG_W // 2, centre_y + 50), "FOLLOW US ON FACEBOOK",
+                  font=get_font(40, bold=False), anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, centre_y + 155), PAGE_NAME,
+                  font=get_font(84), anchor="mm", fill=C_WHITE)
+
+        fb_url = f"facebook.com/{PAGE_NAME}"
+        draw.text((IMG_W // 2, centre_y + 265),
+                  fb_url,
+                  font=get_font(40, bold=False), anchor="mm", fill=accent)
+
+        draw.rectangle([(200, centre_y + 330), (IMG_W - 200, centre_y + 338)], fill=accent)
+        draw.text((IMG_W // 2, centre_y + 395), "Daily K-Drama News & Gossip! 🎭",
+                  font=get_font(38, bold=False), anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, centre_y + 460), "Follow now — it is free! 💜",
+                  font=get_font(34, bold=False), anchor="mm", fill=C_GRAY)
+
+        draw.text((IMG_W // 2, IMG_H - 130),
+                  "Share this with a fellow K-drama fan! 🔥",
+                  font=get_font(32, bold=False), anchor="mm", fill=C_GRAY)
+
+    # ── Bottom branding bar
+    draw.rectangle([(0, IMG_H - 90), (IMG_W, IMG_H)], fill=BG_CARD)
+    draw.rectangle([(0, IMG_H - 90), (IMG_W, IMG_H - 88)], fill=accent)
+    brand_font = get_font(34, bold=False)
+    draw.text((IMG_W // 2, IMG_H - 44), f"@{PAGE_NAME}",
+              font=brand_font, anchor="mm", fill=C_GRAY)
+
+    return img
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# KEN BURNS ANIMATION
+# ─────────────────────────────────────────────────────────────────────────────
+def make_ken_burns_clip(pil_img: Image.Image, duration: float,
+                        zoom_in: bool = True, fps: int = FPS):
+    img_array = np.array(pil_img)
+    h, w      = img_array.shape[:2]
+    zoom_start = 1.0
+    zoom_end   = 1.0 + ZOOM_AMOUNT
+
+    if not zoom_in:
+        zoom_start, zoom_end = zoom_end, zoom_start
+
+    def make_frame(t):
+        progress = t / duration
+        scale    = zoom_start + (zoom_end - zoom_start) * progress
+
+        crop_w = int(w / scale)
+        crop_h = int(h / scale)
+
+        offset_x = int((w - crop_w) * 0.5)
+        offset_y = int((h - crop_h) * 0.5)
+
+        if zoom_in:
+            offset_x += int((w - crop_w) * 0.1 * progress)
+        else:
+            offset_x += int((w - crop_w) * 0.1 * (1 - progress))
+
+        offset_x = max(0, min(offset_x, w - crop_w))
+        offset_y = max(0, min(offset_y, h - crop_h))
+
+        cropped = img_array[offset_y:offset_y + crop_h, offset_x:offset_x + crop_w]
+        cropped_pil = Image.fromarray(cropped).resize((w, h), Image.LANCZOS)
+        return np.array(cropped_pil)
+
+    return VideoClip(make_frame, duration=duration)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VIDEO ASSEMBLY
+# ─────────────────────────────────────────────────────────────────────────────
+def build_reel(images: list, output_path: str, has_music: bool) -> str:
+    print(f"\n🎬 Assembling {len(images)} slides into K-drama video…")
+
+    clips = []
+    for i, pil_img in enumerate(images):
+        zoom_in = (i % 2 == 0)
+        clip    = make_ken_burns_clip(pil_img, SLIDE_DURATION, zoom_in=zoom_in)
+        clip    = clip.set_fps(FPS)
+
+        if i > 0:
+            clip = clip.crossfadein(FADE_DURATION)
+
+        clips.append(clip)
+        print(f"   Slide {i+1}/{len(images)} animated ✓")
+
+    video = concatenate_videoclips(clips, method="compose",
+                                   padding=-FADE_DURATION)
+
+    if has_music and os.path.exists(MUSIC_PATH):
+        try:
+            print("  🎵 Mixing background drama beat…")
+            audio       = AudioFileClip(MUSIC_PATH)
+            total_dur   = video.duration
+
+            if audio.duration < total_dur:
+                loops_needed = math.ceil(total_dur / audio.duration)
+                from moviepy.editor import concatenate_audioclips
+                audio = concatenate_audioclips([audio] * loops_needed)
+
+            audio = audio.subclip(0, total_dur)
+            audio = audio.volumex(MUSIC_VOLUME)
+            video = video.set_audio(audio)
+            print("  ✅ Music mixed in!")
+        except Exception as e:
+            print(f"  ⚠️  Music mix failed: {e} — continuing without audio.")
+
+    print(f"\n🎞️  Rendering MP4 → {output_path}  (this takes ~30-60 seconds)…")
+    video.write_videofile(
+        output_path,
+        fps=FPS,
+        codec="libx264",
+        audio_codec="aac",
+        preset="medium",
+        ffmpeg_params=["-crf", "20", "-pix_fmt", "yuv420p"],
+        logger=None,
+    )
+    print(f"  ✅ Video rendered! Size: {os.path.getsize(output_path) / 1024 / 1024:.1f} MB")
+    return output_path
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VIDEO UPLOAD (throwaway GitHub Release asset — public direct-download URL)
+# ─────────────────────────────────────────────────────────────────────────────
+def create_github_release(tag: str, repo: str, token: str) -> dict:
+    r = requests.post(
+        f"https://api.github.com/repos/{repo}/releases",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+        },
+        json={
+            "tag_name": tag,
+            "name": tag,
+            "body": "Auto-generated K-Drama Reel video asset — safe to delete.",
+            "draft": False,
+            "prerelease": False,
+        },
+        timeout=30,
+    )
+    if not r.ok:
+        print(f"  GitHub release create error: {r.status_code} — {r.text}")
+    r.raise_for_status()
+    return r.json()
+
+
+def upload_asset_to_release(upload_url: str, video_path: str, token: str) -> str:
+    upload_url = upload_url.split("{")[0]
+    filename = os.path.basename(video_path)
+
+    with open(video_path, "rb") as f:
+        data = f.read()
+
+    r = requests.post(
+        upload_url,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "video/mp4",
+        },
+        params={"name": filename},
+        data=data,
+        timeout=180,
+    )
+    if not r.ok:
+        print(f"  GitHub asset upload error: {r.status_code} — {r.text}")
+    r.raise_for_status()
+    return r.json()["browser_download_url"]
+
+
+def delete_github_release(release_id: int, repo: str, token: str) -> None:
+    try:
+        requests.delete(
+            f"https://api.github.com/repos/{repo}/releases/{release_id}",
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+            timeout=30,
+        )
+    except Exception as e:
+        print(f"  ⚠️  Could not clean up release: {e} (not fatal)")
+
+
+def upload_video_to_github_release(video_path: str) -> tuple:
+    repo  = os.environ["GITHUB_REPOSITORY"]
+    token = GH_RELEASE_TOKEN
+    if not token:
+        raise RuntimeError("No GH_RELEASE_TOKEN or GITHUB_TOKEN available — can't create a release.")
+
+    size_mb = os.path.getsize(video_path) / 1024 / 1024
+    print(f"  ☁️  Uploading video ({size_mb:.1f} MB) to a GitHub Release…")
+
+    tag = f"kdrama-reel-{int(time.time())}"
+    release = create_github_release(tag, repo, token)
+    print(f"  📦 Release created: {tag} (id={release['id']})")
+
+    url = upload_asset_to_release(release["upload_url"], video_path, token)
+    print(f"  ✅ Video hosted at: {url}")
+    return url, release["id"]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FACEBOOK GRAPH API — PAGE VIDEO POSTING
+# ─────────────────────────────────────────────────────────────────────────────
+def fb_post(path: str, **params) -> dict:
+    r = requests.post(
+        f"{FB_BASE}/{path}",
+        params={"access_token": FB_ACCESS_TOKEN, **params},
+        timeout=60,
+    )
+    if not r.ok:
+        print(f"  FB API error: {r.status_code} — {r.text}")
+    r.raise_for_status()
+    return r.json()
+
+
+def fb_get(path: str, **params) -> dict:
+    r = requests.get(
+        f"{FB_BASE}/{path}",
+        params={"access_token": FB_ACCESS_TOKEN, **params},
+        timeout=15,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def upload_video_to_page(video_url: str, description: str) -> str:
+    data = fb_post(
+        f"{FB_PAGE_ID}/videos",
+        file_url=video_url,
+        description=description,
+    )
+    return data["id"]
+
+
+def wait_for_video_ready(video_id: str, retries: int = 24, interval: int = 10):
+    for attempt in range(retries):
+        status = fb_get(video_id, fields="status").get("status", {})
+        video_status = status.get("video_status", "unknown")
+        print(f"    Video {video_id}: {video_status}  (attempt {attempt+1}/{retries})")
+        if video_status == "ready":
+            return
+        if video_status == "error":
+            raise RuntimeError(f"Video {video_id} errored during processing.")
+        time.sleep(interval)
+    print("    ⚠️  Didn't confirm 'ready' status in time — continuing anyway.")
+
+
+def post_comment(video_id: str, message: str) -> str:
+    r = requests.post(
+        f"{FB_BASE}/{video_id}/comments",
+        params={"access_token": FB_ACCESS_TOKEN, "message": message},
+        timeout=30,
+    )
+    if not r.ok:
+        print(f"  ⚠️  Comment API error: {r.status_code} — {r.text}")
+    r.raise_for_status()
+    return r.json().get("id", "")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CAPTION
+# ─────────────────────────────────────────────────────────────────────────────
+def build_caption(article: dict) -> str:
+    cat   = article["category"]
+    emoji = CATEGORIES.get(cat, CATEGORIES["KDRAMA"])["emoji"]
+    tags  = HASHTAG_MAP.get(cat, "#KDrama #KoreanDrama")
+
+    cat_cta = {
+        "KDRAMA":   "🎭 Watch the full story above — are you excited for this drama?",
+        "KMOVIE":   "🎬 Watch the breakdown above — will you be watching this?",
+        "ACTORS":   "⭐ Watch for all the details — comment your thoughts below!",
+        "GOSSIP":   "☕ Watch above for the full tea — drop your reaction below!",
+        "SCANDAL":  "🔥 Watch the full story above — what do YOU think happened?",
+        "TRENDING": "📈 Watch above and tell us — are you watching this drama?",
+    }
+
+    cta_line = cat_cta.get(cat, "👆 Watch for the full story — drop your thoughts below!")
+
+    return (
+        f"{emoji} {article['title']}\n\n"
+        f"{cta_line}\n"
+        "📤 Share this with your K-drama fan friends!\n\n"
+        f"{tags} #KDramaNews #HallyuWave #KoreanEntertainment"
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────────────────────────────────────────
+def main():
+    print("=" * 60)
+    print("  🎭 Korean Drama News Facebook REEL Bot — Animated Video Edition")
+    print("=" * 60)
+
+    if not MOVIEPY_OK:
+        print("❌ moviepy is not installed!")
+        print("   Run: pip install moviepy numpy")
+        sys.exit(1)
+
+    print("\n📦 Setting up fonts…")
+    setup_fonts()
+
+    print("\n📰 Fetching K-drama articles from RSS feeds…")
+    articles = fetch_articles()
+    if not articles:
+        print("❌ No articles fetched. Check feeds or network. Exiting.")
+        sys.exit(1)
+    print(f"   Found {len(articles)} K-drama articles across all feeds.")
+
+    articles_with_img    = [a for a in articles if a.get("image_url")]
+    articles_without_img = [a for a in articles if not a.get("image_url")]
+    if articles_with_img:
+        article = random.choice(articles_with_img)
+        print(f"   ✅ {len(articles_with_img)} articles had images — picking one with photo.")
+    else:
+        article = random.choice(articles_without_img)
+        print("   ⚠️  No articles had images — using dark branded background.")
+
+    print(f"\n🎯 Selected K-Drama article:")
+    print(f"   Category  : {article['category']}")
+    print(f"   Title     : {article['title'][:80]}")
+    print(f"   Link      : {article['link']}")
+
+    mood = CATEGORY_MOOD.get(article["category"], "dramatic")
+    print(f"\n🎵 Setting up background beat (category {article['category']} → mood '{mood}')…")
+    est_duration = len(SLIDE_LABELS) * SLIDE_DURATION + 2.0
+    has_music = setup_music(duration=est_duration, mood=mood)
+
+    print("\n📷 Fetching all article photos (up to 8)…")
+    article_photos = fetch_all_article_images(article)
+    if not article_photos:
+        print("   ℹ️  No article photos — slides use the dark branded background.")
+    else:
+        print(f"   ✅ Successfully fetched {len(article_photos)} photos for the video.")
+
+    print("\n✍️  Generating K-drama slide content…")
+    slide_texts = generate_slides(article)
+    for i, t in enumerate(slide_texts):
+        print(f"   Slide {i+1}: {t[:60]}…")
+
+    print("\n🎨 Creating K-drama slide images (1080×1920)…")
+    images = []
+    for i, text in enumerate(slide_texts):
+        img = create_slide(text, i, len(slide_texts), article["category"],
+                           article_photos=article_photos)
+        images.append(img)
+        print(f"   Slide {i+1}/{len(slide_texts)} ✓")
+
+    output_path = "/tmp/kdrama_news_reel.mp4"
+    build_reel(images, output_path, has_music)
+
+    print("\n☁️  Uploading video…")
+    video_url, release_id = upload_video_to_github_release(output_path)
+
+    caption = build_caption(article)
+
+    print("\n📱 Uploading video to Facebook Page…")
+    video_id = upload_video_to_page(video_url, caption)
+    print(f"   Video ID: {video_id}")
+
+    print("\n⏳ Waiting for video to process (takes ~1-3 min)…")
+    wait_for_video_ready(video_id, retries=24, interval=10)
+
+    print(f"\n✅ SUCCESS! K-Drama Reel posted to Facebook Page! Video ID: {video_id}")
+    post_id = video_id
+
+    time.sleep(5)
+    print("\n💬 Posting comments…")
+    try:
+        c1 = post_comment(post_id, f"📰 Full story here: {article['link']}")
+        print(f"   ✅ Comment 1 posted (source): {c1}")
+    except Exception as e:
+        print(f"   ⚠️  Could not post source comment: {e}")
+
+    time.sleep(3)
+
+    try:
+        c2 = post_comment(post_id, "Wondering how this page is automated? Our systems run it automatically every day. Reach out at https://ranksorcery.com/ if you want a similar setup for your page!")
+        print(f"   ✅ Comment 2 posted (site): {c2}")
+    except Exception as e:
+        print(f"   ⚠️  Could not post site comment: {e}")
+
+    print("\n🎭 Done! K-Drama automation complete! 💜")
+    print("=" * 60)
+
+    print("\n🧹 Cleaning up temporary GitHub release…")
+    delete_github_release(release_id, os.environ["GITHUB_REPOSITORY"], GH_RELEASE_TOKEN)
+
+
+if __name__ == "__main__":
+    main()
