@@ -1,0 +1,49 @@
+name: 🍎 Post Fruit Benefits to Instagram
+
+on:
+  # Run daily at 10:00 AM Philippines time (UTC+8 = 02:00 UTC)
+  schedule:
+    - cron: "0 2 * * *"
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      fruit:
+        description: "Force a specific fruit (leave empty for random)"
+        required: false
+        default: ""
+
+jobs:
+  post-fruit-carousel:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🍎 Run Fruit Benefits Bot
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
+          IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PAGE_NAME: ${{ secrets.PAGE_NAME }}
+        run: python post_fruit_benefits_ig.py
+
+      - name: 📤 Upload slide artifacts (for debugging)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fruit-slides
+          path: /tmp/slide_*.jpg
+          retention-days: 3
