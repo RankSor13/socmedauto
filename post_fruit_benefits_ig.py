@@ -1,22 +1,19 @@
 """
 post_fruit_benefits_ig.py
 =========================
-Benefits of Fruits — Instagram Carousel Poster (Fully Automated, No AI API Required)
-
-Data sources:
-  1. Built-in fruit database (19 fruits × 4 content angles = 76 unique posts)
-  2. Wikipedia REST API — fun facts, history, origin (free, no key)
-  3. USDA FoodData Central — real nutrition numbers (free API key)
+Benefits of Fruits — Instagram Carousel Poster
 
 Required GitHub Secrets:
-  IG_USER_ID       — Instagram Business/Creator User ID
-  FB_ACCESS_TOKEN  — Facebook Page Access Token with instagram_content_publish
-  IMGBB_API_KEY    — Free at imgbb.com
-  PAGE_NAME        — Your IG handle WITHOUT the @
+  IG_USER_ID           — Instagram Business/Creator User ID (posting account)
+  FB_ACCESS_TOKEN      — Facebook Page Access Token (posting account)
+  IMGBB_API_KEY        — Free at imgbb.com
+  PAGE_NAME            — Your IG handle WITHOUT the @
 
 Optional:
-  USDA_API_KEY     — Free at https://api.data.gov/signup/ (real nutrition data)
-  GROQ_API_KEY     — Free at console.groq.com (AI-enhanced slide text)
+  COMMENT_IG_USER_ID   — Instagram User ID for COMMENTS (different account)
+  COMMENT_FB_ACCESS_TOKEN — Access token for the commenting account
+  USDA_API_KEY         — Free at https://api.data.gov/signup/
+  GROQ_API_KEY         — Free at console.groq.com
 """
 
 import os, sys, json, random, requests, re, time, base64
@@ -34,6 +31,10 @@ USDA_API_KEY    = os.environ.get("USDA_API_KEY", "")
 GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
 PAGE_NAME       = os.environ.get("PAGE_NAME", "fruitfacts.daily")
 
+# Comment account (different from posting account)
+COMMENT_IG_USER_ID   = os.environ.get("COMMENT_IG_USER_ID", "")
+COMMENT_FB_ACCESS_TOKEN = os.environ.get("COMMENT_FB_ACCESS_TOKEN", "")
+
 IMG_W, IMG_H    = 1080, 1080
 IG_BASE         = "https://graph.facebook.com/v21.0"
 
@@ -45,10 +46,9 @@ FONT_REG_PATH   = "/tmp/Poppins-Regular.ttf"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FruitBenefitsBot/1.0)"}
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FRUIT DATABASE — 19 fruits × 4 content angles = 76 unique posts
+# FRUIT DATABASE
 # ─────────────────────────────────────────────────────────────────────────────
 FRUITS = [
-    # ═══════════════ CITRUS ═══════════════
     {
         "name": "Orange", "emoji": "🍊", "category": "CITRUS", "accent_rgb": (251, 146, 60),
         "image_url": "https://images.unsplash.com/photo-1547514701-42782101795e?w=1080&h=1080&fit=crop&auto=format",
@@ -82,8 +82,6 @@ FRUITS = [
             {"hook": "Pink grapefruit has more lycopene than a raw tomato.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANTS", "points": ["Lycopene fights free radical damage", "Beta-carotene protects skin from UV aging", "Naringenin reduces DNA damage in cells", "Vitamin C regenerates other antioxidants", "Red grapefruit = 28x more beta-carotene than white"], "tip": "Choose pink or red grapefruit — they have 3x more lycopene than the white ones!"},
         ],
     },
-
-    # ═══════════════ BERRIES ═══════════════
     {
         "name": "Strawberry", "emoji": "🍓", "category": "BERRY", "accent_rgb": (244, 63, 94),
         "image_url": "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",
@@ -128,8 +126,6 @@ FRUITS = [
             {"hook": "Cherries speed up muscle recovery faster than ice baths.", "theme": "RECOVERY", "label": "MUSCLE RECOVERY", "points": ["Reduces post-race muscle pain by 24%", "Accelerates strength recovery after exercise", "Lowers creatine kinase (muscle damage marker) by 19%", "Anti-inflammatory reduces DOMS (delayed soreness)", "Antioxidants repair micro-tears in muscle fibers"], "tip": "Drink tart cherry juice for 7 days BEFORE a big race — proven to cut recovery time!"},
         ],
     },
-
-    # ═══════════════ TROPICAL ═══════════════
     {
         "name": "Banana", "emoji": "🍌", "category": "TROPICAL", "accent_rgb": (250, 204, 21),
         "image_url": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",
@@ -196,8 +192,6 @@ FRUITS = [
             {"hook": "Dragon fruit is one of the few natural sources of iron for vegetarians.", "theme": "ANEMIA", "label": "IRON & BLOOD", "points": ["0.65mg iron per cup — rare for fruit", "Vitamin C (34% DV) increases iron absorption by 6x", "Iron + Vitamin C in the same food = perfect combo", "Promotes red blood cell production", "Prevents iron-deficiency anemia in plant-based diets"], "tip": "Dragon fruit + citrus = maximum iron absorption. The vitamin C does the heavy lifting!"},
         ],
     },
-
-    # ═══════════════ TREE FRUITS ═══════════════
     {
         "name": "Apple", "emoji": "🍎", "category": "TREE", "accent_rgb": (220, 38, 38),
         "image_url": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",
@@ -209,8 +203,6 @@ FRUITS = [
             {"hook": "Apples protect your brain from age-related decline — Oxford study.", "theme": "BRAIN", "label": "BRAIN HEALTH", "points": ["Quercetin protects neurons from oxidative damage", "Reduces beta-amyloid plaque (Alzheimer's marker)", "Ursolic acid preserves brain cell membranes", "Acetylcholine boost improves memory & learning", "Anti-inflammatory reduces neuroinflammation"], "tip": "Drink cloudy apple juice — it has 4x more brain-protecting polyphenols than clear!"},
         ],
     },
-
-    # ═══════════════ SUPERFOOD ═══════════════
     {
         "name": "Avocado", "emoji": "🥑", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
         "image_url": "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",
@@ -244,8 +236,6 @@ FRUITS = [
             {"hook": "Pomegranate improves memory in older adults after just 4 weeks.", "theme": "BRAIN", "label": "MEMORY BOOSTER", "points": ["Improves visual memory by 30% in older adults", "Urolithin A clears damaged mitochondria from brain cells", "Reduces beta-amyloid plaque formation", "Enhances verbal and visual memory recall", "Anti-inflammatory protects brain tissue"], "tip": "8oz juice daily for 4 weeks — that's the protocol used in memory improvement studies!"},
         ],
     },
-
-    # ═══════════════ MELONS ═══════════════
     {
         "name": "Watermelon", "emoji": "🍉", "category": "MELON", "accent_rgb": (34, 197, 94),
         "image_url": "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
@@ -257,8 +247,6 @@ FRUITS = [
             {"hook": "Watermelon is technically both a fruit AND a vegetable.", "theme": "FUN FACTS", "label": "DID YOU KNOW?", "points": ["It's a vegetable — cousin of cucumbers & pumpkins", "Every part is edible: flesh, rind, seeds, juice", "Rind has MORE citrulline than the red flesh!", "Seeds are rich in protein, iron, and magnesium", "Yellow watermelon has more beta-carotene than red"], "tip": "Pick up the rind — it's edible! Pickled watermelon rind is delicious and nutritious!"},
         ],
     },
-
-    # ═══════════════ GRAPES ═══════════════
     {
         "name": "Grapes", "emoji": "🍇", "category": "BERRY", "accent_rgb": (139, 92, 246),
         "image_url": "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
@@ -285,14 +273,7 @@ CATEGORIES = {
     "SUPERFOOD": {"rgb": ( 16, 185, 129), "emoji": "✨", "label": "SUPERFOOD"},
 }
 
-SLIDE_LABELS = [
-    "",                     # 0 — hook (no label)
-    "WHY IT MATTERS",       # 1
-    "TOP BENEFITS",         # 2
-    "DID YOU KNOW?",        # 3
-    "NUTRITION FACTS",      # 4
-    "",                     # 5 — CTA (no label)
-]
+SLIDE_LABELS = ["", "WHY IT MATTERS", "TOP BENEFITS", "DID YOU KNOW?", "NUTRITION FACTS", ""]
 
 BG_DARK  = (13,  17,  28)
 BG_CARD  = (22,  33,  56)
@@ -332,7 +313,7 @@ def get_font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FRUIT SELECTION — Track used combos to avoid repeats
+# FRUIT SELECTION
 # ─────────────────────────────────────────────────────────────────────────────
 RECENT_FILE = "/tmp/recent_fruit_angles.txt"
 MAX_RECENT = 30
@@ -360,7 +341,6 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
             key = f"{fruit['name']}:{angle_idx}"
             if key not in recent:
                 combos.append((fruit, angle_idx, key))
-    
     if not combos:
         try: os.remove(RECENT_FILE)
         except OSError: pass
@@ -369,7 +349,6 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
             for angle_idx in range(len(fruit["angles"])):
                 key = f"{fruit['name']}:{angle_idx}"
                 combos.append((fruit, angle_idx, key))
-    
     fruit, angle_idx, key = random.choice(combos)
     save_recent(key)
     return fruit, angle_idx
@@ -382,7 +361,6 @@ def fetch_fruit_image(image_url: str, category: str) -> Image.Image | None:
     urls_to_try = [image_url]
     fallback = FALLBACK_IMAGES.get(category)
     if fallback: urls_to_try.append(fallback)
-    
     for url in urls_to_try:
         try:
             print(f"  📷 Fetching fruit image: {url[:80]}…")
@@ -405,7 +383,7 @@ def fetch_fruit_image(image_url: str, category: str) -> Image.Image | None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# WIKIPEDIA API — Free, no key needed
+# WIKIPEDIA API
 # ─────────────────────────────────────────────────────────────────────────────
 def fetch_wikipedia_extract(article_title: str) -> str:
     try:
@@ -430,7 +408,7 @@ def extract_fun_facts_from_wiki(wiki_text: str, fruit_name: str) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# USDA FOODDATA CENTRAL API — Free key at api.data.gov
+# USDA API
 # ─────────────────────────────────────────────────────────────────────────────
 def fetch_usda_nutrition(fdc_id: int) -> dict | None:
     if not USDA_API_KEY: return None
@@ -480,10 +458,10 @@ KEY FACTS TO INCLUDE:
 INSTRUCTIONS:
 - Write in English, casual & engaging tone
 - Keep each slide SHORT (max 20 words)
-- Slide 1: Punchy hook headline — curiosity-inducing
-- Slide 2: Why this matters (1-2 sentences)
-- Slide 3: Top 3 key benefits (bullet style)
-- Slide 4: A surprising fact people don't know
+- Slide 1: Punchy hook headline
+- Slide 2: Why this matters
+- Slide 3: Top 3 key benefits
+- Slide 4: A surprising fact
 - Slide 5: Nutrition highlight + practical tip
 - Slide 6: CTA — "Follow for daily fruit facts!"
 
@@ -518,7 +496,6 @@ def generate_slides(fruit: dict, angle: dict, wiki_text: str, nutrition_line: st
         print("  🤖 Generating content with Groq (Llama 3)…")
         texts = generate_slides_groq(fruit, angle)
         if texts and len(texts) >= 5: return texts
-    
     print("  ✍️  Using curated fruit data + Wikipedia…")
     slide1 = angle["hook"]
     slide2 = f"{fruit['name']} is incredible for {angle['theme'].lower()} — here's what science says."
@@ -534,31 +511,23 @@ def generate_slides(fruit: dict, angle: dict, wiki_text: str, nutrition_line: st
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# BACKGROUND GENERATION — NO BLUR, GRADIENT OVERLAY
+# BACKGROUND — NO OVERLAY, FRUIT 100% VISIBLE
 # ─────────────────────────────────────────────────────────────────────────────
-def make_bg(photo: Image.Image | None, accent: tuple, darkness: float = 0.55) -> Image.Image:
+def make_bg(photo: Image.Image | None, accent: tuple) -> Image.Image:
+    """
+    Return a 1080×1080 background.
+    - With photo: slight brightness boost, NO blur, NO overlay. Fruit is 100% visible.
+    - Without photo: dark gradient fallback.
+    """
     if photo:
         bg = photo.copy()
         bg = bg.resize((IMG_W, IMG_H), Image.LANCZOS)
+        # Slight brightness boost to make photo pop
         enhancer = ImageEnhance.Brightness(bg)
-        bg = enhancer.enhance(0.85)
+        bg = enhancer.enhance(1.05)
+        # Very subtle color tint (6%) — barely noticeable
         tint = Image.new("RGB", (IMG_W, IMG_H), accent)
-        bg = Image.blend(bg, tint, alpha=0.06)
-        
-        gradient = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
-        gdraw = ImageDraw.Draw(gradient)
-        for y in range(IMG_H):
-            progress = y / IMG_H
-            if progress < 0.25: alpha = 0
-            elif progress < 0.55:
-                t = (progress - 0.25) / 0.30
-                alpha = int(160 * (t * t))
-            else: alpha = 160
-            gdraw.line([(0, y), (IMG_W, y)], fill=(0, 0, 0, alpha))
-        
-        bg_rgba = bg.convert("RGBA")
-        bg_rgba.alpha_composite(gradient)
-        bg = bg_rgba.convert("RGB")
+        bg = Image.blend(bg, tint, alpha=0.04)
         return bg
     else:
         bg = Image.new("RGB", (IMG_W, IMG_H), BG_DARK)
@@ -573,7 +542,7 @@ def make_bg(photo: Image.Image | None, accent: tuple, darkness: float = 0.55) ->
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# IMAGE GENERATION
+# IMAGE GENERATION — NO OVERLAYS, TEXT WITH SHADOWS
 # ─────────────────────────────────────────────────────────────────────────────
 def draw_rounded_rect(draw, x0, y0, x1, y1, r, fill):
     draw.rectangle([x0 + r, y0, x1 - r, y1], fill=fill)
@@ -583,10 +552,29 @@ def draw_rounded_rect(draw, x0, y0, x1, y1, r, fill):
     draw.ellipse([x0, y1 - 2*r, x0 + 2*r, y1], fill=fill)
     draw.ellipse([x1 - 2*r, y1 - 2*r, x1, y1], fill=fill)
 
-def draw_text_shadow(draw, xy, text, font, fill, shadow_offset=3, shadow_color=(0, 0, 0, 180)):
-    sx, sy = xy[0] + shadow_offset, xy[1] + shadow_offset
-    draw.text((sx, sy), text, font=font, fill=shadow_color)
-    draw.text(xy, text, font=font, fill=fill)
+
+def draw_text_with_shadow(draw, xy, text, font, fill, shadow_offset=4):
+    """Draw text with a heavy drop shadow for readability over any photo."""
+    x, y = xy
+    # Multi-layer shadow for stronger readability
+    for dx, dy in [(shadow_offset, shadow_offset), (shadow_offset+1, shadow_offset), (shadow_offset, shadow_offset+1)]:
+        draw.text((x + dx, y + dy), text, font=font, fill=(0, 0, 0, 200))
+    draw.text((x, y), text, font=font, fill=fill)
+
+
+def draw_text_with_backdrop(draw, xy, text, font, fill, accent, padding=8):
+    """Draw text with a subtle semi-transparent accent-colored backdrop bar behind it.
+    Only covers the text area — fruit photo is visible everywhere else."""
+    x, y = xy
+    bbox = draw.textbbox((x, y), text, font=font)
+    # Draw a thin accent bar behind the text
+    bar_y0 = bbox[1] - padding
+    bar_y1 = bbox[3] + padding
+    bar_x0 = bbox[0] - padding * 2
+    bar_x1 = bbox[2] + padding * 2
+    # We draw directly on an RGBA layer
+    return (bar_x0, bar_y0, bar_x1, bar_y1, text, x, y)
+
 
 def fit_text(draw, text: str, font_size: int, max_w: int, max_lines: int, bold=True):
     while font_size >= 28:
@@ -604,6 +592,7 @@ def fit_text(draw, text: str, font_size: int, max_w: int, max_lines: int, bold=T
         font_size -= 4
     return get_font(28, bold=bold), lines
 
+
 def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
                  fruit_photo: Image.Image | None = None) -> Image.Image:
     cat_data = CATEGORIES.get(fruit["category"], CATEGORIES["SUPERFOOD"])
@@ -613,14 +602,17 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
     is_hook = idx == 0
     is_cta = idx == total - 1
 
+    # Background — NO overlay, fruit is fully visible
     use_photo = fruit_photo and not is_cta
-    bg = make_bg(fruit_photo if use_photo else None, accent, darkness=0.55)
+    bg = make_bg(fruit_photo if use_photo else None, accent)
 
     img = bg.copy()
     draw = ImageDraw.Draw(img)
 
+    # Top accent stripe
     draw.rectangle([(0, 0), (IMG_W, 10)], fill=accent)
 
+    # Category pill (top-left) with solid background so it's readable
     pill_font = get_font(24)
     pill_text = f"{fruit['emoji']}  {cat_label}"
     pill_bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
@@ -630,6 +622,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
     draw_rounded_rect(draw, px, py, px + pw, py + ph, 10, accent)
     draw.text((px + 18, py + 9), pill_text, font=pill_font, fill=C_WHITE)
 
+    # Fruit name + theme pill
     if not is_hook:
         name_font = get_font(22, bold=False)
         name_text = f"{fruit['name']} · {angle['theme']}"
@@ -639,66 +632,40 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         draw_rounded_rect(draw, nx, py, nx + nw, py + ph, 10, BG_CARD)
         draw.text((nx + 15, py + 9), name_text, font=name_font, fill=C_GRAY)
 
+    # Slide counter (top-right)
     ctr_font = get_font(24, bold=False)
     draw.text((IMG_W - 56, 42), f"{idx+1}/{total}", font=ctr_font, anchor="rm", fill=C_GRAY)
 
+    # ══════════════ HOOK SLIDE ══════════════
     if is_hook:
-        overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
-        odraw = ImageDraw.Draw(overlay)
-        for y in range(IMG_H):
-            progress = y / IMG_H
-            if progress < 0.30: alpha = 0
-            elif progress < 0.50:
-                t = (progress - 0.30) / 0.20
-                alpha = int(120 * t)
-            else: alpha = 120
-            odraw.line([(0, y), (IMG_W, y)], fill=(0, 0, 0, alpha))
-        
-        img_rgba = img.convert("RGBA")
-        img_rgba.alpha_composite(overlay)
-        img = img_rgba.convert("RGB")
-        draw = ImageDraw.Draw(img)
-
         e_font = get_font(100)
         draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
 
-        font, lines = fit_text(draw, text.upper(), 64, IMG_W - 120, 4)
+        # Hook headline — centered, with strong shadow
+        font, lines = fit_text(draw, text.upper(), 62, IMG_W - 120, 4)
         fs = font.size
         lh = fs + 16
         y = 420
         for line in lines:
             bx = draw.textbbox((0, 0), line, font=font)[2]
             x = (IMG_W - bx) // 2
-            draw_text_shadow(draw, (x, y), line, font, C_WHITE, shadow_offset=5)
+            draw_text_with_shadow(draw, (x, y), line, font, C_WHITE, shadow_offset=5)
             y += lh
 
+        # Accent underline
         draw.rectangle([(IMG_W//2 - 80, y + 20), (IMG_W//2 + 80, y + 26)], fill=accent)
 
+        # Theme badge
         theme_font = get_font(22, bold=False)
         theme_text = f"🎯 {angle['theme']}"
         draw.text((IMG_W // 2, IMG_H - 160), theme_text, font=theme_font, anchor="mm", fill=accent)
 
+        # Swipe prompt
         prompt_font = get_font(24, bold=False)
         draw.text((IMG_W // 2, IMG_H - 130), "Swipe to learn why →", font=prompt_font, anchor="mm", fill=C_GRAY)
 
+    # ══════════════ CTA SLIDE ══════════════
     elif is_cta:
-        if use_photo:
-            cta_overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
-            cdraw = ImageDraw.Draw(cta_overlay)
-            for y in range(IMG_H):
-                progress = y / IMG_H
-                if progress < 0.20: alpha = 0
-                elif progress < 0.40:
-                    t = (progress - 0.20) / 0.20
-                    alpha = int(160 * t)
-                else: alpha = 160
-                cdraw.line([(0, y), (IMG_W, y)], fill=(0, 0, 0, alpha))
-            
-            img_rgba = img.convert("RGBA")
-            img_rgba.alpha_composite(cta_overlay)
-            img = img_rgba.convert("RGB")
-            draw = ImageDraw.Draw(img)
-
         e_font = get_font(120)
         draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
 
@@ -708,29 +675,23 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         draw.rectangle([(160, 690), (IMG_W - 160, 697)], fill=accent)
         draw.text((IMG_W // 2, 740), "Save this post for your next grocery run! 🛒", font=get_font(24, bold=False), anchor="mm", fill=C_GRAY)
 
+    # ══════════════ CONTENT SLIDES ══════════════
     else:
         label = SLIDE_LABELS[idx] if idx < len(SLIDE_LABELS) else ""
 
-        if use_photo:
-            card_top = 120
-            card_bot = IMG_H - 80
-            card_img = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
-            card_d = ImageDraw.Draw(card_img)
-            draw_rounded_rect(card_d, 44, card_top, IMG_W - 44, card_bot, 20, (13, 17, 28, 200))
-            img_rgba = img.convert("RGBA")
-            img_rgba.alpha_composite(card_img)
-            img = img_rgba.convert("RGB")
-            draw = ImageDraw.Draw(img)
+        # NO frosted card, NO overlay — fruit photo is fully visible
 
+        # Label
         if label:
             lbl_font = get_font(30)
             lbl_bbox = draw.textbbox((0, 0), label, font=lbl_font)
             lbl_w = lbl_bbox[2]
             lbl_x = (IMG_W - lbl_w) // 2
             lbl_y = 140
-            draw.text((lbl_x, lbl_y), label, font=lbl_font, fill=accent)
+            draw_text_with_shadow(draw, (lbl_x, lbl_y), label, lbl_font, accent, shadow_offset=3)
             draw.rectangle([(lbl_x, lbl_y + lbl_bbox[3] + 6), (lbl_x + lbl_w, lbl_y + lbl_bbox[3] + 10)], fill=accent)
 
+        # Body text — each line has its own thin backdrop bar
         pad = 70
         max_w = IMG_W - pad * 2
         font, lines = fit_text(draw, text, 54, max_w, 8)
@@ -738,21 +699,81 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         lh = fs + 18
         th = len(lines) * lh
         y = max(230, (IMG_H - th) // 2 + 10)
+
+        # First pass: draw thin backdrop bars behind each line
+        if use_photo:
+            overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
+            odraw = ImageDraw.Draw(overlay)
+            for i, line in enumerate(lines):
+                bbox = draw.textbbox((pad, y + i * lh), line, font=font)
+                # Thin dark bar behind each text line
+                bar_padding = 6
+                odraw.rectangle(
+                    [(pad - 12, bbox[1] - bar_padding), (bbox[2] + 12, bbox[3] + bar_padding)],
+                    fill=(0, 0, 0, 140)  # Semi-transparent dark bar
+                )
+            img_rgba = img.convert("RGBA")
+            img_rgba.alpha_composite(overlay)
+            img = img_rgba.convert("RGB")
+            draw = ImageDraw.Draw(img)
+
+        # Second pass: draw the actual text
         for i, line in enumerate(lines):
             colour = accent if i == 0 else C_WHITE
-            draw_text_shadow(draw, (pad, y), line, font, colour, shadow_offset=3)
+            draw_text_with_shadow(draw, (pad, y), line, font, colour, shadow_offset=3)
             y += lh
 
+        # Accent left border
         bar_top = max(230, (IMG_H - th) // 2 + 10) - 8
         bar_bottom = bar_top + th + 8
         draw.rectangle([(36, bar_top), (42, bar_bottom)], fill=accent)
 
+    # Bottom branding bar
     draw.rectangle([(0, IMG_H - 72), (IMG_W, IMG_H)], fill=BG_CARD)
     draw.rectangle([(0, IMG_H - 72), (IMG_W, IMG_H - 70)], fill=accent)
     brand_font = get_font(26, bold=False)
     draw.text((IMG_W // 2, IMG_H - 36), f"@{PAGE_NAME}", font=brand_font, anchor="mm", fill=C_GRAY)
 
     return img
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TOKEN VALIDATION
+# ─────────────────────────────────────────────────────────────────────────────
+def validate_access_token() -> bool:
+    try:
+        r = requests.get(
+            f"{IG_BASE}/debug_token",
+            params={"input_token": FB_ACCESS_TOKEN, "access_token": FB_ACCESS_TOKEN},
+            timeout=10,
+        )
+        data = r.json()
+        if r.ok and "data" in data:
+            token_data = data["data"]
+            is_valid = token_data.get("is_valid", False)
+            expires_at = token_data.get("expires_at", 0)
+            if not is_valid:
+                print("  ❌ Token is INVALID or EXPIRED!")
+                print("  → Go to: https://developers.facebook.com/tools/explorer/")
+                print("  → Update your GitHub Secret: FB_ACCESS_TOKEN")
+                return False
+            current_time = int(time.time())
+            days_left = (expires_at - current_time) // 86400
+            if days_left <= 0:
+                print("  ⚠️  Token expires VERY SOON (or already expired)!")
+                return False
+            elif days_left <= 7:
+                print(f"  ⚠️  WARNING: Token expires in {days_left} days!")
+            else:
+                print(f"  ✅ Token is valid (expires in {days_left} days)")
+            return True
+        else:
+            error_msg = data.get("error", {}).get("message", "Unknown error")
+            print(f"  ❌ Token validation failed: {error_msg}")
+            return False
+    except Exception as e:
+        print(f"  ⚠️  Could not validate token: {e}")
+        return True
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -770,14 +791,16 @@ def upload_to_imgbb(img: Image.Image) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # INSTAGRAM GRAPH API
 # ─────────────────────────────────────────────────────────────────────────────
-def ig_post(path: str, **params) -> dict:
-    r = requests.post(f"{IG_BASE}/{path}", params={"access_token": FB_ACCESS_TOKEN, **params}, timeout=30)
+def ig_post(path: str, token: str = None, **params) -> dict:
+    access_token = token or FB_ACCESS_TOKEN
+    r = requests.post(f"{IG_BASE}/{path}", params={"access_token": access_token, **params}, timeout=30)
     if not r.ok: print(f"  IG API error: {r.status_code} — {r.text}")
     r.raise_for_status()
     return r.json()
 
-def ig_get(path: str, **params) -> dict:
-    r = requests.get(f"{IG_BASE}/{path}", params={"access_token": FB_ACCESS_TOKEN, **params}, timeout=15)
+def ig_get(path: str, token: str = None, **params) -> dict:
+    access_token = token or FB_ACCESS_TOKEN
+    r = requests.get(f"{IG_BASE}/{path}", params={"access_token": access_token, **params}, timeout=15)
     r.raise_for_status()
     return r.json()
 
@@ -802,8 +825,14 @@ def publish_media(creation_id: str) -> str:
     data = ig_post(f"{IG_USER_ID}/media_publish", creation_id=creation_id)
     return data["id"]
 
-def post_comment(media_id: str, message: str) -> str:
-    r = requests.post(f"{IG_BASE}/{media_id}/comments", params={"access_token": FB_ACCESS_TOKEN, "message": message}, timeout=30)
+def post_comment(media_id: str, message: str, token: str = None) -> str:
+    """Post a comment. Uses COMMENT account token if available, otherwise posting account."""
+    access_token = token or COMMENT_FB_ACCESS_TOKEN or FB_ACCESS_TOKEN
+    r = requests.post(
+        f"{IG_BASE}/{media_id}/comments",
+        params={"access_token": access_token, "message": message},
+        timeout=30,
+    )
     if not r.ok: print(f"  ⚠️  Comment API error: {r.status_code} — {r.text}")
     r.raise_for_status()
     return r.json().get("id", "")
@@ -829,6 +858,14 @@ def main():
     print(f"  🍎 Benefits of Fruits — Instagram Carousel Bot")
     print(f"  📅 {today}")
     print("=" * 60)
+
+    # Validate token FIRST
+    print("\n🔑 Validating Instagram access token…")
+    if not validate_access_token():
+        print("\n❌ ABORTING: Access token is expired or invalid.")
+        print("   Fix: https://developers.facebook.com/tools/explorer/")
+        print("   Update GitHub Secret: FB_ACCESS_TOKEN")
+        sys.exit(1)
 
     print("\n📦 Setting up fonts…")
     setup_fonts()
@@ -880,34 +917,66 @@ def main():
     print("\n📱 Creating Instagram carousel items…")
     children = []
     for i, url in enumerate(image_urls):
-        cid = upload_carousel_item(url)
-        children.append(cid)
-        print(f"   Item {i+1} container ID: {cid}")
-        time.sleep(4)
+        try:
+            cid = upload_carousel_item(url)
+            children.append(cid)
+            print(f"   Item {i+1} container ID: {cid}")
+            time.sleep(4)
+        except Exception as e:
+            print(f"   ❌ Failed to upload carousel item {i+1}: {e}")
+            if "190" in str(e) or "OAuthException" in str(e):
+                print("   🔑 ACCESS TOKEN EXPIRED! Update GitHub Secret: FB_ACCESS_TOKEN")
+            sys.exit(1)
 
     print("\n⏳ Waiting for carousel items to process…")
-    for cid in children: wait_for_container(cid)
+    try:
+        for cid in children: wait_for_container(cid)
+    except Exception as e:
+        print(f"   ❌ Carousel processing failed: {e}")
+        sys.exit(1)
 
     caption = build_caption(fruit, angle)
 
     print("\n🎠 Creating carousel container…")
-    carousel_id = create_carousel(children, caption)
-    print(f"   Carousel ID: {carousel_id}")
+    try:
+        carousel_id = create_carousel(children, caption)
+        print(f"   Carousel ID: {carousel_id}")
+    except Exception as e:
+        print(f"   ❌ Failed to create carousel: {e}")
+        sys.exit(1)
 
     print("\n⏳ Waiting for carousel to process…")
-    wait_for_container(carousel_id)
+    try:
+        wait_for_container(carousel_id)
+    except Exception as e:
+        print(f"   ❌ Carousel processing failed: {e}")
+        sys.exit(1)
 
     print("\n🚀 Publishing to Instagram…")
-    post_id = publish_media(carousel_id)
-    print(f"\n✅ SUCCESS! Post ID: {post_id}")
+    try:
+        post_id = publish_media(carousel_id)
+        print(f"\n✅ SUCCESS! Post ID: {post_id}")
+    except Exception as e:
+        print(f"   ❌ Failed to publish: {e}")
+        sys.exit(1)
 
+    # ── Comments — use different account if configured ──
     time.sleep(5)
     print("\n💬 Posting nutrition info comment…")
+
+    # Determine which account is commenting
+    if COMMENT_IG_USER_ID and COMMENT_FB_ACCESS_TOKEN:
+        print(f"   📝 Commenting as account ID: {COMMENT_IG_USER_ID} (different from poster)")
+        comment_token = COMMENT_FB_ACCESS_TOKEN
+    else:
+        print(f"   📝 Commenting as the same account (no COMMENT_IG_USER_ID configured)")
+        comment_token = FB_ACCESS_TOKEN
+
     try:
         comment = f"📊 {fruit['name']} Nutrition Highlights:\n{'─' * 30}\n"
         for p in angle["points"][:3]: comment += f"✓ {p}\n"
         comment += f"\n💡 {angle['tip']}"
-        c = post_comment(post_id, comment)
+        c = post_comment(post_id, comment, token=comment_token)
         print(f"   ✅ Comment posted: {c}")
     except Exception as e:
         print(f"   ⚠️  Could not post comment: {e}")
