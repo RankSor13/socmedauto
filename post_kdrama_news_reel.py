@@ -135,23 +135,64 @@ CATEGORY_MOOD = {
 # RSS FEEDS — Korean Drama & Entertainment News
 # ─────────────────────────────────────────────────────────────────────────────
 FEEDS = [
-    # Soompi — #1 English Korean entertainment news site
-    {"url": "https://www.soompi.com/feed/",                         "category": "KDRAMA"},
-    # Dramabeans — premier Korean drama recap & news blog
-    {"url": "https://www.dramabeans.com/feed/",                     "category": "KDRAMA"},
-    # Koreaboo — Korean celebrity & drama news
-    {"url": "https://www.koreaboo.com/feed/",                       "category": "ACTORS"},
-    # Allkpop — Kpop & Kdrama celebrity news, gossip, scandals
-    {"url": "https://www.allkpop.com/feed/",                        "category": "GOSSIP"},
-    # HanCinema — Korean film & drama database news
-    {"url": "https://www.hancinema.net/rss.xml",                    "category": "KMOVIE"},
-    # Hellokpop — Korean entertainment general news
-    {"url": "https://www.hellokpop.com/feed/",                      "category": "TRENDING"},
-    # Korea JoongAng Daily — Entertainment section
-    {"url": "https://koreajoongangdaily.joins.com/rss/entertainment","category": "ACTORS"},
-    # AsianWiki News — Asian drama & movie news
+    # ── Tier 1: Top English K-drama news sources ──────────────────────────────
+    {"url": "https://www.soompi.com/feed/",                                     "category": "KDRAMA"},
+    {"url": "https://www.dramabeans.com/feed/",                                 "category": "KDRAMA"},
+    {"url": "https://www.koreaboo.com/feed/",                                   "category": "ACTORS"},
+    {"url": "https://www.allkpop.com/feed/",                                    "category": "GOSSIP"},
+    {"url": "https://www.hancinema.net/rss.xml",                                "category": "KMOVIE"},
+    {"url": "https://www.hellokpop.com/feed/",                                  "category": "TRENDING"},
+    # ── Tier 2: K-drama blogs & community ────────────────────────────────────
+    {"url": "https://www.seoulbeats.com/feed/",                                 "category": "ACTORS"},
+    {"url": "https://asianjunkie.com/feed/",                                    "category": "GOSSIP"},
+    {"url": "https://netizenbuzz.blogspot.com/feeds/posts/default?alt=rss",     "category": "SCANDAL"},
+    {"url": "https://dramapanda.com/feeds/posts/default?alt=rss",               "category": "KDRAMA"},
+    {"url": "https://kpopmap.com/feed/",                                        "category": "ACTORS"},
+    {"url": "https://thebiaslist.com/feed/",                                    "category": "ACTORS"},
+    # ── Tier 3: Korean English-language newspapers ────────────────────────────
+    {"url": "https://koreajoongangdaily.joins.com/rss/entertainment",           "category": "ACTORS"},
+    {"url": "https://www.koreatimes.co.kr/www2/rss/culture.xml",                "category": "TRENDING"},
+    {"url": "https://en.yna.co.kr/RSS/entertainment.xml",                       "category": "TRENDING"},
+    # ── Tier 4: Asian entertainment & drama databases ─────────────────────────
     {"url": "https://asianwiki.com/index.php?title=Special:RecentChanges&feed=rss", "category": "KMOVIE"},
+    {"url": "https://www.8asians.com/feed/",                                    "category": "KDRAMA"},
+    {"url": "https://www.beyondhallyu.com/feed/",                               "category": "TRENDING"},
 ]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SEEN ARTICLES — dedup tracking to avoid repeating the same posts
+# ─────────────────────────────────────────────────────────────────────────────
+# Path to the JSON file that tracks already-posted article links.
+# In GitHub Actions this file is committed back to the repo after each run.
+# Set the SEEN_FILE env var to override the default location.
+SEEN_FILE = os.environ.get("SEEN_FILE", "seen_articles.json")
+SEEN_MAX  = 500   # cap so the file never bloats
+
+
+def load_seen() -> set:
+    """Load set of already-posted article links from disk."""
+    if os.path.exists(SEEN_FILE):
+        try:
+            with open(SEEN_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    return set(data)
+        except Exception:
+            pass
+    return set()
+
+
+def save_seen(seen: set, new_link: str) -> None:
+    """Append new_link to the seen set and persist to disk (capped at SEEN_MAX)."""
+    seen.add(new_link)
+    entries = list(seen)[-SEEN_MAX:]
+    try:
+        with open(SEEN_FILE, "w", encoding="utf-8") as f:
+            json.dump(entries, f, ensure_ascii=False, indent=2)
+        print(f"  📝 Seen-articles file updated ({len(entries)} entries) → {SEEN_FILE}")
+    except Exception as e:
+        print(f"  ⚠️  Could not save seen-articles file: {e}")
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CATEGORY DESIGN TOKENS — K-Drama palette (vibrant & trendy)
@@ -333,6 +374,50 @@ def generate_lofi_beat(duration: float, path: str, mood: str = "chill",
 
 
 def setup_music(duration: float = 60.0, mood: str = "chill") -> bool:
+    """
+    Resolves background music in this priority order:
+      1. MUSIC_FILE env var   — path to a specific audio file (mp3/wav/ogg/m4a)
+      2. MUSIC_FOLDER env var — directory of audio files; mood-prefixed files
+                                (e.g. dramatic_ost.mp3) are preferred, then
+                                any file in the folder is chosen at random.
+                                Name files with a mood prefix to auto-match:
+                                  dramatic_*.mp3  → KDRAMA / SCANDAL
+                                  chill_*.mp3     → ACTORS
+                                  upbeat_*.mp3    → KMOVIE / TRENDING
+                                  juicy_*.mp3     → GOSSIP
+      3. Generated lofi beat  — pure-Python fallback, always works offline.
+    """
+    import shutil
+    global MUSIC_PATH
+
+    # ── 1. Specific file override ─────────────────────────────────────────────
+    music_file = os.environ.get("MUSIC_FILE", "").strip()
+    if music_file:
+        if os.path.exists(music_file):
+            MUSIC_PATH = music_file
+            print(f"  🎵 Using custom song: {os.path.basename(music_file)}")
+            return True
+        else:
+            print(f"  ⚠️  MUSIC_FILE not found: {music_file} — falling through.")
+
+    # ── 2. Song folder — pick by mood prefix, fallback to any audio ───────────
+    music_folder = os.environ.get("MUSIC_FOLDER", "").strip()
+    if music_folder and os.path.isdir(music_folder):
+        AUDIO_EXTS = (".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac")
+        all_songs  = [f for f in os.listdir(music_folder)
+                      if f.lower().endswith(AUDIO_EXTS)]
+        mood_songs = [f for f in all_songs if f.lower().startswith(mood.lower())]
+        candidates = mood_songs if mood_songs else all_songs
+        if candidates:
+            chosen      = random.choice(candidates)
+            MUSIC_PATH  = os.path.join(music_folder, chosen)
+            print(f"  🎵 Song from folder (mood '{mood}'): {chosen}")
+            return True
+        else:
+            print(f"  ⚠️  MUSIC_FOLDER '{music_folder}' has no audio files — falling through.")
+
+    # ── 3. Generated lofi beat (always available, zero dependencies) ──────────
+    MUSIC_PATH = "/tmp/bg_music.wav"
     try:
         print(f"  🎵 Smashing rocks to make drama beat (mood: {mood})…")
         generate_lofi_beat(duration, MUSIC_PATH, mood=mood)
@@ -448,30 +533,39 @@ def extract_image_from_item(item, raw_xml_text: str = "") -> str:
 
 
 def fetch_articles() -> list[dict]:
+    seen = load_seen()
+    print(f"  🔍 Loaded {len(seen)} seen article(s) — will skip repeats.")
     articles = []
+    skipped  = 0
     for feed in FEEDS:
         try:
             r = requests.get(feed["url"], headers=HEADERS, timeout=12)
             r.raise_for_status()
             raw_text = r.text
             root = ET.fromstring(r.content)
-            for item in root.findall(".//item")[:8]:
+            for item in root.findall(".//item")[:12]:
                 title     = strip_html(item.findtext("title", ""))
                 desc      = strip_html(item.findtext("description", ""))
                 link      = (item.findtext("link") or "").strip()
                 image_url = extract_image_from_item(item, raw_text)
-                if title and link and len(title) > 10:
-                    if not image_url:
-                        image_url = scrape_og_image(link)
-                    articles.append({
-                        "title":    title,
-                        "desc":     desc[:800],
-                        "link":     link,
-                        "category": feed["category"],
-                        "image_url": image_url,
-                    })
+                if not (title and link and len(title) > 10):
+                    continue
+                # ── Skip already-posted articles ──────────────────────────────
+                if link in seen:
+                    skipped += 1
+                    continue
+                if not image_url:
+                    image_url = scrape_og_image(link)
+                articles.append({
+                    "title":    title,
+                    "desc":     desc[:800],
+                    "link":     link,
+                    "category": feed["category"],
+                    "image_url": image_url,
+                })
         except Exception as e:
             print(f"  ⚠️  Feed error [{feed['url']}]: {e}")
+    print(f"  ✅ {len(articles)} fresh articles found, {skipped} duplicate(s) skipped.")
     return articles
 
 
@@ -1297,6 +1391,10 @@ def main():
 
     print(f"\n✅ SUCCESS! K-Drama Reel posted to Facebook Page! Video ID: {video_id}")
     post_id = video_id
+
+    # ── Mark article as seen so it won't be reposted ───────────────────────
+    seen_set = load_seen()
+    save_seen(seen_set, article["link"])
 
     time.sleep(5)
     print("\n💬 Posting comments…")
