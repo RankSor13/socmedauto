@@ -1,25 +1,27 @@
 """
 post_love_stories_reel.py
 ==========================
-Love & Relationship Stories Facebook REEL Poster — Animated Video Edition
-Inspired by Boiling Waters PH style — anonymous relationship stories in Tagalog/Taglish.
+Love Stories Facebook REEL Poster — Boiling Waters PH Style
+Static slides (no zoom/animation) → stitched into a Reel video
 
-Topics: Love, Cheating, Struggles, Advice, Hidden Desire, Confession, Heartbreak
-
-Pipeline:
-  1. Groq AI generates a realistic anonymous relationship story (Tagalog/Taglish)
-  2. Draws a Boiling Waters-style slide set (dark bg + emotional photo + text overlay)
-  3. Assembles into a vertical 9:16 animated video with lofi music
-  4. Uploads to GitHub Release → posts to Facebook Page as a Reel
+Template mirrors the Boiling Waters PH design:
+  • Dark moody background photo + gradient overlay
+  • "Anonymous member" badge — top left (orange circle + spy icon)
+  • Large bold-italic headline (the hook)
+  • Smaller body story text below
+  • Bottom-left: cactus icon + "Featured from <community>"
+  • Bottom-right: page logo circle + page name
 
 Required GitHub Secrets:
-  FB_ACCESS_TOKEN  — Facebook Page Access Token (pages_manage_posts + publish_video)
-  FB_PAGE_ID       — Your Facebook Page numeric ID
-  GROQ_API_KEY     — Free at console.groq.com (Llama 3.3 70B)
-  PAGE_NAME        — Your Facebook Page name/handle (e.g. "yourloveconfessions")
-  GH_RELEASE_TOKEN — (auto-provided by GitHub Actions as GITHUB_TOKEN)
+  FB_PAGE_ID        — Facebook Page numeric ID
+  FB_ACCESS_TOKEN   — Page Access Token (pages_manage_posts + publish_video)
+  GROQ_API_KEY      — Free at console.groq.com
+  PAGE_NAME         — Your page handle, e.g. "LoveConfessionsPH"
 
-GitHub Actions dependencies:
+Optional Secrets:
+  COMMUNITY_NAME    — Community/group name, defaults to "<PAGE_NAME> Community"
+
+GitHub Actions pip install line:
   pip install requests Pillow "moviepy<2" numpy
 """
 
@@ -29,11 +31,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from io import BytesIO
 
 try:
-    from moviepy.editor import (
-        ImageClip, AudioFileClip, CompositeVideoClip,
-        concatenate_videoclips, ColorClip, VideoClip
-    )
-    import moviepy.video.fx.all as vfx
+    from moviepy.editor import ImageClip, concatenate_videoclips, AudioFileClip
     MOVIEPY_OK = True
 except ImportError:
     MOVIEPY_OK = False
@@ -45,109 +43,75 @@ FB_PAGE_ID       = os.environ["FB_PAGE_ID"]
 FB_ACCESS_TOKEN  = os.environ["FB_ACCESS_TOKEN"]
 GH_RELEASE_TOKEN = os.environ.get("GH_RELEASE_TOKEN", os.environ.get("GITHUB_TOKEN", ""))
 GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")
-PAGE_NAME        = os.environ.get("PAGE_NAME", "loveconfessionsPH")
+PAGE_NAME        = os.environ.get("PAGE_NAME", "LoveConfessionsPH")
+COMMUNITY_NAME   = os.environ.get("COMMUNITY_NAME", f"{PAGE_NAME} Community")
 
-# ── Canvas: vertical 9:16 for Reels
-IMG_W, IMG_H = 1080, 1920
-FB_BASE      = "https://graph.facebook.com/v21.0"
+IMG_W, IMG_H    = 1080, 1920
+FB_BASE         = "https://graph.facebook.com/v21.0"
+OUTPUT_PATH     = "/tmp/love_story_reel.mp4"
 
-FONT_BOLD_URL  = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Bold.ttf"
-FONT_REG_URL   = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Regular.ttf"
-FONT_BOLD_PATH = "/tmp/Poppins-Bold.ttf"
-FONT_REG_PATH  = "/tmp/Poppins-Regular.ttf"
+FONT_BOLD_PATH      = "/tmp/Poppins-Bold.ttf"
+FONT_BOLDITALIC_PATH= "/tmp/Poppins-BoldItalic.ttf"
+FONT_REG_PATH       = "/tmp/Poppins-Regular.ttf"
 
-# ── Video settings
-SLIDE_DURATION = 4.5   # seconds per slide
-FADE_DURATION  = 0.5   # crossfade between slides
-FPS            = 30
-ZOOM_AMOUNT    = 0.07  # Ken Burns zoom
+SLIDE_DURATION  = 5.0   # seconds per static slide
+FPS             = 24
 
-# ── Background music
-MUSIC_PATH       = "/tmp/bg_music.wav"
-MUSIC_VOLUME     = 0.15
-BEAT_SAMPLE_RATE = 44100
+# Brand colors (Boiling Waters style)
+ANON_ORANGE     = (220, 95, 35)
+C_WHITE         = (255, 255, 255)
+C_OFFWHITE      = (240, 235, 230)
+C_MUTED         = (185, 175, 165)
+C_DARK_BG       = (15,  12,  10)
+
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LoveStoriesBot/1.0)"}
 
 # ─────────────────────────────────────────────────────────────────────────────
-# STORY CATEGORIES & DESIGN TOKENS
+# CATEGORIES
 # ─────────────────────────────────────────────────────────────────────────────
-CATEGORIES = {
-    "LOVE":         {"rgb": (220,  60, 100), "emoji": "💗", "label": "LOVE STORY"},
-    "CHEATING":     {"rgb": (200,  40,  40), "emoji": "🔥", "label": "CHEATING"},
-    "STRUGGLES":    {"rgb": (130,  90, 200), "emoji": "😔", "label": "STRUGGLES"},
-    "ADVICE":       {"rgb": ( 30, 160, 140), "emoji": "💬", "label": "ADVICE"},
-    "HIDDEN_DESIRE":{"rgb": (180,  50, 160), "emoji": "🤫", "label": "HIDDEN DESIRE"},
-    "CONFESSION":   {"rgb": (230, 130,  30), "emoji": "📝", "label": "CONFESSION"},
-    "HEARTBREAK":   {"rgb": ( 80,  80, 200), "emoji": "💔", "label": "HEARTBREAK"},
-}
-
-# Colors
-BG_DARK  = (10, 8, 20)     # near-black deep purple
-BG_CARD  = (22, 14, 38)    # dark card
-C_WHITE  = (255, 255, 255)
-C_GRAY   = (200, 185, 220)
-ANON_BG  = (230, 90, 60)   # orange-red for anonymous icon (Boiling Waters style)
-
-HASHTAG_MAP = {
-    "LOVE":          "#LoveStory #RelationshipGoals #TrueLove #KiligPH #PagtatamaanPH",
-    "CHEATING":      "#CheatingStory #Infidelity #BreakUp #HindiAkoSulit #ToxicRelationship",
-    "STRUGGLES":     "#RelationshipStruggles #SasakitinKaRinNiya #LongDistance #PagmamahalKo",
-    "ADVICE":        "#RelationshipAdvice #LoveAdvice #KailangaMoMalaman #LoveTips",
-    "HIDDEN_DESIRE": "#HiddenFeelings #SecretAdmirer #HiddenDesire #MahiwaganPagmamahal",
-    "CONFESSION":    "#LoveConfession #Hugot #ConfessionPH #AnonymousConfession",
-    "HEARTBREAK":    "#Heartbreak #Sakit #BreakUp #Heartbroken #MagpapalusogMuna",
-}
-
-MOOD_PRESETS = {
-    "soft": {
-        "bpm": 68, "minor": False,
-        "kick_amp": 0.7, "snare_amp": 0.5,
-        "chords": [[-9,-5,-2],[-14,-10,-7],[-12,-8,-5],[-17,-13,-10]],
-    },
-    "sad": {
-        "bpm": 58, "minor": True,
-        "kick_amp": 0.8, "snare_amp": 0.55,
-        "chords": [[-12,-8,-5],[-17,-13,-10],[-19,-15,-12],[-14,-11,-7]],
-    },
-    "tense": {
-        "bpm": 80, "minor": True,
-        "kick_amp": 1.0, "snare_amp": 0.75,
-        "chords": [[-12,-8,-5],[-7,-3,0],[-17,-13,-10],[-14,-11,-7]],
-    },
-    "hopeful": {
-        "bpm": 76, "minor": False,
-        "kick_amp": 0.85, "snare_amp": 0.6,
-        "chords": [[-9,-5,-2],[-2,2,5],[0,4,7],[-5,-1,2]],
-    },
-}
-
-CATEGORY_MOOD = {
-    "LOVE":          "hopeful",
-    "CHEATING":      "tense",
-    "STRUGGLES":     "sad",
-    "ADVICE":        "soft",
-    "HIDDEN_DESIRE": "soft",
-    "CONFESSION":    "hopeful",
-    "HEARTBREAK":    "sad",
-}
-
-# Slide labels (Boiling Waters style)
-SLIDE_LABELS = [
-    "",                           # 0 — hook / headline
-    "ANG NANGYARI 📖",            # 1 — what happened
-    "NANG MALAMAN KO... 😱",      # 2 — the discovery
-    "ANG NARAMDAMAN KO 💔",       # 3 — the feeling
-    "ANG TANONG KO SA INYO 🙏",   # 4 — the question
-    "HILING KO LANG... ✨",       # 5 — wish/advice
-    "",                           # 6 — CTA
+CATEGORIES = [
+    "LOVE STORY",
+    "CHEATING",
+    "STRUGGLES",
+    "ADVICE",
+    "HIDDEN DESIRE",
+    "CONFESSION",
+    "HEARTBREAK",
 ]
+
+CATEGORY_HASHTAGS = {
+    "LOVE STORY":    "#LoveStory #Pagmamahal #RelationshipGoals #LoveConfessionsPH #TotooNgPuso",
+    "CHEATING":      "#Cheating #Kabit #Infidelity #LoveAndPain #RealTalk #Pagtataksil",
+    "STRUGGLES":     "#RelationshipStruggles #LDR #LoveHurts #MahalKitaPeroBakit #BagalKo",
+    "ADVICE":        "#RelationshipAdvice #LoveAdvice #TanongSaInyo #HelpMe #SabihinMo",
+    "HIDDEN DESIRE": "#HiddenDesire #SecretFeeling #NaramdamanKo #HindiKoMasabi #Gusto",
+    "CONFESSION":    "#Confession #Pagtatapat #AnonymousStory #LoveConfession #Totoo",
+    "HEARTBREAK":    "#Heartbreak #SakitNgPuso #MovingOn #LoveHurts #Masakit #Nawala",
+}
+
+CATEGORY_PHOTO_KEYWORDS = {
+    "LOVE STORY":    "couple-romantic",
+    "CHEATING":      "sad-woman-alone",
+    "STRUGGLES":     "woman-thinking-sad",
+    "ADVICE":        "person-contemplating",
+    "HIDDEN DESIRE": "mysterious-woman",
+    "CONFESSION":    "sad-woman-writing",
+    "HEARTBREAK":    "woman-crying-alone",
+}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FONTS
 # ─────────────────────────────────────────────────────────────────────────────
+FONT_URLS = [
+    ("https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Bold.ttf",       FONT_BOLD_PATH),
+    ("https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-BoldItalic.ttf", FONT_BOLDITALIC_PATH),
+    ("https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Regular.ttf",    FONT_REG_PATH),
+]
+
 def setup_fonts():
-    for url, path in [(FONT_BOLD_URL, FONT_BOLD_PATH), (FONT_REG_URL, FONT_REG_PATH)]:
+    for url, path in FONT_URLS:
         if not os.path.exists(path):
-            print(f"  Downloading font: {url}…")
+            print(f"  Downloading font: {url} …")
             r = requests.get(url, timeout=30)
             r.raise_for_status()
             with open(path, "wb") as f:
@@ -155,8 +119,13 @@ def setup_fonts():
             print(f"  Saved → {path}")
 
 
-def get_font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
-    path = FONT_BOLD_PATH if bold else FONT_REG_PATH
+def get_font(size: int, bold: bool = True, italic: bool = False) -> ImageFont.FreeTypeFont:
+    if bold and italic:
+        path = FONT_BOLDITALIC_PATH
+    elif bold:
+        path = FONT_BOLD_PATH
+    else:
+        path = FONT_REG_PATH
     try:
         return ImageFont.truetype(path, size)
     except Exception:
@@ -164,200 +133,229 @@ def get_font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# MUSIC — pure-Python lofi beat generator
+# TEXT UTILITIES
 # ─────────────────────────────────────────────────────────────────────────────
-def _note_freq(semitones_from_a4: float) -> float:
-    return 440.0 * (2.0 ** (semitones_from_a4 / 12.0))
+def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
+    """Word-wrap text to fit within max_width pixels."""
+    words = text.split()
+    lines = []
+    current = ""
+    dummy = Image.new("RGB", (1, 1))
+    d = ImageDraw.Draw(dummy)
+    for word in words:
+        test = (current + " " + word).strip()
+        w = d.textlength(test, font=font)
+        if w <= max_width:
+            current = test
+        else:
+            if current:
+                lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines
 
-def _sine(freq, dur, sr, amp=1.0):
-    t = np.linspace(0, dur, int(sr * dur), endpoint=False)
-    return amp * np.sin(2 * np.pi * freq * t)
 
-def _envelope(n, attack=0.02, release=0.3):
-    env = np.ones(n)
-    a = max(1, int(n * attack))
-    r = max(1, int(n * release))
-    env[:a] = np.linspace(0, 1, a)
-    env[-r:] = np.minimum(env[-r:], np.linspace(1, 0, r))
-    return env
-
-def _lowpass(signal, strength=0.85):
-    out = np.zeros_like(signal)
-    out[0] = signal[0]
-    for i in range(1, len(signal)):
-        out[i] = strength * out[i-1] + (1 - strength) * signal[i]
-    return out
-
-def _kick(sr, dur=0.25):
-    n = int(sr * dur)
-    t = np.linspace(0, dur, n, endpoint=False)
-    freq = np.linspace(150, 45, n)
-    wave_ = np.sin(2 * np.pi * np.cumsum(freq) / sr)
-    return wave_ * np.exp(-t * 18) * 0.9
-
-def _snare(sr, dur=0.18):
-    n = int(sr * dur)
-    t = np.linspace(0, dur, n, endpoint=False)
-    noise = np.random.uniform(-1, 1, n)
-    body = np.sin(2 * np.pi * 180 * t) * 0.3
-    return (noise * 0.7 + body) * np.exp(-t * 14) * 0.6
-
-def _hat(sr, dur=0.06):
-    n = int(sr * dur)
-    t = np.linspace(0, dur, n, endpoint=False)
-    noise = np.random.uniform(-1, 1, n)
-    return noise * np.exp(-t * 40) * 0.25
-
-def _mix(base, addition, at_sample):
-    end = min(at_sample + len(addition), len(base))
-    seg = end - at_sample
-    if seg > 0:
-        base[at_sample:end] += addition[:seg]
-
-def generate_lofi_beat(duration, path, mood="sad", sr=BEAT_SAMPLE_RATE):
-    preset = MOOD_PRESETS.get(mood, MOOD_PRESETS["sad"])
-    bpm = preset["bpm"]
-    n_samples = int(sr * duration)
-    mix = np.zeros(n_samples)
-    beat_dur = 60.0 / bpm
-    bar_dur  = beat_dur * 4
-    chord_progression = preset["chords"]
-    n_bars = max(1, int(math.ceil(duration / bar_dur)))
-    for bar in range(n_bars):
-        chord = chord_progression[bar % len(chord_progression)]
-        start_sample = int(bar * bar_dur * sr)
-        for semis in chord:
-            freq = _note_freq(semis)
-            tone = _sine(freq, bar_dur, sr, amp=0.10)
-            tone *= _envelope(len(tone), attack=0.05, release=0.6)
-            _mix(mix, tone, start_sample)
-        for beat in range(4):
-            beat_sample = start_sample + int(beat * beat_dur * sr)
-            if beat in (0, 2):
-                _mix(mix, _kick(sr) * preset["kick_amp"], beat_sample)
-            if beat in (1, 3):
-                _mix(mix, _snare(sr) * preset["snare_amp"], beat_sample)
-            _mix(mix, _hat(sr), beat_sample + int(beat_dur * sr * 0.5))
-    mix = mix[:n_samples]
-    mix = _lowpass(mix, strength=0.65)
-    # vinyl crackle
-    pops = np.random.choice(n_samples, size=n_samples // 800, replace=False)
-    crackle = np.zeros(n_samples)
-    crackle[pops] = np.random.uniform(-1, 1, len(pops)) * 0.015
-    mix += crackle
-    peak = np.max(np.abs(mix)) or 1.0
-    mix = (mix / peak) * 0.82
-    pcm = (mix * 32767).astype(np.int16)
-    with wave.open(path, "w") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(sr)
-        wf.writeframes(pcm.tobytes())
-    return path
-
-def setup_music(duration=60.0, mood="sad"):
-    try:
-        print(f"  🎵 Generating lofi beat (mood: {mood})…")
-        generate_lofi_beat(duration, MUSIC_PATH, mood=mood)
-        print(f"  🎵 Beat ready!")
-        return True
-    except Exception as e:
-        print(f"  ⚠️  Beat generator failed: {e}")
-        return False
+def draw_text_with_shadow(draw: ImageDraw, text: str, x: int, y: int,
+                          font, fill=(255, 255, 255),
+                          shadow_offset: int = 3, shadow_color=(0, 0, 0, 180)):
+    draw.text((x + shadow_offset, y + shadow_offset), text, font=font,
+              fill=(shadow_color[0], shadow_color[1], shadow_color[2]))
+    draw.text((x, y), text, font=font, fill=fill)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# STORY GENERATION — Groq Llama 3 (Tagalog/Taglish anonymous story)
+# DRAW HELPER: Anonymous Member Badge
 # ─────────────────────────────────────────────────────────────────────────────
+def draw_anon_badge(draw: ImageDraw, x: int, y: int):
+    """
+    Draw the orange circle + incognito spy icon + "Anonymous member" text.
+    (x, y) = top-left corner of the badge circle.
+    """
+    r = 50  # circle radius
+    cx = x + r
+    cy = y + r
 
-# Available story categories and their scenarios
-STORY_CATEGORIES = list(CATEGORIES.keys())
+    # Orange filled circle
+    draw.ellipse([(cx - r, cy - r), (cx + r, cy + r)], fill=ANON_ORANGE)
 
-CATEGORY_SCENARIOS = {
-    "LOVE": [
-        "We were best friends for 5 years before we finally got together",
-        "Long distance relationship that survived everything",
-        "She said yes after I confessed 3 times",
-        "He remembered every little thing I told him months ago",
-        "We broke up but found our way back to each other",
-    ],
-    "CHEATING": [
-        "I found text messages on his/her phone",
-        "My bestfriend told me the truth about my partner",
-        "I caught them together at the place we used to go to",
-        "They denied it even with proof in front of them",
-        "I found out through social media",
-    ],
-    "STRUGGLES": [
-        "Long distance relationship and losing communication",
-        "Family does not approve of my partner",
-        "Financial problems affecting the relationship",
-        "Trust issues from past trauma",
-        "We fight more than we used to lately",
-    ],
-    "ADVICE": [
-        "Should I give my ex another chance?",
-        "How do I know if someone truly loves me?",
-        "Is it okay to still be friends with your ex?",
-        "How do you move on from someone you still love?",
-        "When is the right time to say 'I love you'?",
-    ],
-    "HIDDEN_DESIRE": [
-        "I have feelings for my bestfriend but scared to ruin the friendship",
-        "I still love my ex but they are already with someone new",
-        "I fell for someone I should not have feelings for",
-        "I want to tell them but I am afraid of rejection",
-        "I dream about someone I can never be with",
-    ],
-    "CONFESSION": [
-        "I have been pretending to be okay but I am not",
-        "I regret letting them go — biggest mistake of my life",
-        "I was the toxic one in the relationship and I am ashamed",
-        "I still check their social media every day even after the breakup",
-        "I sabotaged a good relationship because of my insecurities",
-    ],
-    "HEARTBREAK": [
-        "They left without any explanation",
-        "I was replaced immediately after the breakup",
-        "We were planning a future together, now it is all gone",
-        "Healing is harder than I thought it would be",
-        "I lost my person and I do not know how to start over",
-    ],
+    # ── Spy/incognito icon (white) inside orange circle ──
+    # Hat crown (rectangle)
+    hat_top    = cy - r + 12
+    hat_bottom = cy - 10
+    hat_lx     = cx - 22
+    hat_rx     = cx + 22
+    draw.rectangle([(hat_lx + 4, hat_top), (hat_rx - 4, hat_bottom)], fill=C_WHITE)
+
+    # Hat brim (wider rectangle below crown)
+    brim_y = hat_bottom
+    draw.rectangle([(hat_lx, brim_y), (hat_rx, brim_y + 10)], fill=C_WHITE)
+
+    # Face oval
+    face_top = brim_y + 6
+    face_bot = cy + r - 16
+    face_lx  = cx - 17
+    face_rx  = cx + 17
+    draw.ellipse([(face_lx, face_top), (face_rx, face_bot)], fill=C_WHITE)
+
+    # Glasses: two small ovals on the face (orange cutout to look like glasses)
+    g_cy  = face_top + 13
+    g_r_x = 8
+    g_r_y = 6
+    # Left glass
+    draw.ellipse([(cx - 18, g_cy - g_r_y), (cx - 18 + g_r_x * 2, g_cy + g_r_y)],
+                 fill=ANON_ORANGE)
+    # Right glass
+    draw.ellipse([(cx + 2, g_cy - g_r_y), (cx + 2 + g_r_x * 2, g_cy + g_r_y)],
+                 fill=ANON_ORANGE)
+    # Bridge between glasses
+    draw.rectangle([(cx - 2, g_cy - 2), (cx + 2, g_cy + 2)], fill=ANON_ORANGE)
+
+    # ── "Anonymous member" text ──
+    font = get_font(38, bold=False)
+    draw.text((cx + r + 22, cy), "Anonymous member",
+              font=font, anchor="lm", fill=C_WHITE)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DRAW HELPER: Simple Cactus Icon
+# ─────────────────────────────────────────────────────────────────────────────
+def draw_cactus(draw: ImageDraw, x: int, y: int, size: int = 55):
+    """Draw a simple outline cactus icon."""
+    s = size
+    cx = x + s // 2
+    col = C_MUTED
+
+    # Main stem (tall thin rectangle)
+    stem_w = s // 5
+    draw.rounded_rectangle(
+        [(cx - stem_w, y), (cx + stem_w, y + s)],
+        radius=stem_w, outline=col, width=3
+    )
+    # Left arm
+    arm_y = y + s * 2 // 5
+    arm_w = stem_w
+    draw.rounded_rectangle(
+        [(cx - s // 2, arm_y - arm_w), (cx - stem_w, arm_y + arm_w * 2)],
+        radius=arm_w, outline=col, width=3
+    )
+    draw.rounded_rectangle(
+        [(cx - s // 2 - arm_w, arm_y - s // 5), (cx - s // 2 + arm_w, arm_y - arm_w)],
+        radius=arm_w, outline=col, width=3
+    )
+    # Right arm
+    draw.rounded_rectangle(
+        [(cx + stem_w, arm_y - arm_w), (cx + s // 2, arm_y + arm_w * 2)],
+        radius=arm_w, outline=col, width=3
+    )
+    draw.rounded_rectangle(
+        [(cx + s // 2 - arm_w, arm_y - s // 5), (cx + s // 2 + arm_w, arm_y - arm_w)],
+        radius=arm_w, outline=col, width=3
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BACKGROUND PHOTO
+# ─────────────────────────────────────────────────────────────────────────────
+def fetch_background_photo(category: str) -> Image.Image:
+    """Download a moody background photo from Unsplash (no API key needed)."""
+    keyword = CATEGORY_PHOTO_KEYWORDS.get(category, "sad-woman-alone")
+    urls_to_try = [
+        f"https://source.unsplash.com/{IMG_W}x{IMG_H}/?{keyword}",
+        f"https://source.unsplash.com/{IMG_W}x{IMG_H}/?sad,woman,alone",
+        f"https://source.unsplash.com/{IMG_W}x{IMG_H}/?person,dark,moody",
+    ]
+    for url in urls_to_try:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
+            if r.status_code == 200 and r.headers.get("Content-Type", "").startswith("image"):
+                img = Image.open(BytesIO(r.content)).convert("RGB")
+                img = img.resize((IMG_W, IMG_H), Image.LANCZOS)
+                print(f"  ✅ Background photo fetched ({keyword})")
+                return img
+        except Exception as e:
+            print(f"  ⚠️  Photo fetch failed ({url[:60]}): {e}")
+
+    # Fallback: dark gradient background
+    print("  ℹ️  Using dark gradient fallback background.")
+    bg = Image.new("RGB", (IMG_W, IMG_H), C_DARK_BG)
+    draw = ImageDraw.Draw(bg)
+    for y in range(IMG_H):
+        alpha = int(255 * (1 - y / IMG_H) * 0.3)
+        draw.line([(0, y), (IMG_W, y)], fill=(30 + alpha, 20 + alpha, 15 + alpha))
+    return bg
+
+
+def apply_dark_overlay(bg: Image.Image) -> Image.Image:
+    """Apply gradient dark overlay so text is readable on any photo."""
+    overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
+    draw_ov = ImageDraw.Draw(overlay)
+
+    for y in range(IMG_H):
+        frac = y / IMG_H
+        if frac < 0.12:
+            alpha = 140           # top: slightly dark for badge
+        elif frac < 0.30:
+            alpha = int(140 + (frac - 0.12) / 0.18 * 30)  # gradual
+        elif frac < 0.42:
+            alpha = int(170 + (frac - 0.30) / 0.12 * 60)  # ramps up
+        else:
+            alpha = 210           # bottom 58%: heavy dark for text
+        draw_ov.line([(0, y), (IMG_W, y)], fill=(0, 0, 0, alpha))
+
+    img_rgba = bg.convert("RGBA")
+    img_rgba.alpha_composite(overlay)
+    return img_rgba.convert("RGB")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI STORY GENERATION (Groq)
+# ─────────────────────────────────────────────────────────────────────────────
+SLIDE_SCHEMA = {
+    "hook":       "1 to 2 sentences — the dramatic hook/headline in Taglish. Bold and emotional.",
+    "part1":      "2 to 3 sentences — the situation/background. Relatable and specific.",
+    "part2":      "2 to 3 sentences — the problem, twist, or what happened. More dramatic.",
+    "part3":      "2 to 3 sentences — feelings, realizations, emotional impact.",
+    "question":   "1 question to the followers. Start with 'Sa inyong palagay...' or 'Ano ang...' or 'Kayo ba...'",
+    "cta":        "1 short CTA line. Ask to comment, share, or follow. Keep it natural and Taglish.",
 }
 
-def generate_story_groq(category: str) -> dict | None:
-    """Use Groq to generate a realistic anonymous Tagalog/Taglish love story."""
-    scenario = random.choice(CATEGORY_SCENARIOS.get(category, CATEGORY_SCENARIOS["LOVE"]))
-    cat_info = CATEGORIES[category]
+CATEGORY_PROMPTS = {
+    "LOVE STORY":    "a sweet but emotional Tagalog love story about a couple navigating early relationship challenges",
+    "CHEATING":      "a heartbreaking Tagalog story about discovering a partner's infidelity",
+    "STRUGGLES":     "a relatable Tagalog story about relationship struggles like long distance, insecurity, or poor communication",
+    "ADVICE":        "a Tagalog anonymous post asking for honest advice about a confusing relationship situation",
+    "HIDDEN DESIRE": "a Tagalog story about secret feelings for someone — unrequited love or a crush the person can't confess",
+    "CONFESSION":    "a Tagalog anonymous confession about a past mistake or hidden truth in a relationship",
+    "HEARTBREAK":    "a raw emotional Tagalog story about a painful breakup and the struggle to move on",
+}
 
-    prompt = f"""You are writing for a Filipino Facebook page similar to "Boiling Waters PH" — a page where anonymous members share their real relationship stories, struggles, and confessions in Tagalog/Taglish.
 
-Write an anonymous story for the category: **{category}** ({cat_info['label']})
-Scenario hint: {scenario}
+def generate_story(category: str) -> dict:
+    """Generate a multi-slide Taglish love story using Groq."""
+    if not GROQ_API_KEY:
+        print("  ⚠️  No GROQ_API_KEY — using fallback story.")
+        return _fallback_story(category)
 
-RULES:
-- Write in natural Tagalog/Taglish mix (like how Filipinos actually text/write online)
-- Sound like a real anonymous person sharing their story — raw, emotional, relatable
-- Use "siya" (gender neutral) — do NOT specify gender unless it adds drama
-- The story should feel real — not too formal, not fake
-- Include ages like "(22F)" or "(25M)" at the start if it adds relatability (optional)
-- Avoid using names — use "siya", "sila", "kaming dalawa", etc.
+    prompt = f"""You are writing for a Filipino Facebook page similar to Boiling Waters PH.
+Write {CATEGORY_PROMPTS.get(category, 'a relatable Tagalog relationship story')}.
 
-OUTPUT: Return ONLY a valid JSON object with these exact keys:
+The writing style is:
+- Natural Taglish (mix of Tagalog and English, the way Filipinos actually text)
+- Feels like a real anonymous submission from a real person
+- Emotional, raw, and relatable
+- Age and gender can vary (common formats: "22F and 27M" etc.)
+- Avoid being too dramatic or formal — keep it conversational
+
+Respond ONLY with valid JSON (no markdown, no extra text) matching this exact schema:
 {{
-  "headline": "Short punchy 1-2 line hook that makes people stop scrolling (max 80 chars, can be Tagalog or Taglish)",
-  "slide_1_hook": "Same as headline but dramatic — the most attention-grabbing version",
-  "slide_2_story": "What happened — the main story context (max 130 chars)",
-  "slide_3_discovery": "The twist, discovery, or key moment (max 130 chars)",
-  "slide_4_feeling": "How it felt — raw emotional reaction (max 130 chars)",
-  "slide_5_question": "The question to the audience — ask for advice or opinion (max 130 chars)",
-  "slide_6_cta": "Warm call to action — ask followers to share or comment (max 150 chars, can mention the page)",
-  "full_story": "The full story in 3-5 sentences (Tagalog/Taglish) — this goes in the caption",
-  "caption_question": "One relatable question to ask followers in the caption",
-  "category": "{category}"
-}}
-
-Remember: Sound like a real Filipino sharing their pain/joy/confusion online. Be genuine, not theatrical."""
+  "hook": "{SLIDE_SCHEMA['hook']}",
+  "part1": "{SLIDE_SCHEMA['part1']}",
+  "part2": "{SLIDE_SCHEMA['part2']}",
+  "part3": "{SLIDE_SCHEMA['part3']}",
+  "question": "{SLIDE_SCHEMA['question']}",
+  "cta": "{SLIDE_SCHEMA['cta']}"
+}}"""
 
     try:
         r = requests.post(
@@ -366,449 +364,307 @@ Remember: Sound like a real Filipino sharing their pain/joy/confusion online. Be
             json={
                 "model": "llama-3.3-70b-versatile",
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.85,
-                "max_tokens": 900,
+                "temperature": 0.9,
+                "max_tokens": 700,
             },
-            timeout=30,
+            timeout=40,
         )
         r.raise_for_status()
         raw = r.json()["choices"][0]["message"]["content"].strip()
-        m = re.search(r"\{.*?\}", raw, re.DOTALL)
-        if m:
-            data = json.loads(m.group())
-            return data
+
+        # Strip markdown fences if present
+        raw = re.sub(r"^```(?:json)?\s*", "", raw)
+        raw = re.sub(r"\s*```$", "", raw)
+
+        data = json.loads(raw)
+        # Validate keys
+        for k in SLIDE_SCHEMA:
+            if k not in data:
+                data[k] = _fallback_story(category)[k]
+        print(f"  ✅ AI story generated for category: {category}")
+        return data
+
     except Exception as e:
-        print(f"  ⚠️  Groq error: {e}")
-    return None
+        print(f"  ⚠️  Groq error: {e} — using fallback story.")
+        return _fallback_story(category)
 
 
-def generate_story_fallback(category: str) -> dict:
-    """Fallback story if Groq is unavailable."""
-    scenario = random.choice(CATEGORY_SCENARIOS.get(category, CATEGORY_SCENARIOS["LOVE"]))
-    return {
-        "headline": "Hindi ko inakala na ganito magiging ending namin... 💔",
-        "slide_1_hook": "Hindi ko inakala na ganito magiging ending namin... 💔",
-        "slide_2_story": "Sabi niya mahal niya ako. Pero ang gawa niya ay kabaligtaran ng sinabi niya.",
-        "slide_3_discovery": "Nalaman ko ang totoo sa pamamagitan ng isang tao na hindi ko inaasahan.",
-        "slide_4_feeling": "Nasaktan ako. Hindi dahil sa inakala ko, kundi dahil alam ko nang matagal na.",
-        "slide_5_question": "Tama ba na ibigay ko pa rin siya ng pagkakataon? O dapat ko na itong bitiwan?",
-        "slide_6_cta": f"💬 Ibahagi ang inyong saloobin sa comments. Follow @{PAGE_NAME} para sa daily stories. 💗",
-        "full_story": f"Anonymous member story. Scenario: {scenario}. Hindi ko inakala na darating ang araw na ito. Mahal ko siya pero parang hindi na sapat. Ang tanong ko — worth it pa ba ito?",
-        "caption_question": "Ano ang magagawa mo kung ikaw ang nasa sitwasyong ito?",
-        "category": category,
+def _fallback_story(category: str) -> dict:
+    stories = {
+        "LOVE STORY": {
+            "hook":     "Dati akong naniniwala na hindi para sa akin ang mahalin nang ganito...",
+            "part1":    "Nakilala ko siya sa isang grupo ng mga kaibigan. 24F ako, 27M siya. Hindi ko inakala na magiging ganito kami.",
+            "part2":    "Nung una, friends lang kami. Tapos isang gabi, habang nag-uusap kami nang matagal, napagtanto ko na gusto ko na siyang higit pa sa kaibigan.",
+            "part3":    "Takot akong sabihin kasi baka masira ang friendship namin. Pero hindi ko na kaya itago. Parang may nag-iingat sa akin sa kanya.",
+            "question": "Kayo ba, sasabihin ninyo kung naramdaman ninyo ito? O titiisin na lang?",
+            "cta":      "I-share ito kung kaya mong i-relate! 💬 At follow na para sa mas maraming stories."
+        },
+        "CHEATING": {
+            "hook":     "Nalaman ko sa isang chat ang lahat — at hindi ko inaasahan na siya pala yun...",
+            "part1":    "25F ako. Tatlong taon kaming magkasama. Lagi akong nagtiwala sa kanya kahit may mga kaibigan akong nagsasabi na mag-ingat ako.",
+            "part2":    "Isang gabi, nagpahiram ako ng phone niya para mag-call. Nakita ko ang messages. Matagal na pala silang nag-uusap ng isa pang babae.",
+            "part3":    "Hindi ko malaman kung mananatili o lalayo. Nasaktan ako hindi lang sa ginawa niya, kundi sa lahat ng sinabi niyang mahal niya ako.",
+            "question": "Kayo ba, magpapatawad kaya kayo sa ganitong sitwasyon?",
+            "cta":      "Mag-comment ng iyong opinion. Lahat ng naramdaman mo ay valid. 💔"
+        },
+        "HEARTBREAK": {
+            "hook":     "Apat na taon — tapos biglang 'we need to talk' na lang...",
+            "part1":    "23F ako. Nagmahal ako nang buong-buo. Inakala ko na siya na ang magiging katabi ko habambuhay.",
+            "part2":    "Sabi niya kailangan niya ng time para sa sarili niya. Na hindi na siya masaya. Na hindi niya kasalanan, hindi rin daw kasalanan ko.",
+            "part3":    "Pero bakit parang kasalanan ko ang sakit? Bakit ako ang nag-iingat ng mga alaala namin habang siya ay sige lang?",
+            "question": "Paano kayo nakakaalis sa ganito? Anong tumutulong sa inyo para gumalaw?",
+            "cta":      "Para sa lahat ng may masakit sa puso ngayon — hindi ka nag-iisa. 🤍 Follow us."
+        },
     }
-
-
-def get_story(category: str = None) -> dict:
-    """Get a story — randomly pick category if not specified."""
-    if not category:
-        category = random.choice(STORY_CATEGORIES)
-    print(f"  📖 Category selected: {category}")
-    if GROQ_API_KEY:
-        print("  🤖 Generating story with Groq (Llama 3)…")
-        story = generate_story_groq(category)
-        if story:
-            story["category"] = category
-            return story
-    print("  ✍️  Using fallback story…")
-    return generate_story_fallback(category)
+    # Default fallback
+    default = stories.get(category, stories["HEARTBREAK"])
+    return default
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# BACKGROUND IMAGES — Unsplash (free, no API key needed)
+# SLIDE IMAGE CREATION
 # ─────────────────────────────────────────────────────────────────────────────
-UNSPLASH_QUERIES = {
-    "LOVE":          ["couple love romantic", "couple holding hands", "love couple sunset"],
-    "CHEATING":      ["woman crying sad", "man looking away sad", "alone sad night"],
-    "STRUGGLES":     ["person thinking sad window", "alone rain window", "sad woman phone"],
-    "ADVICE":        ["friends talking coffee", "woman thinking", "couple conversation"],
-    "HIDDEN_DESIRE": ["woman looking away dreaming", "person alone night city", "longing sad eyes"],
-    "CONFESSION":    ["writing letter emotional", "person looking down", "candle dark room"],
-    "HEARTBREAK":    ["woman crying alone", "broken heart rain", "person sad bench"],
-}
-
-def fetch_unsplash_photo(category: str) -> Image.Image | None:
-    """Fetch a free photo from Unsplash (no API key needed via source.unsplash.com)."""
-    queries = UNSPLASH_QUERIES.get(category, ["couple sad emotional"])
-    query   = random.choice(queries)
-    # Use Unsplash source (free, no key needed)
-    url = f"https://source.unsplash.com/1080x1920/?{query.replace(' ', ',')}"
-    try:
-        print(f"  📷 Fetching photo: {query}…")
-        r = requests.get(url, timeout=20, allow_redirects=True,
-                         headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-        img = Image.open(BytesIO(r.content)).convert("RGB")
-        w, h = img.size
-        if w < 400 or h < 400:
-            return None
-        print(f"  ✅ Photo loaded: {w}×{h}")
-        return img
-    except Exception as e:
-        print(f"  ⚠️  Could not fetch photo: {e}")
-        return None
+SLIDE_CONFIGS = [
+    # (slide_type, show_headline_only, body_key)
+    ("hook",     True,  None),       # Slide 1: Big hook only
+    ("story1",   False, "part1"),    # Slide 2: hook header + part1
+    ("story2",   False, "part2"),    # Slide 3: hook header + part2
+    ("story3",   False, "part3"),    # Slide 4: hook header + part3
+    ("question", False, "question"), # Slide 5: question to followers
+    ("cta",      False, "cta"),      # Slide 6: follow/CTA
+]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SLIDE IMAGE GENERATION — Boiling Waters PH style
-# ─────────────────────────────────────────────────────────────────────────────
-def draw_rounded_rect(draw, x0, y0, x1, y1, r, fill, outline=None, width=2):
-    draw.rectangle([x0+r, y0, x1-r, y1], fill=fill)
-    draw.rectangle([x0, y0+r, x1, y1-r], fill=fill)
-    draw.ellipse([x0, y0, x0+2*r, y0+2*r], fill=fill)
-    draw.ellipse([x1-2*r, y0, x1, y0+2*r], fill=fill)
-    draw.ellipse([x0, y1-2*r, x0+2*r, y1], fill=fill)
-    draw.ellipse([x1-2*r, y1-2*r, x1, y1], fill=fill)
-    if outline:
-        draw.rectangle([x0+r, y0, x1-r, y1], outline=outline, width=width)
-        draw.rectangle([x0, y0+r, x1, y1-r], outline=outline, width=width)
-
-
-def draw_text_shadow(draw, xy, text, font, fill, shadow_offset=3, shadow_color=(0,0,0,160)):
-    draw.text((xy[0]+shadow_offset, xy[1]+shadow_offset), text, font=font, fill=shadow_color)
-    draw.text(xy, text, font=font, fill=fill)
-
-
-def fit_text(draw, text, font_size, max_w, max_lines, bold=True):
-    while font_size >= 28:
-        font  = get_font(font_size, bold=bold)
-        words = text.split()
-        lines, cur = [], []
-        for word in words:
-            test = " ".join(cur + [word])
-            if draw.textbbox((0,0), test, font=font)[2] > max_w and cur:
-                lines.append(" ".join(cur))
-                cur = [word]
-            else:
-                cur.append(word)
-        if cur:
-            lines.append(" ".join(cur))
-        if len(lines) <= max_lines:
-            return font, lines
-        font_size -= 4
-    return get_font(28, bold=bold), lines
-
-
-def make_photo_bg(photo: Image.Image, target_w: int, target_h: int) -> Image.Image:
-    """Crop/resize photo to fill canvas."""
-    src_w, src_h = photo.size
-    scale = max(target_w / src_w, target_h / src_h)
-    new_w, new_h = int(src_w * scale), int(src_h * scale)
-    img_r = photo.resize((new_w, new_h), Image.LANCZOS)
-    cx = (new_w - target_w) // 2
-    cy = int((new_h - target_h) * 0.35)
-    cy = max(0, min(cy, new_h - target_h))
-    return img_r.crop((cx, cy, cx + target_w, cy + target_h))
-
-
-def draw_anon_badge(draw, img, x, y, accent):
-    """Draw the 'Anonymous member' badge — Boiling Waters style."""
-    # Orange circle avatar with mask icon
-    r = 36
-    draw.ellipse([(x, y), (x+r*2, y+r*2)], fill=ANON_BG)
-    # Simple person silhouette (circle head + body arc)
-    head_r = 10
-    hx, hy = x+r, y+r-6
-    draw.ellipse([(hx-head_r, hy-head_r), (hx+head_r, hy+head_r)], fill=C_WHITE)
-    draw.ellipse([(hx-16, hy+8), (hx+16, hy+28)], fill=C_WHITE)
-    # Sunglass
-    draw.rectangle([(hx-9, hy-4), (hx-2, hy+2)], fill=(50,30,30))
-    draw.rectangle([(hx+2, hy-4), (hx+9, hy+2)], fill=(50,30,30))
-    draw.line([(hx-2, hy-2), (hx+2, hy-2)], fill=(50,30,30), width=2)
-    # Text
-    anon_font = get_font(34, bold=False)
-    draw.text((x+r*2+18, y+r//2), "Anonymous member", font=anon_font, fill=C_WHITE)
-
-
-def create_slide(slide_text: str, idx: int, total: int,
-                 category: str, label: str, photo: Image.Image | None) -> Image.Image:
-    """Create a single Boiling Waters-style 1080×1920 slide."""
-    cat    = CATEGORIES.get(category, CATEGORIES["LOVE"])
-    accent = cat["rgb"]
-    is_cta = idx == total - 1
-
-    # Base: dark background
-    img  = Image.new("RGB", (IMG_W, IMG_H), BG_DARK)
+def create_slide(slide_type: str, story: dict, bg: Image.Image,
+                 category: str, body_key: str = None,
+                 hook_only: bool = False) -> Image.Image:
+    """Create one static Boiling Waters-style slide."""
+    img = apply_dark_overlay(bg)
     draw = ImageDraw.Draw(img)
 
-    # ── Background photo with dark overlay
-    if photo and not is_cta:
-        bg = make_photo_bg(photo, IMG_W, IMG_H)
-        bg = ImageEnhance.Brightness(bg).enhance(0.35)
-        bg = bg.filter(ImageFilter.GaussianBlur(radius=2))
-        img.paste(bg, (0, 0))
-        # Gradient overlay (stronger at bottom for text readability)
-        overlay = Image.new("RGBA", (IMG_W, IMG_H), (0,0,0,0))
-        od = ImageDraw.Draw(overlay)
-        for y in range(IMG_H):
-            # Dark at top and stronger at bottom
-            alpha_top    = 80
-            alpha_bottom = 200
-            alpha = int(alpha_top + (alpha_bottom - alpha_top) * (y / IMG_H) ** 1.5)
-            alpha = min(255, alpha)
-            od.line([(0,y),(IMG_W,y)], fill=(0,0,0,alpha))
-        img_rgba = img.convert("RGBA")
-        img_rgba.alpha_composite(overlay)
-        img = img_rgba.convert("RGB")
-        draw = ImageDraw.Draw(img)
+    pad_x = 58   # left/right padding
 
-    # ── Top accent stripe
-    draw.rectangle([(0,0),(IMG_W,12)], fill=accent)
+    # ── Anonymous member badge (top-left) ──
+    draw_anon_badge(draw, x=pad_x, y=72)
 
-    PAD = 60
+    # ── Category label pill (top-right) ──
+    cat_font = get_font(30, bold=True)
+    cat_text = f"  {category}  "
+    cat_w = int(draw.textlength(cat_text, font=cat_font)) + 20
+    cat_x = IMG_W - pad_x - cat_w
+    cat_y = 72
+    draw.rounded_rectangle([(cat_x, cat_y), (cat_x + cat_w, cat_y + 52)],
+                             radius=10, fill=ANON_ORANGE)
+    draw.text((cat_x + cat_w // 2, cat_y + 26), category,
+              font=cat_font, anchor="mm", fill=C_WHITE)
 
-    if not is_cta:
-        # ── Anonymous member badge (Boiling Waters style) — top left
-        draw_anon_badge(draw, img, PAD, 52, accent)
+    # ── HOOK HEADLINE (large bold italic) ──
+    headline_y = int(IMG_H * 0.36)
+    hook_text  = story.get("hook", "")
 
-        # ── Slide counter top-right
-        ctr_font = get_font(28, bold=False)
-        draw.text((IMG_W-PAD, 66), f"{idx+1}/{total}",
-                  font=ctr_font, anchor="rm", fill=C_GRAY)
-
-        max_w = IMG_W - PAD*2
-        center_y = IMG_H // 2
-
-        if idx == 0:
-            # HOOK SLIDE — Large dramatic headline
-            font, lines = fit_text(draw, slide_text, 80, max_w, 5, bold=True)
-            fs = font.size
-            lh = fs + 22
-            total_h = len(lines) * lh
-            ty = center_y - total_h // 2 - 40
-
-            for i, line in enumerate(lines):
-                colour = accent if i == 0 else C_WHITE
-                bw = draw.textbbox((0,0), line, font=font)[2]
-                tx = (IMG_W - bw) // 2
-                draw_text_shadow(draw, (tx, ty), line, font, colour,
-                                 shadow_offset=5, shadow_color=(0,0,0,200))
-                ty += lh
-
-            # Accent underline
-            draw.rectangle([(IMG_W//2-100, ty+16), (IMG_W//2+100, ty+22)], fill=accent)
-
-        else:
-            # CONTENT SLIDES — Label + body text
-            if label:
-                lbl_font = get_font(34)
-                lbl_bbox = draw.textbbox((0,0), label, font=lbl_font)
-                lbl_w    = lbl_bbox[2]
-                lbl_x    = (IMG_W - lbl_w) // 2
-                lbl_y    = center_y - 160
-                draw.text((lbl_x, lbl_y), label, font=lbl_font, fill=accent)
-                draw.rectangle([(lbl_x, lbl_y+lbl_bbox[3]+6),
-                                (lbl_x+lbl_w, lbl_y+lbl_bbox[3]+11)], fill=accent)
-                text_start_y = lbl_y + 90
-            else:
-                text_start_y = center_y - 100
-
-            font, lines = fit_text(draw, slide_text, 62, max_w, 5, bold=True)
-            fs = font.size
-            lh = fs + 22
-            total_h = len(lines) * lh
-            ty = text_start_y
-
-            for i, line in enumerate(lines):
-                colour = C_WHITE if i > 0 else accent
-                bw = draw.textbbox((0,0), line, font=font)[2]
-                tx = (IMG_W - bw) // 2
-                draw_text_shadow(draw, (tx, ty), line, font, colour,
-                                 shadow_offset=4, shadow_color=(0,0,0,200))
-                ty += lh
-
+    if hook_only:
+        # Slide 1: Very large hook, no body
+        h_font = get_font(76, bold=True, italic=True)
+        h_lines = wrap_text(hook_text, h_font, IMG_W - pad_x * 2)
+        for line in h_lines:
+            draw_text_with_shadow(draw, line, pad_x, headline_y, h_font,
+                                  fill=C_OFFWHITE, shadow_offset=4)
+            headline_y += int(h_font.getbbox("Ag")[3] * 1.25)
     else:
-        # ── CTA SLIDE
-        overlay = Image.new("RGBA", (IMG_W, IMG_H), (0,0,0,110))
-        img_rgba = img.convert("RGBA")
-        img_rgba.alpha_composite(overlay)
-        img = img_rgba.convert("RGB")
-        draw = ImageDraw.Draw(img)
+        # Other slides: smaller hook as sub-header, then body
+        h_font = get_font(52, bold=True, italic=True)
+        h_lines = wrap_text(hook_text, h_font, IMG_W - pad_x * 2)
+        # Show max 2 lines of hook as context
+        for line in h_lines[:2]:
+            draw_text_with_shadow(draw, line, pad_x, headline_y, h_font,
+                                  fill=C_OFFWHITE, shadow_offset=3)
+            headline_y += int(h_font.getbbox("Ag")[3] * 1.2)
 
-        cy = IMG_H // 2 - 100
+        if len(h_lines) > 2:
+            # truncation indicator
+            draw.text((pad_x, headline_y), "...", font=h_font, fill=C_MUTED)
+            headline_y += int(h_font.getbbox("Ag")[3] * 1.2)
 
-        # Heart icon
-        hx, hy = IMG_W // 2, cy - 130
-        heart_r = 70
-        draw.ellipse([(hx-heart_r-5, hy-heart_r), (hx+5, hy+20)], fill=accent)
-        draw.ellipse([(hx-5, hy-heart_r), (hx+heart_r+5, hy+20)], fill=accent)
-        import math as _math
-        pts = []
-        for angle in range(0, 181, 5):
-            rad = _math.radians(angle)
-            px_ = hx + int(heart_r * _math.sin(rad) * 1.2)
-            py_ = hy + 20 + int(heart_r * 1.1 * (1 - _math.cos(rad)) * 0.6)
-            pts.append((px_, py_))
-        if len(pts) >= 3:
-            draw.polygon(pts, fill=accent)
+        headline_y += 28  # gap
 
-        draw.text((IMG_W//2, cy+40), "FOLLOW FOR DAILY",
-                  font=get_font(38, bold=False), anchor="mm", fill=C_GRAY)
-        draw.text((IMG_W//2, cy+115), "LOVE STORIES",
-                  font=get_font(80), anchor="mm", fill=C_WHITE)
-        draw.text((IMG_W//2, cy+215), f"@{PAGE_NAME}",
-                  font=get_font(52), anchor="mm", fill=accent)
-        draw.rectangle([(200, cy+265), (IMG_W-200, cy+272)], fill=accent)
+        # Body text
+        if body_key:
+            body_text = story.get(body_key, "")
+            b_font    = get_font(42, bold=False)
+            b_lines   = wrap_text(body_text, b_font, IMG_W - pad_x * 2)
+            for line in b_lines:
+                draw_text_with_shadow(draw, line, pad_x, headline_y, b_font,
+                                      fill=C_WHITE, shadow_offset=2,
+                                      shadow_color=(0, 0, 0, 160))
+                headline_y += int(b_font.getbbox("Ag")[3] * 1.35)
 
-        draw.text((IMG_W//2, cy+330),
-                  "💗 I-share sa taong kailangan mabasa ito",
-                  font=get_font(36, bold=False), anchor="mm", fill=C_GRAY)
-        draw.text((IMG_W//2, cy+390),
-                  "💬 I-comment ang inyong saloobin",
-                  font=get_font(34, bold=False), anchor="mm", fill=C_GRAY)
-        draw.text((IMG_W//2, IMG_H-150),
-                  "Para sa inyong mga kwento at tanong:",
-                  font=get_font(30, bold=False), anchor="mm", fill=C_GRAY)
-        draw.text((IMG_W//2, IMG_H-100),
-                  f"Message us at @{PAGE_NAME} 💗",
-                  font=get_font(30, bold=False), anchor="mm", fill=accent)
+    # ── Slide number dots (bottom center, above branding) ──
+    total_slides = len(SLIDE_CONFIGS)
+    cur_slide    = list(s[0] for s in SLIDE_CONFIGS).index(slide_type)
+    dot_y = IMG_H - 175
+    dot_spacing = 22
+    start_x = IMG_W // 2 - (total_slides - 1) * dot_spacing // 2
+    for i in range(total_slides):
+        dx = start_x + i * dot_spacing
+        if i == cur_slide:
+            draw.ellipse([(dx - 7, dot_y - 7), (dx + 7, dot_y + 7)], fill=ANON_ORANGE)
+        else:
+            draw.ellipse([(dx - 5, dot_y - 5), (dx + 5, dot_y + 5)], fill=C_MUTED)
 
-    # ── Bottom branding bar
-    draw.rectangle([(0, IMG_H-80), (IMG_W, IMG_H)], fill=BG_CARD)
-    draw.rectangle([(0, IMG_H-80), (IMG_W, IMG_H-78)], fill=accent)
-    draw.text((IMG_W//2, IMG_H-40), f"@{PAGE_NAME}",
-              font=get_font(30, bold=False), anchor="mm", fill=C_GRAY)
+    # ── Bottom branding ──
+    brand_y = IMG_H - 138
 
-    # Category pill (top-right area, smaller)
-    if not is_cta:
-        pill_font = get_font(28)
-        pill_text = f"{cat['emoji']} {cat['label']}"
-        pill_bbox = draw.textbbox((0,0), pill_text, font=pill_font)
-        pw = pill_bbox[2] + 36
-        ph = 50
-        px = IMG_W - PAD - pw
-        py = 50
-        draw_rounded_rect(draw, px, py, px+pw, py+ph, 10, accent)
-        draw.text((px+18, py+11), pill_text, font=pill_font, fill=C_WHITE)
+    # Left: cactus + "Featured from" + community name
+    draw_cactus(draw, x=pad_x, y=brand_y, size=52)
+    feat_font = get_font(25, bold=False)
+    com_font  = get_font(30, bold=True)
+    draw.text((pad_x + 68, brand_y + 6),  "Featured from",
+              font=feat_font, fill=C_MUTED)
+    draw.text((pad_x + 68, brand_y + 36), COMMUNITY_NAME,
+              font=com_font,  fill=C_OFFWHITE)
+
+    # Right: circle logo + page name
+    logo_r  = 36
+    logo_cx = IMG_W - pad_x - logo_r
+    logo_cy = brand_y + logo_r + 5
+    draw.ellipse([(logo_cx - logo_r, logo_cy - logo_r),
+                  (logo_cx + logo_r, logo_cy + logo_r)],
+                  fill=ANON_ORANGE)
+    # Initials in circle
+    init_font = get_font(24, bold=True)
+    words     = PAGE_NAME.replace("_", " ").split()
+    initials  = "".join(w[0].upper() for w in words[:2]) or PAGE_NAME[:2].upper()
+    draw.text((logo_cx, logo_cy), initials, font=init_font,
+              anchor="mm", fill=C_WHITE)
+    # Page name text next to circle
+    pname_font = get_font(28, bold=True)
+    draw.text((logo_cx - logo_r - 12, logo_cy),
+              PAGE_NAME.upper(), font=pname_font,
+              anchor="rm", fill=C_OFFWHITE)
 
     return img
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# KEN BURNS ANIMATION
-# ─────────────────────────────────────────────────────────────────────────────
-def make_ken_burns_clip(pil_img: Image.Image, duration: float, zoom_in: bool = True):
-    img_array = np.array(pil_img)
-    h, w = img_array.shape[:2]
-    zoom_start = 1.0
-    zoom_end   = 1.0 + ZOOM_AMOUNT
-    if not zoom_in:
-        zoom_start, zoom_end = zoom_end, zoom_start
+def create_all_slides(story: dict, category: str) -> list[Image.Image]:
+    """Create all 6 slides for the reel."""
+    print(f"  📷 Fetching background photo for {category}…")
+    bg = fetch_background_photo(category)
 
-    def make_frame(t):
-        progress = t / duration
-        scale    = zoom_start + (zoom_end - zoom_start) * progress
-        crop_w = int(w / scale)
-        crop_h = int(h / scale)
-        offset_x = int((w - crop_w) * 0.5)
-        offset_y = int((h - crop_h) * 0.5)
-        offset_x = max(0, min(offset_x, w - crop_w))
-        offset_y = max(0, min(offset_y, h - crop_h))
-        cropped = img_array[offset_y:offset_y+crop_h, offset_x:offset_x+crop_w]
-        return np.array(Image.fromarray(cropped).resize((w, h), Image.LANCZOS))
-
-    return VideoClip(make_frame, duration=duration)
+    images = []
+    for i, (slide_type, hook_only, body_key) in enumerate(SLIDE_CONFIGS):
+        img = create_slide(slide_type, story, bg, category,
+                           body_key=body_key, hook_only=hook_only)
+        images.append(img)
+        print(f"   Slide {i+1}/{len(SLIDE_CONFIGS)} ({slide_type}) ✓")
+    return images
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# VIDEO ASSEMBLY
+# VIDEO ASSEMBLY (static frames — no animation)
 # ─────────────────────────────────────────────────────────────────────────────
-def build_reel(images: list, output_path: str, has_music: bool) -> str:
-    print(f"\n🎬 Assembling {len(images)} slides into video…")
+def build_reel(images: list, output_path: str) -> str:
+    print(f"\n🎬 Stitching {len(images)} static slides into video…")
     clips = []
     for i, pil_img in enumerate(images):
-        clip = make_ken_burns_clip(pil_img, SLIDE_DURATION, zoom_in=(i % 2 == 0))
-        clip = clip.set_fps(FPS)
-        if i > 0:
-            clip = clip.crossfadein(FADE_DURATION)
+        arr  = np.array(pil_img)
+        clip = ImageClip(arr).set_duration(SLIDE_DURATION).set_fps(FPS)
         clips.append(clip)
-        print(f"   Slide {i+1}/{len(images)} animated ✓")
+        print(f"   Clip {i+1}/{len(images)} prepared ✓")
 
-    video = concatenate_videoclips(clips, method="compose", padding=-FADE_DURATION)
-
-    if has_music and os.path.exists(MUSIC_PATH):
-        try:
-            print("  🎵 Mixing background beat…")
-            audio = AudioFileClip(MUSIC_PATH)
-            total_dur = video.duration
-            if audio.duration < total_dur:
-                from moviepy.editor import concatenate_audioclips
-                loops_needed = math.ceil(total_dur / audio.duration)
-                audio = concatenate_audioclips([audio] * loops_needed)
-            audio = audio.subclip(0, total_dur).volumex(MUSIC_VOLUME)
-            video = video.set_audio(audio)
-            print("  ✅ Music mixed in!")
-        except Exception as e:
-            print(f"  ⚠️  Music mix failed: {e}")
+    video = concatenate_videoclips(clips, method="compose")
 
     print(f"\n🎞️  Rendering MP4 → {output_path}…")
     video.write_videofile(
-        output_path, fps=FPS, codec="libx264", audio_codec="aac",
+        output_path,
+        fps=FPS,
+        codec="libx264",
+        audio=False,
         preset="medium",
         ffmpeg_params=["-crf", "20", "-pix_fmt", "yuv420p"],
         logger=None,
     )
-    print(f"  ✅ Video rendered! Size: {os.path.getsize(output_path)/1024/1024:.1f} MB")
+    size_mb = os.path.getsize(output_path) / 1024 / 1024
+    print(f"  ✅ Video rendered! Size: {size_mb:.1f} MB")
     return output_path
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GITHUB RELEASE VIDEO HOSTING (throwaway — deleted after FB upload)
+# GITHUB RELEASE UPLOAD (same as original — public direct-download URL)
 # ─────────────────────────────────────────────────────────────────────────────
-def upload_video_to_github_release(video_path: str) -> tuple:
-    repo  = os.environ["GITHUB_REPOSITORY"]
-    token = GH_RELEASE_TOKEN
-    if not token:
-        raise RuntimeError("No GH_RELEASE_TOKEN or GITHUB_TOKEN available.")
-
-    size_mb = os.path.getsize(video_path) / 1024 / 1024
-    print(f"  ☁️  Uploading video ({size_mb:.1f} MB) to GitHub Release…")
-
-    tag = f"love-reel-{int(time.time())}"
+def create_github_release(tag: str, repo: str, token: str) -> dict:
     r = requests.post(
         f"https://api.github.com/repos/{repo}/releases",
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
-        json={"tag_name": tag, "name": tag,
-              "body": "Auto-generated Love Stories Reel — safe to delete.", "draft": False},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+        },
+        json={
+            "tag_name": tag,
+            "name": tag,
+            "body": "Auto-generated Love Stories Reel video asset — safe to delete.",
+            "draft": False,
+            "prerelease": False,
+        },
         timeout=30,
     )
     r.raise_for_status()
-    release = r.json()
-    print(f"  📦 Release created: {tag} (id={release['id']})")
+    return r.json()
 
-    upload_url = release["upload_url"].split("{")[0]
-    filename   = os.path.basename(video_path)
+
+def upload_asset_to_release(upload_url: str, video_path: str, token: str) -> str:
+    upload_url = upload_url.split("{")[0]
+    filename = os.path.basename(video_path)
     with open(video_path, "rb") as f:
         data = f.read()
-    r2 = requests.post(
+    r = requests.post(
         upload_url,
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
-                 "Content-Type": "video/mp4"},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "video/mp4",
+        },
         params={"name": filename},
         data=data,
         timeout=180,
     )
-    r2.raise_for_status()
-    url = r2.json()["browser_download_url"]
+    r.raise_for_status()
+    return r.json()["browser_download_url"]
+
+
+def delete_github_release(release_id: int, repo: str, token: str) -> None:
+    try:
+        requests.delete(
+            f"https://api.github.com/repos/{repo}/releases/{release_id}",
+            headers={"Authorization": f"Bearer {token}",
+                     "Accept": "application/vnd.github+json"},
+            timeout=30,
+        )
+    except Exception as e:
+        print(f"  ⚠️  Could not clean up release: {e}")
+
+
+def upload_video_to_github_release(video_path: str) -> tuple:
+    repo  = os.environ["GITHUB_REPOSITORY"]
+    token = GH_RELEASE_TOKEN
+    if not token:
+        raise RuntimeError("No GH_RELEASE_TOKEN or GITHUB_TOKEN — can't upload.")
+
+    size_mb = os.path.getsize(video_path) / 1024 / 1024
+    print(f"  ☁️  Uploading video ({size_mb:.1f} MB) to GitHub Release…")
+
+    tag     = f"love-reel-{int(time.time())}"
+    release = create_github_release(tag, repo, token)
+    print(f"  📦 Release created: {tag} (id={release['id']})")
+
+    url = upload_asset_to_release(release["upload_url"], video_path, token)
     print(f"  ✅ Video hosted at: {url}")
     return url, release["id"]
 
 
-def delete_github_release(release_id: int, repo: str, token: str):
-    try:
-        requests.delete(
-            f"https://api.github.com/repos/{repo}/releases/{release_id}",
-            headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
-            timeout=30,
-        )
-    except Exception as e:
-        print(f"  ⚠️  Could not clean up release: {e} (not fatal)")
-
-
 # ─────────────────────────────────────────────────────────────────────────────
-# FACEBOOK GRAPH API
+# FACEBOOK GRAPH API — PAGE VIDEO POSTING
 # ─────────────────────────────────────────────────────────────────────────────
-def fb_post_request(path, **params):
+def fb_post(path: str, **params) -> dict:
     r = requests.post(
         f"{FB_BASE}/{path}",
         params={"access_token": FB_ACCESS_TOKEN, **params},
@@ -819,7 +675,8 @@ def fb_post_request(path, **params):
     r.raise_for_status()
     return r.json()
 
-def fb_get_request(path, **params):
+
+def fb_get(path: str, **params) -> dict:
     r = requests.get(
         f"{FB_BASE}/{path}",
         params={"access_token": FB_ACCESS_TOKEN, **params},
@@ -828,14 +685,19 @@ def fb_get_request(path, **params):
     r.raise_for_status()
     return r.json()
 
+
 def upload_video_to_page(video_url: str, description: str) -> str:
-    data = fb_post_request(f"{FB_PAGE_ID}/videos",
-                           file_url=video_url, description=description)
+    data = fb_post(
+        f"{FB_PAGE_ID}/videos",
+        file_url=video_url,
+        description=description,
+    )
     return data["id"]
 
-def wait_for_video_ready(video_id, retries=24, interval=10):
+
+def wait_for_video_ready(video_id: str, retries: int = 24, interval: int = 10):
     for attempt in range(retries):
-        status = fb_get_request(video_id, fields="status").get("status", {})
+        status = fb_get(video_id, fields="status").get("status", {})
         video_status = status.get("video_status", "unknown")
         print(f"    Video {video_id}: {video_status}  (attempt {attempt+1}/{retries})")
         if video_status == "ready":
@@ -843,30 +705,39 @@ def wait_for_video_ready(video_id, retries=24, interval=10):
         if video_status == "error":
             raise RuntimeError(f"Video {video_id} errored during processing.")
         time.sleep(interval)
-    print("    ⚠️  Didn't confirm 'ready' in time — continuing.")
+    print("    ⚠️  Didn't confirm 'ready' in time — continuing anyway.")
+
+
+def post_comment(video_id: str, message: str) -> str:
+    r = requests.post(
+        f"{FB_BASE}/{video_id}/comments",
+        params={"access_token": FB_ACCESS_TOKEN, "message": message},
+        timeout=30,
+    )
+    if not r.ok:
+        print(f"  ⚠️  Comment API error: {r.status_code} — {r.text}")
+    return r.json().get("id", "")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CAPTION BUILDER
+# CAPTION
 # ─────────────────────────────────────────────────────────────────────────────
-def build_caption(story: dict) -> str:
-    cat      = story.get("category", "LOVE")
-    cat_info = CATEGORIES.get(cat, CATEGORIES["LOVE"])
-    tags     = HASHTAG_MAP.get(cat, "#LoveStory #RelationshipPH")
-    headline = story.get("headline", "")
-    full_story = story.get("full_story", "")
-    question   = story.get("caption_question", "Ano ang masasabi mo?")
+def build_caption(story: dict, category: str) -> str:
+    hashtags = CATEGORY_HASHTAGS.get(category, "#LoveStory #Pagmamahal #RelationshipGoals")
+    hook     = story.get("hook", "")
+    question = story.get("question", "Ano ang masasabi ninyo tungkol dito?")
+    cta      = story.get("cta", "I-share ito sa inyong mga kaibigan! 💬")
 
     return (
-        f"{cat_info['emoji']} {headline}\n\n"
-        f"─────────────────────────\n"
-        f"{full_story}\n"
-        f"─────────────────────────\n\n"
-        f"💬 {question}\n\n"
-        f"📤 I-share ito sa taong kailangan mabasa ito ngayon.\n"
-        f"💗 I-follow ang @{PAGE_NAME} para sa daily love stories, confessions, at advice!\n"
-        f"📩 Magpadala ng inyong kwento sa aming inbox — lahat ay anonymous.\n\n"
-        f"{tags} #AnonymousPH #LoveStoriesPH #RelationshipPH #HugotPH #ConfessionPH"
+        "💬 ANONYMOUS STORY\n\n"
+        f'"{hook}"\n\n'
+        f"{question}\n\n"
+        f"{cta}\n\n"
+        "👇 Comment your thoughts below!\n"
+        "❤️ React kung ma-relate ka!\n"
+        "📤 Share sa mga taong kailangan ito marinig!\n\n"
+        f"Follow @{PAGE_NAME} para sa mas maraming love stories at confessions every day! 💌\n\n"
+        f"{hashtags} #AnonymousStory #LoveConfessionsPH #PilipinoLoveStory"
     )
 
 
@@ -875,80 +746,62 @@ def build_caption(story: dict) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 60)
-    print("  💗 Love Stories Facebook REEL Bot — Boiling Waters Style")
+    print("  💌 Love Stories Facebook REEL Bot — Boiling Waters Style")
     print("=" * 60)
 
     if not MOVIEPY_OK:
-        print("❌ moviepy is not installed! Run: pip install moviepy numpy")
+        print("❌ moviepy not installed! Run: pip install 'moviepy<2' numpy")
         sys.exit(1)
 
     print("\n📦 Setting up fonts…")
     setup_fonts()
 
-    # ── Generate story
-    print("\n📖 Generating anonymous love story…")
-    story    = get_story()
-    category = story.get("category", "LOVE")
-    mood     = CATEGORY_MOOD.get(category, "sad")
+    # Pick a random category
+    category = random.choice(CATEGORIES)
+    print(f"\n🎯 Today's category: {category}")
 
-    print(f"\n🎯 Story generated:")
-    print(f"   Category : {category}")
-    print(f"   Headline : {story.get('headline', '')[:80]}")
+    print(f"\n✍️  Generating AI story (Groq)…")
+    story = generate_story(category)
+    print(f"   Hook: {story.get('hook', '')[:70]}…")
 
-    # ── Music
-    est_duration = len(SLIDE_LABELS) * SLIDE_DURATION + 2.0
-    print(f"\n🎵 Setting up background beat (mood: {mood})…")
-    has_music = setup_music(duration=est_duration, mood=mood)
+    print(f"\n🎨 Creating {len(SLIDE_CONFIGS)} slides (1080×1920)…")
+    images = create_all_slides(story, category)
 
-    # ── Background photo
-    print("\n📷 Fetching background photo…")
-    photo = fetch_unsplash_photo(category)
+    print(f"\n🎬 Building video reel…")
+    build_reel(images, OUTPUT_PATH)
 
-    # ── Build slides
-    slide_content = [
-        story.get("slide_1_hook", story.get("headline", "")),      # 0 — Hook
-        story.get("slide_2_story", ""),                             # 1
-        story.get("slide_3_discovery", ""),                         # 2
-        story.get("slide_4_feeling", ""),                           # 3
-        story.get("slide_5_question", ""),                          # 4
-        story.get("slide_6_cta",
-                  f"💗 Follow @{PAGE_NAME} for daily stories!"),   # 5
-        f"Follow @{PAGE_NAME} 💗",                                  # 6 — CTA slide
-    ]
+    print("\n☁️  Uploading to GitHub Release…")
+    video_url, release_id = upload_video_to_github_release(OUTPUT_PATH)
 
-    print("\n🎨 Creating slides (1080×1920)…")
-    images = []
-    for i, text in enumerate(slide_content):
-        label = SLIDE_LABELS[i] if i < len(SLIDE_LABELS) else ""
-        img   = create_slide(text, i, len(slide_content), category, label, photo)
-        images.append(img)
-        print(f"   Slide {i+1}/{len(slide_content)} ✓")
+    caption = build_caption(story, category)
 
-    # ── Render video
-    output_path = "/tmp/love_stories_reel.mp4"
-    build_reel(images, output_path, has_music)
-
-    # ── Upload to GitHub Release (temp hosting)
-    print("\n☁️  Uploading video…")
-    video_url, release_id = upload_video_to_github_release(output_path)
-
-    # ── Build caption
-    caption = build_caption(story)
-
-    # ── Post to Facebook
-    print("\n📱 Posting to Facebook Page…")
+    print("\n📱 Posting video to Facebook Page…")
     video_id = upload_video_to_page(video_url, caption)
     print(f"   Video ID: {video_id}")
 
     print("\n⏳ Waiting for video to process…")
     wait_for_video_ready(video_id, retries=24, interval=10)
+    print(f"\n✅ SUCCESS! Love Story Reel posted! Video ID: {video_id}")
 
-    # ── Clean up GitHub Release
-    print("\n🧹 Cleaning up GitHub Release…")
-    repo  = os.environ["GITHUB_REPOSITORY"]
-    delete_github_release(release_id, repo, GH_RELEASE_TOKEN)
+    time.sleep(5)
+    print("\n💬 Posting first comment (hashtags & engagement)…")
+    try:
+        bonus_tags = (
+            "#BoilingWatersPH #LoveStoryPH #AnonymousPH #RelationshipPH "
+            "#PagmamahalNamin #LoveConfessions #TotooNgPuso #FilipinoCouples"
+        )
+        post_comment(video_id,
+            f"📌 Para sa lahat ng gustong mag-share ng kanilang kwento, "
+            f"DM kami o comment below! Lahat ng submissions ay anonymous. 💌\n\n{bonus_tags}")
+        print("   ✅ Comment posted!")
+    except Exception as e:
+        print(f"   ⚠️  Comment failed: {e}")
 
-    print(f"\n✅ SUCCESS! Love Story Reel posted to Facebook! 💗 Video ID: {video_id}")
+    print("\n🧹 Cleaning up GitHub release asset…")
+    delete_github_release(release_id, os.environ["GITHUB_REPOSITORY"], GH_RELEASE_TOKEN)
+
+    print("\n💌 Done! Love Stories automation complete!")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
