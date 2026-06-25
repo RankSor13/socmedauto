@@ -290,6 +290,8 @@ def _fetch_pixabay_photo(query: str) -> Image.Image | None:
     Picks randomly from top results for variety.
     """
     if not PIXABAY_API_KEY:
+        print("  ⚠️  PIXABAY_API_KEY is empty/not set — skipping Pixabay fetch "
+              "(this is why you get the plain dark background instead of a photo).")
         return None
     try:
         r = requests.get(
@@ -306,7 +308,9 @@ def _fetch_pixabay_photo(query: str) -> Image.Image | None:
             },
             timeout=20,
         )
-        r.raise_for_status()
+        if not r.ok:
+            print(f"  ⚠️  Pixabay API error {r.status_code} for '{query}': {r.text[:200]}")
+            return None
         hits = r.json().get("hits", [])
         if not hits:
             print(f"  ⚠️  Pixabay: no results for '{query}'")
@@ -456,6 +460,19 @@ CATEGORY_PROMPTS = {
 }
 
 
+def sanitize_story_text(text: str) -> str:
+    """Strip markdown emphasis (**bold**, *italic*, _underline_) that the LLM
+    sometimes adds despite being told not to — we already render bold/italic
+    ourselves via the font, so literal asterisks would show up on the slide."""
+    if not text:
+        return text
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)   # **bold**
+    text = re.sub(r"\*(.+?)\*", r"\1", text)        # *italic*
+    text = re.sub(r"__(.+?)__", r"\1", text)        # __bold__
+    text = re.sub(r"(?<!\w)_(.+?)_(?!\w)", r"\1", text)  # _italic_
+    return text.strip()
+
+
 def generate_story(category: str) -> dict:
     """Generate a multi-slide Taglish love story using Groq."""
     if not GROQ_API_KEY:
@@ -466,13 +483,14 @@ def generate_story(category: str) -> dict:
 Write {CATEGORY_PROMPTS.get(category, 'a relatable Tagalog relationship story')}.
 
 The writing style is:
-- Natural Taglish (mix of Tagalog and English, the way Filipinos actually text)
+- Natural Taglish (mix of Tagalog and English, the way Filipinos actually text) — write MOSTLY in Tagalog, not English
 - Feels like a real anonymous submission from a real person
 - Emotional, raw, and relatable
 - Age and gender can vary (common formats: "22F and 27M" etc.)
 - Avoid being too dramatic or formal — keep it conversational
+- Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ anywhere in the text — plain text only
 
-Respond ONLY with valid JSON (no markdown, no extra text) matching this exact schema:
+Respond ONLY with valid JSON (no markdown, no extra text, no code fences) matching this exact schema:
 {{
   "hook": "{SLIDE_SCHEMA['hook']}",
   "part1": "{SLIDE_SCHEMA['part1']}",
@@ -506,6 +524,9 @@ Respond ONLY with valid JSON (no markdown, no extra text) matching this exact sc
         for k in SLIDE_SCHEMA:
             if k not in data:
                 data[k] = _fallback_story(category)[k]
+        # Strip any stray markdown the model added despite instructions
+        for k in SLIDE_SCHEMA:
+            data[k] = sanitize_story_text(str(data[k]))
         print(f"  ✅ AI story generated for category: {category}")
         return data
 
