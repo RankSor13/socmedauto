@@ -43,6 +43,7 @@ FB_PAGE_ID       = os.environ["FB_PAGE_ID"]
 FB_ACCESS_TOKEN  = os.environ["FB_ACCESS_TOKEN"]
 GH_RELEASE_TOKEN = os.environ.get("GH_RELEASE_TOKEN", os.environ.get("GITHUB_TOKEN", ""))
 GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")
+PIXABAY_API_KEY  = os.environ.get("PIXABAY_API_KEY", "")
 PAGE_NAME        = os.environ.get("PAGE_NAME", "LoveConfessionsPH")
 COMMUNITY_NAME   = os.environ.get("COMMUNITY_NAME", f"{PAGE_NAME} Community")
 
@@ -89,15 +90,40 @@ CATEGORY_HASHTAGS = {
     "HEARTBREAK":    "#Heartbreak #SakitNgPuso #MovingOn #LoveHurts #Masakit #Nawala",
 }
 
-CATEGORY_PHOTO_KEYWORDS = {
-    "LOVE STORY":    "couple-romantic",
-    "CHEATING":      "sad-woman-alone",
-    "STRUGGLES":     "woman-thinking-sad",
-    "ADVICE":        "person-contemplating",
-    "HIDDEN DESIRE": "mysterious-woman",
-    "CONFESSION":    "sad-woman-writing",
-    "HEARTBREAK":    "woman-crying-alone",
+# Pixabay search queries per category — Asian people, slightly blurred bg
+# Format: list of queries to try in order (fallback if first returns nothing)
+# Split by gender so we can pick "pretty woman" or "handsome man" depending on the story.
+CATEGORY_PHOTO_KEYWORDS_FEMALE = {
+    "LOVE STORY":    ["korean couple romantic", "asian couple love", "japanese couple"],
+    "CHEATING":      ["asian beautiful woman sad", "korean woman alone sad", "vietnamese woman sad"],
+    "STRUGGLES":     ["asian woman thinking", "korean woman pensive", "chinese woman melancholy"],
+    "ADVICE":        ["japanese beautiful woman", "asian woman coffee thinking", "korean woman contemplating"],
+    "HIDDEN DESIRE": ["vietnamese beautiful woman", "asian woman mysterious", "korean beautiful woman"],
+    "CONFESSION":    ["asian woman writing", "korean woman diary", "japanese woman letter"],
+    "HEARTBREAK":    ["asian woman crying", "korean woman heartbreak", "chinese woman tears"],
 }
+
+CATEGORY_PHOTO_KEYWORDS_MALE = {
+    "LOVE STORY":    ["korean couple romantic", "asian couple love", "japanese couple"],
+    "CHEATING":      ["asian handsome man sad", "korean man alone sad", "vietnamese man serious"],
+    "STRUGGLES":     ["asian man thinking", "korean man pensive", "japanese man tired"],
+    "ADVICE":        ["japanese handsome man", "asian man coffee thinking", "korean man contemplating"],
+    "HIDDEN DESIRE": ["vietnamese handsome man", "asian man mysterious", "korean handsome man"],
+    "CONFESSION":    ["asian man writing", "korean man diary", "japanese man letter"],
+    "HEARTBREAK":    ["asian man heartbreak", "korean man sad", "chinese man alone"],
+}
+
+# Backwards-compat alias (some helper code/tests may still reference the old name)
+CATEGORY_PHOTO_KEYWORDS = CATEGORY_PHOTO_KEYWORDS_FEMALE
+
+# Categories that are always a couple shot regardless of gender roll
+COUPLE_CATEGORIES = {"LOVE STORY"}
+
+# Nationality pool to rotate through for variety
+ASIAN_NATIONALITIES = ["korean", "japanese", "vietnamese", "chinese", "asian"]
+
+# Blur radius for background — high enough to obscure detail but keep silhouette
+BG_BLUR_RADIUS = 6
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FONTS
@@ -257,50 +283,149 @@ def draw_cactus(draw: ImageDraw, x: int, y: int, size: int = 55):
 # ─────────────────────────────────────────────────────────────────────────────
 # BACKGROUND PHOTO
 # ─────────────────────────────────────────────────────────────────────────────
-def fetch_background_photo(category: str) -> Image.Image:
-    """Download a moody background photo from Unsplash (no API key needed)."""
-    keyword = CATEGORY_PHOTO_KEYWORDS.get(category, "sad-woman-alone")
-    urls_to_try = [
-        f"https://source.unsplash.com/{IMG_W}x{IMG_H}/?{keyword}",
-        f"https://source.unsplash.com/{IMG_W}x{IMG_H}/?sad,woman,alone",
-        f"https://source.unsplash.com/{IMG_W}x{IMG_H}/?person,dark,moody",
-    ]
-    for url in urls_to_try:
-        try:
-            r = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
-            if r.status_code == 200 and r.headers.get("Content-Type", "").startswith("image"):
-                img = Image.open(BytesIO(r.content)).convert("RGB")
-                img = img.resize((IMG_W, IMG_H), Image.LANCZOS)
-                print(f"  ✅ Background photo fetched ({keyword})")
-                return img
-        except Exception as e:
-            print(f"  ⚠️  Photo fetch failed ({url[:60]}): {e}")
+def _fetch_pixabay_photo(query: str) -> Image.Image | None:
+    """
+    Search Pixabay for a vertical photo matching `query`.
+    Returns a PIL Image (1080×1920) or None on failure.
+    Picks randomly from top results for variety.
+    """
+    if not PIXABAY_API_KEY:
+        return None
+    try:
+        r = requests.get(
+            "https://pixabay.com/api/",
+            params={
+                "key":          PIXABAY_API_KEY,
+                "q":            query,
+                "image_type":   "photo",
+                "orientation":  "vertical",
+                "per_page":     20,
+                "safesearch":   "true",
+                "min_width":    720,
+                "min_height":   1080,
+            },
+            timeout=20,
+        )
+        r.raise_for_status()
+        hits = r.json().get("hits", [])
+        if not hits:
+            print(f"  ⚠️  Pixabay: no results for '{query}'")
+            return None
 
-    # Fallback: dark gradient background
-    print("  ℹ️  Using dark gradient fallback background.")
-    bg = Image.new("RGB", (IMG_W, IMG_H), C_DARK_BG)
-    draw = ImageDraw.Draw(bg)
-    for y in range(IMG_H):
-        alpha = int(255 * (1 - y / IMG_H) * 0.3)
-        draw.line([(0, y), (IMG_W, y)], fill=(30 + alpha, 20 + alpha, 15 + alpha))
-    return bg
+        # Pick a random result from top hits for variety
+        hit = random.choice(hits[:15])
+        img_url = hit.get("largeImageURL") or hit.get("webformatURL")
+        if not img_url:
+            return None
+
+        img_r = requests.get(img_url, headers=HEADERS, timeout=20)
+        img_r.raise_for_status()
+        img = Image.open(BytesIO(img_r.content)).convert("RGB")
+
+        # ── Smart crop to portrait 9:16 ──
+        target_ratio = IMG_W / IMG_H
+        w, h = img.size
+        current_ratio = w / h
+        if current_ratio > target_ratio:
+            # Too wide → crop sides
+            new_w = int(h * target_ratio)
+            x_off = (w - new_w) // 2
+            img = img.crop((x_off, 0, x_off + new_w, h))
+        elif current_ratio < target_ratio:
+            # Too tall → crop top/bottom (keep upper portion — face is usually there)
+            new_h = int(w / target_ratio)
+            img = img.crop((0, 0, w, new_h))
+
+        img = img.resize((IMG_W, IMG_H), Image.LANCZOS)
+        print(f"  ✅ Pixabay photo fetched: '{query}' → {img_url[:60]}…")
+        return img
+
+    except Exception as e:
+        print(f"  ⚠️  Pixabay fetch error ('{query}'): {e}")
+        return None
+
+
+def fetch_background_photo(category: str) -> Image.Image:
+    """
+    Fetch a background photo from Pixabay with an Asian person matching the
+    category mood. Randomly picks a pretty woman or a handsome man (unless the
+    category is a couple-shot category) so the background varies per post.
+    Applies Gaussian blur so the person is softly visible — like Boiling Waters PH.
+    Falls back to a dark gradient if Pixabay unavailable.
+    """
+    if category in COUPLE_CATEGORIES:
+        gender = "couple"
+        keyword_map = CATEGORY_PHOTO_KEYWORDS_FEMALE  # "couple" queries are identical in both maps
+    else:
+        gender = random.choice(["female", "male"])
+        keyword_map = CATEGORY_PHOTO_KEYWORDS_FEMALE if gender == "female" else CATEGORY_PHOTO_KEYWORDS_MALE
+
+    queries = keyword_map.get(category, ["asian beautiful woman"] if gender != "male" else ["asian handsome man"])
+    print(f"  🧑‍🤝‍🧑 Background subject: {gender}")
+
+    # Randomly pick one nationality to mix into the query for variety
+    nationality = random.choice(ASIAN_NATIONALITIES)
+
+    img = None
+
+    # Try queries in order, mixing in nationality
+    for base_query in queries:
+        # First try with nationality injected
+        nat_query = f"{nationality} {base_query}" if nationality not in base_query else base_query
+        img = _fetch_pixabay_photo(nat_query)
+        if img:
+            break
+        # Then try base query without nationality
+        img = _fetch_pixabay_photo(base_query)
+        if img:
+            break
+
+    # Last resort fallback queries (match the gender we rolled, so it stays consistent)
+    if img is None:
+        if gender == "male":
+            fallbacks = ["asian handsome man", "korean man portrait", "asian man"]
+        else:
+            fallbacks = ["asian beautiful woman", "korean woman portrait", "asian woman"]
+        for fallback in fallbacks:
+            img = _fetch_pixabay_photo(fallback)
+            if img:
+                break
+
+    if img is None:
+        # Dark gradient fallback (no network / no API key)
+        print("  ℹ️  Using dark gradient fallback background.")
+        img = Image.new("RGB", (IMG_W, IMG_H), C_DARK_BG)
+        draw = ImageDraw.Draw(img)
+        for y in range(IMG_H):
+            v = int(255 * (1 - y / IMG_H) * 0.3)
+            draw.line([(0, y), (IMG_W, y)], fill=(30 + v, 20 + v, 15 + v))
+        return img  # no blur needed for plain bg
+
+    # ── Apply Gaussian blur — person stays subtly visible, like Boiling Waters ──
+    img = img.filter(ImageFilter.GaussianBlur(radius=BG_BLUR_RADIUS))
+    print(f"  🌫️  Background blurred (radius={BG_BLUR_RADIUS})")
+    return img
 
 
 def apply_dark_overlay(bg: Image.Image) -> Image.Image:
-    """Apply gradient dark overlay so text is readable on any photo."""
+    """
+    Apply gradient dark overlay so text is readable while the blurred
+    background person is still slightly visible — Boiling Waters style.
+    """
     overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
     draw_ov = ImageDraw.Draw(overlay)
 
     for y in range(IMG_H):
         frac = y / IMG_H
         if frac < 0.12:
-            alpha = 140           # top: slightly dark for badge
+            alpha = 115           # Top: light dark — badge area
         elif frac < 0.30:
-            alpha = int(140 + (frac - 0.12) / 0.18 * 30)  # gradual
-        elif frac < 0.42:
-            alpha = int(170 + (frac - 0.30) / 0.12 * 60)  # ramps up
+            alpha = int(115 + (frac - 0.12) / 0.18 * 30)
+        elif frac < 0.55:
+            # Mid zone: keep overlay moderate so blurred person peeks through
+            alpha = int(145 + (frac - 0.30) / 0.25 * 55)
         else:
-            alpha = 210           # bottom 58%: heavy dark for text
+            alpha = 185           # Bottom: heavy dark for text readability
         draw_ov.line([(0, y), (IMG_W, y)], fill=(0, 0, 0, alpha))
 
     img_rgba = bg.convert("RGBA")
