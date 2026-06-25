@@ -43,7 +43,7 @@ FB_PAGE_ID       = os.environ["FB_PAGE_ID"]
 FB_ACCESS_TOKEN  = os.environ["FB_ACCESS_TOKEN"]
 GH_RELEASE_TOKEN = os.environ.get("GH_RELEASE_TOKEN", os.environ.get("GITHUB_TOKEN", ""))
 GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")
-PIXABAY_API_KEY  = os.environ.get("PIXABAY_API_KEY", "")
+PIXABAY_API_KEY  = os.environ.get("PIXABAY_API_KEY", "").strip()
 PAGE_NAME        = os.environ.get("PAGE_NAME", "LoveConfessionsPH")
 COMMUNITY_NAME   = os.environ.get("COMMUNITY_NAME", f"{PAGE_NAME} Community")
 
@@ -894,6 +894,16 @@ def main():
     print("=" * 60)
     print("  💌 Love Stories Facebook REEL Bot — Boiling Waters Style")
     print("=" * 60)
+
+    # Diagnostic: confirm secrets actually reached the script, without ever
+    # printing the real values. If this shows length=0 for PIXABAY_API_KEY,
+    # the secret isn't reaching this run — re-check the GitHub Actions secret
+    # name/scope and re-run the workflow (secrets added mid-run aren't picked
+    # up by runs that already started).
+    pix_len = len(PIXABAY_API_KEY)
+    groq_len = len(GROQ_API_KEY)
+    print(f"\n🔑 Secret check — PIXABAY_API_KEY: {'set, length ' + str(pix_len) if pix_len else 'EMPTY/NOT SET'}")
+    print(f"🔑 Secret check — GROQ_API_KEY:    {'set, length ' + str(groq_len) if groq_len else 'EMPTY/NOT SET'}")
 
     if not MOVIEPY_OK:
         print("❌ moviepy not installed! Run: pip install 'moviepy<2' numpy")
