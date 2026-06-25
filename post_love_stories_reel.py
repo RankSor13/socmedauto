@@ -32,6 +32,7 @@ from io import BytesIO
 
 try:
     from moviepy.editor import ImageClip, concatenate_videoclips, AudioFileClip
+    from moviepy.audio.fx.all import audio_loop
     MOVIEPY_OK = True
 except ImportError:
     MOVIEPY_OK = False
@@ -57,6 +58,30 @@ FONT_REG_PATH       = "/tmp/Poppins-Regular.ttf"
 
 SLIDE_DURATION  = 5.0   # seconds per static slide
 FPS             = 24
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BACKGROUND MUSIC
+# ─────────────────────────────────────────────────────────────────────────────
+# Pixabay has no public Music API (their REST API only covers images/videos),
+# so auto-fetching music live isn't reliable. Instead: drop a few royalty-free
+# MP3s (downloaded once, manually, from pixabay.com/music — totally within
+# their terms since a human clicked their own Download button) into these
+# folders, and the bot will pick one at random per post, matched to the mood.
+MUSIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "music")
+
+# category -> mood folder name (assets/music/<mood>/*.mp3)
+CATEGORY_MUSIC_MOOD = {
+    "LOVE STORY":    "romantic",
+    "CHEATING":      "heartbreak",
+    "STRUGGLES":     "melancholy",
+    "ADVICE":        "hopeful",
+    "HIDDEN DESIRE": "dramatic",
+    "CONFESSION":    "dramatic",
+    "HEARTBREAK":    "heartbreak",
+}
+
+MUSIC_VOLUME = 0.35   # keep it subtle — this is background music, not the main event
+MUSIC_FADE   = 1.0    # seconds of fade in / fade out
 
 # Brand colors (Boiling Waters style)
 ANON_ORANGE     = (220, 95, 35)
@@ -669,25 +694,6 @@ def create_slide(slide_type: str, story: dict, bg: Image.Image,
     draw.text((pad_x + 68, brand_y + 36), COMMUNITY_NAME,
               font=com_font,  fill=C_OFFWHITE)
 
-    # Right: circle logo + page name
-    logo_r  = 36
-    logo_cx = IMG_W - pad_x - logo_r
-    logo_cy = brand_y + logo_r + 5
-    draw.ellipse([(logo_cx - logo_r, logo_cy - logo_r),
-                  (logo_cx + logo_r, logo_cy + logo_r)],
-                  fill=ANON_ORANGE)
-    # Initials in circle
-    init_font = get_font(24, bold=True)
-    words     = PAGE_NAME.replace("_", " ").split()
-    initials  = "".join(w[0].upper() for w in words[:2]) or PAGE_NAME[:2].upper()
-    draw.text((logo_cx, logo_cy), initials, font=init_font,
-              anchor="mm", fill=C_WHITE)
-    # Page name text next to circle
-    pname_font = get_font(28, bold=True)
-    draw.text((logo_cx - logo_r - 12, logo_cy),
-              PAGE_NAME.upper(), font=pname_font,
-              anchor="rm", fill=C_OFFWHITE)
-
     return img
 
 
@@ -708,7 +714,28 @@ def create_all_slides(story: dict, category: str) -> list[Image.Image]:
 # ─────────────────────────────────────────────────────────────────────────────
 # VIDEO ASSEMBLY (static frames — no animation)
 # ─────────────────────────────────────────────────────────────────────────────
-def build_reel(images: list, output_path: str) -> str:
+def get_background_music(category: str) -> str | None:
+    """
+    Pick a random MP3 from assets/music/<mood>/ matching this category's mood.
+    Returns a file path, or None if no folder/tracks exist (video just renders
+    silent — same graceful fallback pattern as the background photo).
+    """
+    mood = CATEGORY_MUSIC_MOOD.get(category, "melancholy")
+    folder = os.path.join(MUSIC_DIR, mood)
+    if not os.path.isdir(folder):
+        print(f"  ℹ️  No music folder for mood '{mood}' (looked in {folder}) — rendering silent.")
+        return None
+    tracks = [f for f in os.listdir(folder) if f.lower().endswith((".mp3", ".wav", ".m4a", ".aac"))]
+    if not tracks:
+        print(f"  ℹ️  Music folder '{mood}' is empty — rendering silent. "
+              f"Drop a few royalty-free tracks into {folder}/")
+        return None
+    chosen = random.choice(tracks)
+    print(f"  🎵 Background music: [{mood}] {chosen}")
+    return os.path.join(folder, chosen)
+
+
+def build_reel(images: list, output_path: str, category: str = None) -> str:
     print(f"\n🎬 Stitching {len(images)} static slides into video…")
     clips = []
     for i, pil_img in enumerate(images):
@@ -719,12 +746,30 @@ def build_reel(images: list, output_path: str) -> str:
 
     video = concatenate_videoclips(clips, method="compose")
 
+    # ── Background music ──
+    music_path = get_background_music(category) if category else None
+    audio_enabled = False
+    if music_path:
+        try:
+            audio = AudioFileClip(music_path)
+            if audio.duration < video.duration:
+                audio = audio_loop(audio, duration=video.duration)
+            else:
+                audio = audio.subclip(0, video.duration)
+            audio = audio.volumex(MUSIC_VOLUME)
+            audio = audio.audio_fadein(MUSIC_FADE).audio_fadeout(MUSIC_FADE)
+            video = video.set_audio(audio)
+            audio_enabled = True
+        except Exception as e:
+            print(f"  ⚠️  Could not attach background music ({e}) — rendering silent.")
+
     print(f"\n🎞️  Rendering MP4 → {output_path}…")
     video.write_videofile(
         output_path,
         fps=FPS,
         codec="libx264",
-        audio=False,
+        audio=audio_enabled,
+        audio_codec="aac" if audio_enabled else None,
         preset="medium",
         ffmpeg_params=["-crf", "20", "-pix_fmt", "yuv420p"],
         logger=None,
@@ -924,7 +969,7 @@ def main():
     images = create_all_slides(story, category)
 
     print(f"\n🎬 Building video reel…")
-    build_reel(images, OUTPUT_PATH)
+    build_reel(images, OUTPUT_PATH, category=category)
 
     print("\n☁️  Uploading to GitHub Release…")
     video_url, release_id = upload_video_to_github_release(OUTPUT_PATH)
