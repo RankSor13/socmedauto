@@ -599,17 +599,17 @@ def generate_story(category: str) -> dict:
 Write {CATEGORY_PROMPTS.get(category, 'a relatable Tagalog relationship story')}.
 
 Important details to use:
-- The narrator (the one submitting) is a {female_age}F
-- The other person is a {male_age}M
+- The narrator (the one submitting) is a {female_age}-year-old female. In the story she is "ako". When showing her age, write "{female_age}F ako" (meaning: I am {female_age}, Female). NEVER write "{female_age}F siya" — she is ako, not siya.
+- The other person is a {male_age}-year-old male. In the story they are "siya". When showing their age, write "{male_age}M siya" (meaning: they are {male_age}, Male).
 - The story happens in or around {place}
-- Always refer to the narrator as "ako" and the other person as "siya" — NEVER use "kami" to describe them both together (say "siya" not "kami")
+- Always refer to the narrator as "ako" and the other person as "siya" — NEVER use "kami" to describe them both together
 
 Writing style RULES (very important):
 - Write like a real person typing on their phone — short sentences, lowercase sometimes, a bit messy, not polished
 - Taglish — mostly Tagalog but natural English words mixed in like a real text message
 - Do NOT write like a book or essay — no perfect grammar, no formal Filipino
 - Feels like a real human story, not AI-generated
-- Use "{female_age}F siya" or "{male_age}M siya" to introduce ages — NOT "kami {female_age}F and {male_age}M"
+- Introduce ages like: "{female_age}F ako, {male_age}M siya" — narrator is always ako, other person is always siya
 - Mention {place} naturally at least once (e.g. "dito sa {place}", "sa {place} kami nagkita")
 {curse_instruction}
 - Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ — plain text only
@@ -682,7 +682,7 @@ def _fallback_story(category: str) -> dict:
         },
         "CHEATING": {
             "hook":     "p*ta — tatlong taon pala akong pinagtaksilan niya...",
-            "part1":    f"{female_age}F ako. nagkita kami sa {place} nung college. inakala ko siya na — seryoso, mabait, laging nandoon. tatlong taon kaming magkasama.",
+            "part1":    f"{female_age}F ako. nagkita kami sa {place} nung college. inakala ko seryoso, mabait, laging nandoon. tatlong taon kaming magkasama.",
             "part2":    "nagpahiram ako ng phone niya para mag-call sa mama ko. may notification na lumabas. hindi ko sinadyang makita pero nakita ko na. p**e, may isa pa pala siyang kausap nang halos isang taon.",
             "part3":    "ngayon hindi ko malaman kung mag-stay o umalis na. nasaktan hindi lang sa ginawa niya — kundi sa lahat ng beses na sinabi niya mahal niya ako. totoo ba yun?",
             "question": "kayo ba, magpapatawad sa ganitong sitwasyon?",
@@ -691,7 +691,7 @@ def _fallback_story(category: str) -> dict:
         },
         "HEARTBREAK": {
             "hook":     "apat na taon — tapos 'we need to talk' na lang biglang sinabi niya...",
-            "part1":    f"{female_age}F ako. nagsimula kami sa {place}. nagmahal ako nang buong-buo — inakala ko na siya na talaga ang para sa akin.",
+            "part1":    f"{female_age}F ako. nagsimula kami sa {place}. nagmahal ako nang buong-buo — inakala ko talaga ang para sa akin.",
             "part2":    "sabi niya kailangan niya ng time para sa sarili. hindi na daw siya masaya. na hindi kasalanan niya, hindi rin daw kasalanan ko. p*ta, kung hindi kasalanan ng sinuman bakit may nasaktan?",
             "part3":    "bakit ako ang nag-iingat pa rin ng mga alaala namin habang siya ay sige lang sa buhay? kailan ito titigil na masakit?",
             "question": "paano kayo nakakaalis sa ganito? anong tumutulong sa inyo para gumalaw ulit?",
