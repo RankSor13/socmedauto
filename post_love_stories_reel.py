@@ -634,8 +634,8 @@ def create_slide(slide_type: str, story: dict, bg: Image.Image,
     hook_text  = story.get("hook", "")
 
     if hook_only:
-        # Slide 1: Very large hook, no body
-        h_font = get_font(76, bold=True, italic=True)
+        # Slide 1: Large hook, no body
+        h_font = get_font(58, bold=True, italic=True)
         h_lines = wrap_text(hook_text, h_font, IMG_W - pad_x * 2)
         for line in h_lines:
             draw_text_with_shadow(draw, line, pad_x, headline_y, h_font,
@@ -927,7 +927,7 @@ def build_caption(story: dict, category: str) -> str:
         "👇 Comment your thoughts below!\n"
         "❤️ React kung ma-relate ka!\n"
         "📤 Share sa mga taong kailangan ito marinig!\n\n"
-        f"Follow @{PAGE_NAME} para sa mas maraming love stories at confessions every day! 💌\n\n"
+        f"Follow our pages para sa mas maraming love stories at confessions every day! 💌\n\n"
         f"{hashtags} #AnonymousStory #LoveConfessionsPH #PilipinoLoveStory"
     )
 
