@@ -56,7 +56,7 @@ FONT_BOLD_PATH      = "/tmp/Poppins-Bold.ttf"
 FONT_BOLDITALIC_PATH= "/tmp/Poppins-BoldItalic.ttf"
 FONT_REG_PATH       = "/tmp/Poppins-Regular.ttf"
 
-SLIDE_DURATION  = 5.0   # seconds per static slide
+SLIDE_DURATION  = 8.0   # seconds per static slide — longer so readers actually finish
 FPS             = 24
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -513,25 +513,25 @@ def apply_dark_overlay(bg: Image.Image) -> Image.Image:
 # AI STORY GENERATION (Groq)
 # ─────────────────────────────────────────────────────────────────────────────
 SLIDE_SCHEMA = {
-    "hook":       "1 to 2 sentences — the dramatic hook/headline in Taglish. Bold and emotional.",
-    "part1":      "2 to 3 sentences — the situation/background. Relatable and specific.",
-    "part2":      "2 to 3 sentences — the problem, twist, or what happened. More dramatic.",
-    "part3":      "2 to 3 sentences — feelings, realizations, emotional impact.",
-    "question":   "1 question to the followers. Start with 'Sa inyong palagay...' or 'Ano ang...' or 'Kayo ba...'",
-    "cta":        "1 to 2 short CTA lines. Encourage commenters to help this anonymous member — use 'tayo' (we/us) framing like 'baka makatulong tayo sa ating kababayan' or 'tulungan natin siya'. Keep it warm, communal, and Taglish.",
-    "closing":    "2 to 3 sentences — written directly to the page, after the story ends. The anonymous sender is giving the page permission to post their story and asking for help or insights. Tone: genuine, a little vulnerable, casual Taglish. Must address the page as 'Dear Viral Video Challenge'. The sender explains they're reaching out because it's hard to talk to people they know personally — they want perspectives from strangers.",
+    "hook":       "1 to 2 sentences — STOP-SCROLLING dramatic hook in Taglish. Must be controversial, punchy, or devastating. Think: the line a real person would screenshot and send to their group chat.",
+    "part1":      "3 to 4 sentences — the situation/background. Specific details (ages, place). Start with the narrator establishing themselves, then pull the reader in with something relatable but slightly unexpected. Real Taglish, not textbook.",
+    "part2":      "3 to 4 sentences — the TWIST, the revelation, or the ugliest moment of the story. This is where a blurred curse may naturally fall. The moment where everything changed. Make it physical — the narrator's body reacted, not just their mind.",
+    "part3":      "3 to 4 sentences — the raw emotional aftermath. Include the narrator's CONTROVERSIAL OPINION or uncomfortable realization. Not just sad — angry, confused, ashamed, or still in love despite everything. End on a question the narrator is asking themselves.",
+    "question":   "1 provocative question to the followers — something that will SPLIT the comment section. Start with 'Kayo ba...' or 'Sa inyong palagay...' or 'Ano ang gagawin ninyo...'",
+    "cta":        "1 to 2 short CTA lines. Use 'tayo' / 'natin' / 'kababayan' framing. Warm, communal, feels like a real community — not an engagement bait template.",
+    "closing":    "2 to 3 sentences — written directly to the page after the story ends. Starts with 'Dear Viral Video Challenge,'. Anonymous sender gives permission to post. They explain in casual, vulnerable Taglish that they can't talk to people who know them personally — they need honest perspectives from strangers. Feels raw and real.",
 }
 
 CATEGORY_PROMPTS = {
-    "LOVE STORY":    "a sweet but emotional Tagalog love story about a couple navigating early relationship challenges",
-    "CHEATING":      "a heartbreaking Tagalog story about discovering a partner's infidelity",
-    "STRUGGLES":     "a relatable Tagalog story about relationship struggles like long distance, insecurity, or poor communication",
-    "ADVICE":        "a Tagalog anonymous post asking for honest advice about a confusing relationship situation",
-    "HIDDEN DESIRE": "a Tagalog story about secret feelings for someone — unrequited love or a crush the person can't confess",
-    "CONFESSION":    "a Tagalog anonymous confession about a past mistake or hidden truth in a relationship",
-    "HEARTBREAK":    "a raw emotional Tagalog story about a painful breakup and the struggle to move on",
-    "AGE GAP":       "a Tagalog love story where there is a significant age gap between two people (at least 10 years apart) — explore the feelings, the judgment from others, and whether love can overcome the difference",
-    "COUSIN LOVE":   "a Tagalog anonymous confession from someone who has developed romantic feelings for their cousin — focus on the inner conflict, the secret feelings they can't act on, the family closeness that makes it confusing, and the pain of loving someone they can never be with",
+    "LOVE STORY":    "a deeply emotional and controversial Tagalog love story — not just sweet, but messy, complicated, with real doubt and real fear. The narrator is falling hard but something feels off. Show the obsession, the overthinking, the 3am thoughts.",
+    "CHEATING":      "a gut-wrenching Tagalog story about discovering betrayal — and the shameful part: part of them still loves the person who destroyed them. Controversial angle: the narrator is angry at THEMSELVES for still caring.",
+    "STRUGGLES":     "a raw Tagalog story about a relationship on the edge of collapse — not just sad, but with accusations, silent treatment, screaming matches. Real ugly relationship struggles. The narrator is exhausted but refuses to give up.",
+    "ADVICE":        "a controversial Tagalog anonymous post asking for advice — but the situation is morally grey. Maybe they did something wrong too. They want validation but deep down know the answer. Make it uncomfortable.",
+    "HIDDEN DESIRE": "a haunting Tagalog story about secret feelings that are consuming the narrator — obsessive thoughts, jealousy watching that person with someone else, the physical ache of wanting someone you can't have.",
+    "CONFESSION":    "a controversial and guilt-ridden Tagalog anonymous confession about something they did in a relationship that they're ashamed of — not just a mistake but a real moral failing. The narrator is torn between confessing and burying it forever.",
+    "HEARTBREAK":    "a devastating Tagalog story about a breakup that broke more than just a relationship — it broke identity, future plans, who they thought they were. Raw anger mixed with deep love. The kind of pain that makes you numb.",
+    "AGE GAP":       "a controversial Tagalog love story with a significant age gap (at least 10 years) — society is judging them, family is threatening to disown, but the feelings are undeniable. Show the ugly fight between love and what everyone else thinks is right.",
+    "COUSIN LOVE":   "a deeply conflicted Tagalog anonymous confession about romantic feelings for a cousin — the shame, the confusion, the family dinners that feel like torture, the secret glances. The narrator is fighting against feelings they didn't choose and can never act on.",
 }
 
 # Philippine cities/places to randomly inject for authenticity
@@ -544,12 +544,16 @@ PH_PLACES = [
 
 # Blurred curse words — used in angry/emotional categories
 BLURRED_CURSES = [
-    "p*ta", "p**e", "b*k*t", "p**g ina", "s*ng*ng*",
-    "g*g*", "t*n*m*", "h*n*mo", "p*k* ka",
+    "p*ta", "p**e", "p**g ina mo", "s*ng*ng* ka",
+    "g*g* ka talaga", "t*ng*na", "w*lang-hiy*",
+    "b**g*t", "a*og ka", "p*k* mo",
+    "t*n*m* ka", "h*nd*-h*nd* niya ako k*t*n*wan",
+    "p*ta 'to", "p*k* niya", "l*ntaw niya lang ako",
+    "s*sumpain ko siya", "p**g ina niya talaga",
 ]
 
 # Categories where blurred curses feel authentic
-CURSE_CATEGORIES = {"CHEATING", "HEARTBREAK", "STRUGGLES", "CONFESSION"}
+CURSE_CATEGORIES = {"CHEATING", "HEARTBREAK", "STRUGGLES", "CONFESSION", "HIDDEN DESIRE", "AGE GAP"}
 
 def get_random_female_age() -> int:
     return random.randint(20, 32)
@@ -604,17 +608,20 @@ Important details to use:
 - The story happens in or around {place}
 - Always refer to the narrator as "ako" and the other person as "siya" — NEVER use "kami" to describe them both together
 
-Writing style RULES (very important):
-- Write like a real person typing on their phone — short sentences, lowercase sometimes, a bit messy, not polished
-- Taglish — mostly Tagalog but natural English words mixed in like a real text message
-- Do NOT write like a book or essay — no perfect grammar, no formal Filipino
-- Feels like a real human story, not AI-generated
+Writing style RULES (critically important — break any of these and the story fails):
+- Write like a real person whose hands are trembling while typing this — lowercase, broken sentences, some run-ons, real emotion leaking through every word
+- Taglish — mostly Tagalog, but English words drop in the way they naturally do in Filipino texts ("I mean", "honestly", "pero like")
+- MIX sentence lengths dramatically: short punchy sentences after long emotional run-ons create real rhythm (example: "Sinabi niya mahal niya ako, na palagi siyang nandoon para sa akin, na ako lang ang gusto niya. Tapos may iba pala siya. Tapos.")
+- Use ellipsis (...) for trailing thoughts. Use em-dash (—) for sudden interruptions. These are how real hurt people type.
+- Include at least ONE moment of physical sensation — nanginginig (trembling), hindi makahinga (can't breathe), sumuka (felt sick), nanlalamig ang katawan — the body's reaction to emotional pain
+- Include the narrator's CONTROVERSIAL OPINION — not just what happened, but their raw unfiltered take on it. Something that might make people argue in the comments.
+- The hook must be PUNCHY and CONTROVERSIAL — like a headline that makes you STOP scrolling. Not sweet. Dramatic. A punch to the gut.
 - Introduce ages like: "{female_age}F ako, {male_age}M siya" — narrator is always ako, other person is always siya
-- Mention {place} naturally at least once (e.g. "dito sa {place}", "sa {place} kami nagkita")
+- Mention {place} naturally at least once
 {curse_instruction}
 - Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ — plain text only
-- For the "cta" field: frame it as the COMMUNITY helping (use "tayo", "natin", "kababayan") — not the poster
-- For the "closing" field: this is a short personal note from the anonymous sender to the page, written AFTER the story ends. It must start with "Dear Viral Video Challenge," and give the page permission to share the story. The sender should explain in casual Taglish that they're sharing because it's hard to open up to people they know personally, and they're hoping for insights, advice, or a different perspective from strangers. Make it feel raw and real — not polished. Here are some varied examples to rotate from (DO NOT copy these verbatim — use them as inspiration only):
+- For the "cta" field: frame it as the COMMUNITY helping (use "tayo", "natin", "kababayan") — not the poster. Make it feel like the community genuinely cares, not just engagement bait.
+- For the "closing" field: this is a short personal note from the anonymous sender to the page, written AFTER the story ends. It must start with "Dear Viral Video Challenge," and give the page permission to share the story. The sender should explain in casual Taglish that they're sharing because it's hard to open up to people they know personally, and they're hoping for insights, advice, or a different perspective from strangers. Make it feel raw and real — vulnerable, not polished. Here are some varied examples to rotate from (DO NOT copy these verbatim — use them as INSPIRATION only):
   • "Dear Viral Video Challenge, okay lang po ba i-share ninyo 'to sa page? Nahihirapan kasi akong kausapin ang mga taong kilala ko tungkol dito — parang mas madali pag strangers ang sasagot. Baka may makatulong sa akin dito. 🙏"
   • "Dear Viral Video Challenge, sana okay lang i-post ninyo 'to. Wala akong matanungan na talagang honest kasi lahat ng kakilala ko may bias. Gusto ko lang marinig ang totoo mula sa ibang tao."
   • "Dear Viral Video Challenge, i-share na po kaya ninyo ito? Minsan mas komportable kang buksan sa mga hindi mo kilala kesa sa sariling pamilya o barkada. Umaasa lang ako na may makapagbigay ng insight."
@@ -672,49 +679,49 @@ def _fallback_story(category: str) -> dict:
     place      = get_random_place()
     stories = {
         "LOVE STORY": {
-            "hook":     "hindi ko inasahan na magiging ganito — pero nangyari talaga...",
-            "part1":    f"nakilala ko siya dito sa {place} sa isang inuman ng mga kaibigan. {male_age}M siya, medyo tahimik pero pag nagalak, wow talaga. hindi ko alam kung bakit ako na-attract agad.",
-            "part2":    "nag-usap kami nang matagal that night. hanggang umaga. di ko na naalala kung kailan ako huling ganoon ka-comfortable sa isang tao. tapos ayun — nagtext siya kinabukasan.",
-            "part3":    "ngayon hindi ko alam kung love na ito o attraction lang. pero tuwing wala siya, miss ko na siya agad. ganon na ba yun?",
-            "question": "kayo ba, paano ninyo nalaman na love na at hindi lang crush?",
-            "cta":      "comment kayo ng advice para sa ating anonymous member — baka makatulong tayo. 💬",
-            "closing":  "Dear Viral Video Challenge, okay lang po ba i-share ninyo 'to sa page? Nahihirapan kasi akong kausapin ang mga taong kilala ko tungkol dito — parang mas komportable kapag strangers ang nakikinig. Umaasa lang ako na may makapagbigay ng insight o kahit simpleng salita ng ginhawa. 🙏",
+            "hook":     f"bakit yung tao na hindi mo dapat mahalin... siya pa yung pinaka-safe na lugar mo?",
+            "part1":    f"{female_age}F ako, {male_age}M siya. nagkita kami sa {place} sa paraan na hindi ko inaasahan — hindi siya type ko sa papel, honestly. pero something about how he listened. hindi siya naghahanap ng chance na magsalita — nakikinig talaga siya sa akin.",
+            "part2":    "at doon nagsimula yung problema ko. kasi habang lumalim yung aming usapan, nararamdaman ko na hindi lang friendship yung gusto ko. nanginginig ako tuwing may nag-iitext sa kanya sa harap ko. jealousy — pero wala naman kaming label. paano ko ipapaliwanag yun?",
+            "part3":    "yung nakakatakot? hindi ko alam kung gusto ko siyang mahalin o takot lang akong mawala siya. controversial opinion ko: minsan ang love at attachment ay magkaibang bagay — pero pareho silang masakit.",
+            "question": "kayo ba, paano ninyo nalaman kung love na talaga o takot lang na mawalan?",
+            "cta":      "para sa ating anonymous member — tulungan natin siya. mag-comment ng honest na pananaw ninyo. 💬",
+            "closing":  "Dear Viral Video Challenge, okay lang po ba i-share ninyo 'to? Hindi ko kayang kausapin ang mga kaibigan ko tungkol dito — sila rin kilala niya. Gusto ko lang marinig ang totoo mula sa mga taong walang bias sa aming sitwasyon. Kahit isang salita lang ng clarity, malaki na yun para sa akin. 🙏",
         },
         "CHEATING": {
-            "hook":     "p*ta — tatlong taon pala akong pinagtaksilan niya...",
-            "part1":    f"{female_age}F ako. nagkita kami sa {place} nung college. inakala ko seryoso, mabait, laging nandoon. tatlong taon kaming magkasama.",
-            "part2":    "nagpahiram ako ng phone niya para mag-call sa mama ko. may notification na lumabas. hindi ko sinadyang makita pero nakita ko na. p**e, may isa pa pala siyang kausap nang halos isang taon.",
-            "part3":    "ngayon hindi ko malaman kung mag-stay o umalis na. nasaktan hindi lang sa ginawa niya — kundi sa lahat ng beses na sinabi niya mahal niya ako. totoo ba yun?",
-            "question": "kayo ba, magpapatawad sa ganitong sitwasyon?",
-            "cta":      "ano ang dapat gawin ng ating kababayan? tulungan natin siya — mag-comment ng inyong saloobin. 💔",
-            "closing":  "Dear Viral Video Challenge, puwede po ba itong i-post? Wala akong matanungan na talagang honest — lahat ng kakilala ko ay kaibigan din niya. Gusto ko lang marinig ang totoo mula sa ibang tao na walang bias. Kahit one comment lang, malaki na para sa akin.",
+            "hook":     f"p**g ina — tatlong taon. tatlong taon ako nagpakatanga.",
+            "part1":    f"{female_age}F ako. nakilala namin sa {place}, nung pareho kaming bata pa't walang alam. {male_age}M siya. mabait, seryoso, laging may masasabi na tama. inakala ko — siya na. tatlong taon. p*ta, tatlong taon.",
+            "part2":    "nung nakita ko ang messages sa phone niya — hindi accident. naghahanap ako ng screenshot ng resibo ng grocery namin. at doon ko nakita ang iba. hindi isang beses. hindi dalawang beses. isang taon sila nagkikita. isang taon akong natutulog sa tabi ng isang taong may iba pala. nanlalamig pa rin ako tuwing naalala ko.",
+            "part3":    "ang pinaka-masakit? hindi ang kataksilan. ang masakit ay nagmahal pa rin ako kahit alam ko na. at ayaw ko pang aminin yun sa sarili ko — p*ta ano ba ako.",
+            "question": "kayo ba — magpapatawad kayo sa ganito? at kung nagpatawad na kayo noon, regret ba kayo o hindi?",
+            "cta":      "wag nating hayaang mag-isa ang ating kababayan — mag-comment ng inyong honest na pananaw. hindi paghatol — payo. 💔",
+            "closing":  "Dear Viral Video Challenge, puwede po ba itong i-post? Wala akong matanungan na talagang honest — lahat ng kakilala ko ay may bias. Gusto ko lang marinig ang totoo mula sa mga taong hindi kami kilala. Kahit masakit ang sasabihin ninyo — okay lang. Kailangan ko ng totoo.",
         },
         "HEARTBREAK": {
-            "hook":     "apat na taon — tapos 'we need to talk' na lang biglang sinabi niya...",
-            "part1":    f"{female_age}F ako. nagsimula kami sa {place}. nagmahal ako nang buong-buo — inakala ko talaga ang para sa akin.",
-            "part2":    "sabi niya kailangan niya ng time para sa sarili. hindi na daw siya masaya. na hindi kasalanan niya, hindi rin daw kasalanan ko. p*ta, kung hindi kasalanan ng sinuman bakit may nasaktan?",
-            "part3":    "bakit ako ang nag-iingat pa rin ng mga alaala namin habang siya ay sige lang sa buhay? kailan ito titigil na masakit?",
-            "question": "paano kayo nakakaalis sa ganito? anong tumutulong sa inyo para gumalaw ulit?",
-            "cta":      "para sa ating anonymous member — hindi ka nag-iisa. 🤍 mag-comment tayo para makatulong.",
-            "closing":  "Dear Viral Video Challenge, sana okay lang i-share ninyo ito. Nahihirapan kasi akong buksan sa mga kaibigan ko — alam nila siya personally at ayaw kong ma-awkward. Mas madali para sa akin na marinig ang pananaw ng ibang tao. Salamat.",
+            "hook":     f"sinabi niyang hindi na siya masaya. tapos umalis. tapos nagpost ng selfie after 3 days.",
+            "part1":    f"{female_age}F ako. apat na taon kami. nagsimula sa {place}, sa isang bagay na parang fairy tale noon. nagbigay ako ng lahat — time, pera, pride. literally lahat. at hindi ako nagsisi... noon.",
+            "part2":    "'we need to talk.' iyon lang. walang explanation na sapat. 'hindi na daw siya masaya.' hindi kasalanan ko, hindi rin daw kasalanan niya. p*ta — kung walang may kasalanan, bakit ako yung nag-iiyak sa sahig ng CR namin nang mag-isang gabi? sino ang may kasalanan sa sakit na ito?",
+            "part3":    "ang hindi ko matanggap: tatlong araw lang pagkatapos niyang umalis, nagpost siya ng smiley selfie. masaya na agad. parang wala. apat na taon... wala. at ako? hindi pa rin ako makakain ng tama. controversial: minsan ang taong pinaka-desperado mong ibalik ay yung taong pinaka-malaya kang pakawalan.",
+            "question": "paano kayo gumalaw pagkatapos ng ganitong uri ng breakup — yung para bang tinanggal nila ang isang parte ng inyong sarili?",
+            "cta":      "para sa ating anonymous member — hindi ka nag-iisa sa sakit na ito. 🤍 samahan natin siya.",
+            "closing":  "Dear Viral Video Challenge, sana okay lang i-share ninyo ito. Nahihirapan akong buksan sa mga kaibigan ko — alam nila siya personally at ayaw kong ma-awkward. Mas madali para sa akin na marinig ang pananaw ng mga taong hindi involved. Salamat kung i-share ninyo.",
         },
         "AGE GAP": {
-            "hook":     "15 taon ang pagitan namin — pero paano mo sasabihin sa puso na huwag?",
-            "part1":    f"{female_age}F ako, {male_age}M siya. nagkakilala kami sa trabaho dito sa {place}. hindi ko inasahan na mahuhulog ako — seryoso siya, mabait, at palaging nandoon para sa akin.",
-            "part2":    "nung nalaman ng pamilya ko, nagka-gulo lahat. sinabihan nila ako na huwag. na malayo daw ang mundo namin. bata pa raw ako para malaman kung ano ang gusto ko.",
-            "part3":    "pero paano mo ipapaliwanag sa puso na huwag? siya ang pinakageniune na tao na nakilala ko. hindi ko alam kung ang edad ang hadlang — o ang takot lang ng iba.",
-            "question": "sa inyong palagay, magiging okay ba ang ganitong relasyon?",
-            "cta":      "tulungan natin ang ating anonymous member — mag-comment ng inyong saloobin. 💬",
-            "closing":  "Dear Viral Video Challenge, puwede po bang i-post ninyo 'to? Hindi ko kayang kausapin ang pamilya at barkada ko tungkol dito — masyado silang may judgment. Gusto ko lang marinig ang ibang pananaw mula sa mga taong hindi ako kilala. Kahit anong insights, okay na. 🙏",
+            "hook":     f"sabi ng lahat mali kami. pero wala silang alam kung gaano kami kabuti para sa isa't isa.",
+            "part1":    f"{female_age}F ako, {male_age}M siya — oo, malayo ang gap, alam ko. nagkakilala kami sa trabaho dito sa {place}. hindi ko sinadyang mahulog — honest. pero siya lang yung tao na nagparamdam sa akin na okay lang ako as I am. hindi siya naghanap ng iba. nandoon lang siya.",
+            "part2":    "nung nalaman ng pamilya ko? p*ta. 'manyakis yan.' 'ginagamit ka lang.' 'bata ka pa, hindi mo pa alam ang mundo.' sinasabi nila na protektahan ako nila — pero parang hinuhubaran nila ako ng karapatan kong pumili. ano, kasi bata ako hindi na ba ako pwedeng makaalam kung mahal na mahal ako?",
+            "part3":    "controversial ang sasabihin ko: minsan mas matanda ang tao, mas alam niya ang sarili niya. mas alam niya kung ano ang gusto niya. at gusto niya ako. yung real na gusto — hindi yung kind na naghahanap ng iba pagkapagod. pero lahat sila nagbibingi-bingihan dahil sa numero.",
+            "question": "sa inyong palagay — ang edad ba talaga ang sukatan ng kung tama o mali ang isang relasyon?",
+            "cta":      "tulungan natin ang ating kababayan — mag-comment ng inyong saloobin nang walang paghatol. 💬",
+            "closing":  "Dear Viral Video Challenge, puwede po bang i-post ninyo 'to? Hindi ko kayang kausapin ang pamilya at barkada ko — masyado silang may judgment na bago pa man marinig ang buong kwento. Gusto ko lang marinig ang ibang pananaw. Kahit anong insights, malaki na yun para sa akin. 🙏",
         },
         "COUSIN LOVE": {
-            "hook":     "pinsan ko siya — pero bakit ganito ang nararamdaman ko tuwing nandoon siya...",
-            "part1":    f"{female_age}F ako. lagi kaming magkasama sa family gatherings dito sa {place} mula pagkabata. pero ngayon na mas malalaki na kami, naiiba na ang pakiramdam ko sa kanya.",
-            "part2":    "ayaw kong aminin sa sarili ko. lagi ko sinasabi 'barkada lang' o 'family lang' — pero tuwing tumatawag siya, may kaba akong hindi ko mapaliwanagan.",
-            "part3":    "hindi ko alam kung sasabihin ko o itatanim na lang sa puso ko habambuhay. takot ako sa reaction ng pamilya — at mas takot ako na mawala ang espesyal naming pagkakaibigan.",
-            "question": "paano ninyo haharapin ang ganitong sitwasyon?",
+            "hook":     f"pinsan ko siya. at kahit ilang ulit ko ito ipinagbawal sa sarili ko... hindi pa rin titigil.",
+            "part1":    f"{female_age}F ako. mula pagkabata, palagi kaming magkasama sa family reunions dito sa {place}. siya ang pinaka-comfortable na tao sa aking mundo. pag malungkot ako — siya yung first na nasa isip ko. ngayon mas malalaki na kami... at naging mas mahirap na huwag pansinin.",
+            "part2":    "minahal ko siyang hindi ko dapat mahalin. at hindi ko alam kung kailan nagsimula — pero dumating yung araw na nakatingin siya sa ibang babae at nanginginig ang puso ko. p*ta... bakit ito ang nararamdaman ko? lagi ko sinasabi sa sarili ko 'family lang siya' pero parang gusto kong tumawa sa sarili ko sa kasinungalingan.",
+            "part3":    "hindi ko sasabihin sa kanya. ever. ito ang pinaka-tiyak na desisyon ko sa buhay — itatanim ko na lang ito nang malalim. pero alam ninyo kung ano ang pinaka-masakit? every family gathering, makikita ko siya. at kailangan ko pa ring ngumiti. kailangan ko pang maging 'pinsan'.",
+            "question": "sa inyong palagay — may pagkakataon bang labanan ng isang tao ang ganitong uri ng pakiramdam? o kailangan na lang talaga nilang tanggapin?",
             "cta":      "huwag hatulan — tulungan natin ang ating kababayan. mag-comment ng inyong payo nang may malasakit. 🤍",
-            "closing":  "Dear Viral Video Challenge, sana i-share po ninyo ito. Talagang hindi ko kaya itong ikwento sa mga taong kilala ko — baka pag-usapan pa ako ng buong pamilya. Pero kailangan ko ng makakarinig. Kahit anonymous lang, okay na. Salamat sa page ninyo.",
+            "closing":  "Dear Viral Video Challenge, sana i-share po ninyo ito. Talagang hindi ko kaya itong ikwento sa kahit sino — baka pag-usapan pa ako ng buong pamilya. Pero kailangan ko ng makakarinig. Kailangan ko malaman na hindi ako nag-iisa sa ganitong uri ng sakit. Salamat.",
         },
     }
     return stories.get(category, stories["HEARTBREAK"])
