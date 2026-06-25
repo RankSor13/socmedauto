@@ -78,6 +78,8 @@ CATEGORY_MUSIC_MOOD = {
     "HIDDEN DESIRE": "dramatic",
     "CONFESSION":    "dramatic",
     "HEARTBREAK":    "heartbreak",
+    "AGE GAP":       "romantic",
+    "COUSIN LOVE":   "dramatic",
 }
 
 MUSIC_VOLUME = 0.35   # keep it subtle — this is background music, not the main event
@@ -93,6 +95,35 @@ C_DARK_BG       = (15,  12,  10)
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LoveStoriesBot/1.0)"}
 
 # ─────────────────────────────────────────────────────────────────────────────
+# FAKE NAMES — realistic Filipino first names + censored surname
+# ─────────────────────────────────────────────────────────────────────────────
+FAKE_NAMES_FEMALE = [
+    "Jenny", "Ana", "Maria", "Claire", "Nica",
+    "Bea", "Trisha", "Len", "Sheila", "Karla",
+    "Rhea", "Angel", "Mika", "Diane", "Joanne",
+    "Liza", "Camille", "Rica", "Jessa", "Nina",
+]
+FAKE_NAMES_MALE = [
+    "John", "Mark", "Carlo", "Jed", "Ken",
+    "Paolo", "Nico", "Renz", "Adrian", "Franz",
+    "Bryan", "Dan", "Kevin", "Arvin", "Gab",
+    "Luis", "Ryan", "Dino", "Raf", "Jomar",
+]
+FAKE_SURNAMES = [
+    "R", "S", "M", "D", "L",
+    "C", "T", "B", "G", "V",
+]
+
+def get_fake_name(gender: str = "female") -> str:
+    """Return a fake name like 'Jenny R*****' for the badge."""
+    if gender == "male":
+        first = random.choice(FAKE_NAMES_MALE)
+    else:
+        first = random.choice(FAKE_NAMES_FEMALE)
+    surname_initial = random.choice(FAKE_SURNAMES)
+    return f"{first} {surname_initial}*****"
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CATEGORIES
 # ─────────────────────────────────────────────────────────────────────────────
 CATEGORIES = [
@@ -103,6 +134,8 @@ CATEGORIES = [
     "HIDDEN DESIRE",
     "CONFESSION",
     "HEARTBREAK",
+    "AGE GAP",
+    "COUSIN LOVE",
 ]
 
 CATEGORY_HASHTAGS = {
@@ -113,6 +146,8 @@ CATEGORY_HASHTAGS = {
     "HIDDEN DESIRE": "#HiddenDesire #SecretFeeling #NaramdamanKo #HindiKoMasabi #Gusto",
     "CONFESSION":    "#Confession #Pagtatapat #AnonymousStory #LoveConfession #Totoo",
     "HEARTBREAK":    "#Heartbreak #SakitNgPuso #MovingOn #LoveHurts #Masakit #Nawala",
+    "AGE GAP":       "#AgeGap #AgeGapLove #OlderAndYounger #LoveHasNoAge #AgeIsJustANumber #PagmamahalNaWalangHangganan",
+    "COUSIN LOVE":   "#CousinLove #ForbiddenLove #PinaghindilangPagmamahal #SecretFeeling #HiddenHeart #TabooLove",
 }
 
 # Pixabay search queries per category — Asian people, slightly blurred bg
@@ -126,6 +161,8 @@ CATEGORY_PHOTO_KEYWORDS_FEMALE = {
     "HIDDEN DESIRE": ["vietnamese beautiful woman", "asian woman mysterious", "korean beautiful woman"],
     "CONFESSION":    ["asian woman writing", "korean woman diary", "japanese woman letter"],
     "HEARTBREAK":    ["asian woman crying", "korean woman heartbreak", "chinese woman tears"],
+    "AGE GAP":       ["asian couple age difference", "older man younger woman asian", "korean couple romantic"],
+    "COUSIN LOVE":   ["asian woman secret love", "korean woman hidden feelings", "vietnamese woman thinking"],
 }
 
 CATEGORY_PHOTO_KEYWORDS_MALE = {
@@ -136,13 +173,15 @@ CATEGORY_PHOTO_KEYWORDS_MALE = {
     "HIDDEN DESIRE": ["vietnamese handsome man", "asian man mysterious", "korean handsome man"],
     "CONFESSION":    ["asian man writing", "korean man diary", "japanese man letter"],
     "HEARTBREAK":    ["asian man heartbreak", "korean man sad", "chinese man alone"],
+    "AGE GAP":       ["asian couple age difference", "older woman younger man asian", "korean couple romantic"],
+    "COUSIN LOVE":   ["asian man secret love", "korean man hidden feelings", "vietnamese man thinking"],
 }
 
 # Backwards-compat alias (some helper code/tests may still reference the old name)
 CATEGORY_PHOTO_KEYWORDS = CATEGORY_PHOTO_KEYWORDS_FEMALE
 
 # Categories that are always a couple shot regardless of gender roll
-COUPLE_CATEGORIES = {"LOVE STORY"}
+COUPLE_CATEGORIES = {"LOVE STORY", "AGE GAP"}
 
 # Nationality pool to rotate through for variety
 ASIAN_NATIONALITIES = ["korean", "japanese", "vietnamese", "chinese", "asian"]
@@ -218,9 +257,10 @@ def draw_text_with_shadow(draw: ImageDraw, text: str, x: int, y: int,
 # ─────────────────────────────────────────────────────────────────────────────
 # DRAW HELPER: Anonymous Member Badge
 # ─────────────────────────────────────────────────────────────────────────────
-def draw_anon_badge(draw: ImageDraw, x: int, y: int):
+def draw_anon_badge(draw: ImageDraw, x: int, y: int, fake_name: str = ""):
     """
-    Draw the orange circle + incognito spy icon + "Anonymous member" text.
+    Draw the orange circle + incognito spy icon + "Anonymous member" text
+    + fake name below (e.g. "Jenny R*****").
     (x, y) = top-left corner of the badge circle.
     """
     r = 50  # circle radius
@@ -262,10 +302,17 @@ def draw_anon_badge(draw: ImageDraw, x: int, y: int):
     # Bridge between glasses
     draw.rectangle([(cx - 2, g_cy - 2), (cx + 2, g_cy + 2)], fill=ANON_ORANGE)
 
-    # ── "Anonymous member" text ──
-    font = get_font(38, bold=False)
-    draw.text((cx + r + 22, cy), "Anonymous member",
-              font=font, anchor="lm", fill=C_WHITE)
+    # ── "Anonymous member" text (top line) ──
+    text_x = cx + r + 22
+    font_main = get_font(36, bold=False)
+    draw.text((text_x, cy - 14), "Anonymous member",
+              font=font_main, anchor="lm", fill=C_WHITE)
+
+    # ── Fake name text (bottom line, slightly muted) ──
+    if fake_name:
+        font_name = get_font(30, bold=True)
+        draw.text((text_x, cy + 22), fake_name,
+                  font=font_name, anchor="lm", fill=C_OFFWHITE)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -482,6 +529,8 @@ CATEGORY_PROMPTS = {
     "HIDDEN DESIRE": "a Tagalog story about secret feelings for someone — unrequited love or a crush the person can't confess",
     "CONFESSION":    "a Tagalog anonymous confession about a past mistake or hidden truth in a relationship",
     "HEARTBREAK":    "a raw emotional Tagalog story about a painful breakup and the struggle to move on",
+    "AGE GAP":       "a Tagalog love story where there is a significant age gap between two people (at least 10 years apart) — explore the feelings, the judgment from others, and whether love can overcome the difference",
+    "COUSIN LOVE":   "a Tagalog anonymous confession from someone who has developed romantic feelings for their cousin — focus on the inner conflict, the secret feelings they can't act on, the family closeness that makes it confusing, and the pain of loving someone they can never be with",
 }
 
 
@@ -587,6 +636,22 @@ def _fallback_story(category: str) -> dict:
             "question": "Paano kayo nakakaalis sa ganito? Anong tumutulong sa inyo para gumalaw?",
             "cta":      "Para sa ating anonymous member — hindi ka nag-iisa. 🤍 Mag-comment tayo para makatulong sa kanya."
         },
+        "AGE GAP": {
+            "hook":     "Mahal ko siya nang totoo — pero 15 taon ang pagitan namin at parang mundo ang layo...",
+            "part1":    "20F ako, 35M siya. Nagkakilala kami sa trabaho. Hindi ko inasahan na mahuhulog ako sa kanya — seryoso, mabait, at palaging nandoon para sa akin.",
+            "part2":    "Nung nalaman ng pamilya ko, parang nagka-gulo lahat. Sinabihan nila ako na huwag, na malayo daw ang mundo namin, na bata pa raw ako para malaman kung ano ang gusto ko.",
+            "part3":    "Pero paano mo ipapaliwanag sa puso na huwag? Siya ang pinaka-genuine na tao na nakilala ko. Hindi ko alam kung ang edad ang hadlang — o ang takot lang ng iba.",
+            "question": "Sa inyong palagay, magiging okay ba ang ganitong relasyon? O talagang may limitasyon ang age gap?",
+            "cta":      "Tulungan natin ang ating anonymous member na makita ang tamang landas — mag-comment ng inyong saloobin. 💬"
+        },
+        "COUSIN LOVE": {
+            "hook":     "Pinsan ko siya — pero bakit ganito ang nararamdaman ko tuwing nandoon siya...",
+            "part1":    "21F ako. Mula pagkabata, lagi kaming magkasama sa mga family gatherings. Pero ngayon na mas malalaki na kami, nagsimula akong mapansin na... naiiba na ang pakiramdam ko sa kanya.",
+            "part2":    "Ayaw kong aminin sa sarili ko. Lagi ko sinasabi na 'barkada lang' o 'family lang' — pero tuwing tumatawag siya, o ngumingiti sa akin, may kaba akong hindi ko mapaliwanagan.",
+            "part3":    "Hindi ko alam kung sasabihin ko ito o itatanim na lang sa puso ko habambuhay. Takot ako sa reaction ng pamilya, at mas takot ako na mawala ang espesyal naming pagkakaibigan.",
+            "question": "Paano ninyo haharapin ang ganitong sitwasyon? May nakaranas na ba sa atin ng ganito?",
+            "cta":      "Huwag hatulan — tulungan natin ang ating kababayan. Mag-comment ng inyong payo nang may malasakit. 🤍"
+        },
     }
     # Default fallback
     default = stories.get(category, stories["HEARTBREAK"])
@@ -609,22 +674,22 @@ SLIDE_CONFIGS = [
 
 def create_slide(slide_type: str, story: dict, bg: Image.Image,
                  category: str, body_key: str = None,
-                 hook_only: bool = False) -> Image.Image:
+                 hook_only: bool = False, fake_name: str = "") -> Image.Image:
     """Create one static Boiling Waters-style slide."""
     img = apply_dark_overlay(bg)
     draw = ImageDraw.Draw(img)
 
     pad_x = 58   # left/right padding
 
-    # ── Anonymous member badge (top-left) ──
-    draw_anon_badge(draw, x=pad_x, y=72)
+    # ── Anonymous member badge (pushed down so it clears the mobile status bar) ──
+    draw_anon_badge(draw, x=pad_x, y=160, fake_name=fake_name)
 
-    # ── Category label pill (top-right) ──
+    # ── Category label pill (top-right, aligned with badge) ──
     cat_font = get_font(30, bold=True)
     cat_text = f"  {category}  "
     cat_w = int(draw.textlength(cat_text, font=cat_font)) + 20
     cat_x = IMG_W - pad_x - cat_w
-    cat_y = 72
+    cat_y = 172
     draw.rounded_rectangle([(cat_x, cat_y), (cat_x + cat_w, cat_y + 52)],
                              radius=10, fill=ANON_ORANGE)
     draw.text((cat_x + cat_w // 2, cat_y + 26), category,
@@ -703,10 +768,16 @@ def create_all_slides(story: dict, category: str) -> list[Image.Image]:
     print(f"  📷 Fetching background photo for {category}…")
     bg = fetch_background_photo(category)
 
+    # Pick one fake name per reel so it stays consistent across all slides
+    gender = random.choice(["female", "male"])
+    fake_name = get_fake_name(gender)
+    print(f"  🪪 Anonymous identity for this reel: {fake_name}")
+
     images = []
     for i, (slide_type, hook_only, body_key) in enumerate(SLIDE_CONFIGS):
         img = create_slide(slide_type, story, bg, category,
-                           body_key=body_key, hook_only=hook_only)
+                           body_key=body_key, hook_only=hook_only,
+                           fake_name=fake_name)
         images.append(img)
         print(f"   Slide {i+1}/{len(SLIDE_CONFIGS)} ({slide_type}) ✓")
     return images
