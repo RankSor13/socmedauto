@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write   # needed so GITHUB_TOKEN can create/delete releases
+                        # AND commit seen_articles.json back to the repo
 
     steps:
       - name: Checkout repository
@@ -32,6 +33,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests Pillow "moviepy<2" numpy
 
+      # ── SONG SELECTION ─────────────────────────────────────────────────────
+      # Put your MP3/WAV/OGG files in a "songs/" folder in the repo.
+      # Name them with a mood prefix for automatic matching:
+      #
+      #   dramatic_ost.mp3    → used for KDRAMA & SCANDAL category posts
+      #   chill_bgm.mp3       → used for ACTORS category posts
+      #   upbeat_track.mp3    → used for KMOVIE & TRENDING category posts
+      #   juicy_gossip.mp3    → used for GOSSIP category posts
+      #
+      # If no mood-prefixed file matches, any song in the folder is picked at random.
+      # Leave MUSIC_FOLDER blank and the script auto-generates a lofi beat.
+
       - name: Run Korean Drama News Facebook Reel Poster
         env:
           FB_PAGE_ID:       ${{ secrets.FB_PAGE_ID }}
@@ -39,4 +52,29 @@ jobs:
           GROQ_API_KEY:     ${{ secrets.GROQ_API_KEY }}
           PAGE_NAME:        ${{ secrets.PAGE_NAME }}
           GH_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # ── Song selection (pick ONE option, or leave both blank for auto-beat) ──
+          #
+          # Option A — use a whole folder, picks by mood automatically:
+          MUSIC_FOLDER: "songs"
+          #
+          # Option B — always use one specific song (uncomment to enable):
+          # MUSIC_FILE: "songs/my_favourite_ost.mp3"
+          #
+          # Option C — store the path as a GitHub Secret:
+          # MUSIC_FILE: ${{ secrets.MUSIC_FILE }}
+
+          # ── Dedup tracker ────────────────────────────────────────────────────
+          SEEN_FILE: "seen_articles.json"
+
         run: python post_kdrama_news_reel.py
+
+      # ── Commit seen_articles.json so the next run skips already-posted articles ──
+      - name: Save seen-articles list back to repo
+        if: success()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_articles.json || true
+          git diff --cached --quiet || git commit -m "chore: update seen_articles.json [skip ci]"
+          git push
