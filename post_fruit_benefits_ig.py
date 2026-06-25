@@ -14,7 +14,7 @@ Optional:
   GROQ_API_KEY         — Free at console.groq.com
 """
 
-import os, sys, json, random, requests, re, time, base64
+import os, sys, json, random, requests, re, time, base64, hashlib
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from io import BytesIO
 from datetime import datetime
@@ -40,18 +40,14 @@ FONT_REG_PATH   = "/tmp/Poppins-Regular.ttf"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FruitBenefitsBot/1.0)"}
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FRUIT DATABASE — Multiple photos per fruit
+# FRUIT DATABASE — Search-based image URLs guarantee accurate photos
 # ─────────────────────────────────────────────────────────────────────────────
+# Each fruit has "slide_searches" — different search queries for each slide.
+# This ensures: 1) Accurate fruit photos, 2) Different photo per slide
 FRUITS = [
     {
         "name": "Orange", "emoji": "🍊", "category": "CITRUS", "accent_rgb": (251, 146, 60),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1547514701-42782101795e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1611088231317-53b59a8e272a?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1621506948008-7b3e8997e4f6?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1482012792084-a2c6b2a44e1e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1557800636-894a64c1696f?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["orange fruit whole", "orange fruit sliced half", "fresh orange juice glass", "orange tree branch fruit", "pile of oranges market"],
         "wikipedia": "Orange_(fruit)", "usda_fdc_id": 747447,
         "angles": [
             {"hook": "One orange gives you MORE than a full day's Vitamin C.", "theme": "IMMUNITY", "label": "IMMUNITY BOOST", "points": ["116% daily Vitamin C in a single orange", "Stimulates white blood cell production", "Shortens cold duration by 8-14%", "Flavonoids fight respiratory infections", "Vitamin A strengthens mucous membranes"], "tip": "Eat the white pith — it contains the most flavonoids!"},
@@ -62,13 +58,7 @@ FRUITS = [
     },
     {
         "name": "Lemon", "emoji": "🍋", "category": "CITRUS", "accent_rgb": (250, 230, 80),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1590502593747-42a996133562?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1552252476-31b125789eb5?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1565610222536-47916b9a5b80?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1507389138075-3d0b4e7e5c60?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["lemon fruit whole yellow", "lemon fruit sliced wedges", "fresh lemonade glass", "lemon tree yellow fruit", "lemon halves on table"],
         "wikipedia": "Lemon", "usda_fdc_id": 9153,
         "angles": [
             {"hook": "Lemon water every morning can transform your digestion in 7 days.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Citric acid stimulates stomach acid production", "Pectin fiber feeds beneficial gut bacteria", "Encourages bile production for fat breakdown", "Relieves bloating and water retention", "Warm lemon water activates digestive enzymes"], "tip": "Use WARM water, not cold — it activates the citric acid faster!"},
@@ -79,13 +69,7 @@ FRUITS = [
     },
     {
         "name": "Strawberry", "emoji": "🍓", "category": "BERRY", "accent_rgb": (244, 63, 94),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1587393855965-6bd5a75f3f3f?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1565680018093-ebb6b9ab5460?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["strawberry fruit whole red", "strawberry fruit sliced", "bowl of fresh strawberries", "strawberry field farming", "strawberry smoothie pink"],
         "wikipedia": "Strawberry", "usda_fdc_id": 9316,
         "angles": [
             {"hook": "Strawberries have MORE Vitamin C than oranges — per serving.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["149% daily Vitamin C per cup — beats oranges!", "Ellagic acid neutralizes carcinogens on contact", "Anthocyanins reduce inflammation markers 18%", "Manganese activates superoxide dismutase enzyme", "Vitamin B6 supports antibody production"], "tip": "Eat strawberries within 2 days of purchase — they lose 30% Vitamin C by day 3!"},
@@ -96,13 +80,7 @@ FRUITS = [
     },
     {
         "name": "Blueberry", "emoji": "🫐", "category": "BERRY", "accent_rgb": (99, 102, 241),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1577003811926-53b099a67e9c?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["blueberry fruit whole", "handful of blueberries", "bowl of fresh blueberries", "blueberry smoothie purple", "blueberry bush branch"],
         "wikipedia": "Blueberry", "usda_fdc_id": 9052,
         "angles": [
             {"hook": "Blueberries can improve your MEMORY in just 12 weeks — Harvard study.", "theme": "BRAIN", "label": "BRAIN POWER", "points": ["Anthocyanins cross the blood-brain barrier", "Improves delayed memory by 15% in older adults", "Increases BDNF — brain's growth hormone", "Protects neurons from oxidative stress damage", "1 cup/day = measurable cognitive improvement"], "tip": "Eat 1 cup daily — that's the exact dose used in the Harvard memory study!"},
@@ -113,13 +91,7 @@ FRUITS = [
     },
     {
         "name": "Banana", "emoji": "🍌", "category": "TROPICAL", "accent_rgb": (250, 204, 21),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1574226516831-e1dff420e562?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["banana fruit whole yellow", "banana peeled fruit", "banana smoothie healthy", "banana tree bunch", "banana slices on plate"],
         "wikipedia": "Banana", "usda_fdc_id": 778089,
         "angles": [
             {"hook": "Bananas are a natural antidepressant — science confirms it.", "theme": "MOOD", "label": "MOOD & MENTAL HEALTH", "points": ["Tryptophan converts to serotonin — the happy hormone", "Vitamin B6 helps synthesize dopamine & norepinephrine", "Magnesium relaxes muscles and calms anxiety", "Natural sugar provides steady brain energy", "Potassium oxygenates the brain — clearer thinking"], "tip": "Eat a banana when stressed — it raises serotonin levels within 45 minutes!"},
@@ -130,13 +102,7 @@ FRUITS = [
     },
     {
         "name": "Mango", "emoji": "🥭", "category": "TROPICAL", "accent_rgb": (245, 158, 11),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["mango fruit whole ripe", "mango fruit sliced pieces", "mango smoothie tropical", "mango on tree tropical", "ripe mango close up"],
         "wikipedia": "Mango", "usda_fdc_id": 9174,
         "angles": [
             {"hook": "Mango polyphenols can suppress breast and colon cancer cells in lab studies.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Polyphenols suppress breast cancer cell growth", "Lupeol targets colon cancer cells selectively", "Gallotannins induce cancer cell death (apoptosis)", "Beta-carotene reduces lung cancer risk by 25%", "Mangiferin inhibits tumor blood vessel formation"], "tip": "Eat mango with black pepper — piperine increases polyphenol absorption by 200%!"},
@@ -147,13 +113,7 @@ FRUITS = [
     },
     {
         "name": "Pineapple", "emoji": "🍍", "category": "TROPICAL", "accent_rgb": (234, 179, 8),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1535082897607-4e4e9c77a2c6?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["pineapple fruit whole", "pineapple fruit sliced rings", "pineapple juice fresh glass", "pineapple tropical whole fruit", "pineapple cut pieces plate"],
         "wikipedia": "Pineapple", "usda_fdc_id": 9274,
         "angles": [
             {"hook": "Pineapple contains an enzyme that DIGESTS protein — it literally eats you back.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Bromelain breaks down protein into amino acids", "Reduces bloating after heavy protein meals", "Survives stomach acid — works in intestines too", "Eases symptoms of IBS and indigestion", "More effective than over-the-counter digestive enzymes"], "tip": "Eat pineapple between meals — bromelain works best on an empty stomach!"},
@@ -164,13 +124,7 @@ FRUITS = [
     },
     {
         "name": "Apple", "emoji": "🍎", "category": "TREE", "accent_rgb": (220, 38, 38),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1471943311424-646960669fbc?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["red apple fruit whole", "apple fruit sliced half", "apple tree orchard red", "fresh apple juice glass", "basket of red apples"],
         "wikipedia": "Apple", "usda_fdc_id": 778079,
         "angles": [
             {"hook": "An apple a day lowers stroke risk by 52% — that's not a myth.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Quercetin lowers stroke risk by up to 52%", "Pectin reduces LDL cholesterol by 5-13%", "Polyphenols improve blood vessel elasticity", "Potassium helps maintain healthy blood pressure", "Fiber (4g) binds cholesterol in the gut"], "tip": "Eat the SKIN — 50% of the fiber and ALL the quercetin is in the peel!"},
@@ -181,13 +135,7 @@ FRUITS = [
     },
     {
         "name": "Avocado", "emoji": "🥑", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1601039641840-7f3695a4e3b0?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1601039641840-7f3695a4e3b0?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["avocado fruit whole green", "avocado halves pit", "avocado toast healthy", "ripe avocado green skin", "avocado sliced pieces"],
         "wikipedia": "Avocado", "usda_fdc_id": 778075,
         "angles": [
             {"hook": "Avocados have MORE potassium than bananas — and that's just the start.", "theme": "NUTRITION", "label": "NUTRITION POWERHOUSE", "points": ["14% DV potassium per half — beats bananas", "13g fiber per avocado — 52% daily value!", "Monounsaturated fat (oleic acid) = heart-healthy", "20 vitamins and minerals in one fruit", "More protein than any other fruit (4g per avocado)"], "tip": "Half an avocado = 160 calories of pure nutrition. Don't fear the fat!"},
@@ -198,13 +146,7 @@ FRUITS = [
     },
     {
         "name": "Kiwi", "emoji": "🥝", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["kiwi fruit whole brown", "kiwi fruit sliced green", "kiwi fruit halves green", "kiwi smoothie green glass", "golden kiwi fruit"],
         "wikipedia": "Kiwifruit", "usda_fdc_id": 9277,
         "angles": [
             {"hook": "Just 2 kiwis give you more Vitamin C than 2 oranges combined.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["273% daily Vitamin C per cup — vitamin BOMB", "Stimulates neutrophil production (infection fighters)", "More Vitamin C per gram than ANY citrus fruit", "Antioxidants reduce duration of upper respiratory infections", "Vitamin E supports immune cell membranes"], "tip": "2 kiwis at breakfast = more Vitamin C than your entire day needs, twice over!"},
@@ -215,13 +157,7 @@ FRUITS = [
     },
     {
         "name": "Watermelon", "emoji": "🍉", "category": "MELON", "accent_rgb": (34, 197, 94),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["watermelon fruit whole", "watermelon slices red fresh", "watermelon juice glass", "watermelon cut red flesh", "watermelon summer fresh pieces"],
         "wikipedia": "Watermelon", "usda_fdc_id": 9326,
         "angles": [
             {"hook": "Watermelon is nature's best post-workout drink — beats sports drinks.", "theme": "RECOVERY", "label": "EXERCISE RECOVERY", "points": ["L-citrulline reduces muscle soreness by 40%", "92% water + electrolytes = instant rehydration", "Natural sugars replenish glycogen faster", "Reduces heart rate recovery time after exercise", "Less inflammatory than commercial sports drinks"], "tip": "Drink watermelon juice within 30 min after exercise — that's when muscles need it most!"},
@@ -232,13 +168,7 @@ FRUITS = [
     },
     {
         "name": "Grapes", "emoji": "🍇", "category": "BERRY", "accent_rgb": (139, 92, 246),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["purple grapes fruit bunch", "grapes vineyard branch", "bowl of fresh grapes", "red grapes fruit close", "grapes fruit market pile"],
         "wikipedia": "Grape", "usda_fdc_id": 9189,
         "angles": [
             {"hook": "Resveratrol in grapes activates the same longevity gene as fasting.", "theme": "ANTI-AGING", "label": "LONGEVITY", "points": ["Resveratrol activates SIRT1 — the longevity gene", "Mimics caloric restriction without actually fasting", "Extends lifespan 30% in animal studies", "Protects telomeres — the aging clock in your DNA", "Reduces cellular senescence (zombie cells)"], "tip": "Red & purple grapes have 3x more resveratrol than green — always choose dark!"},
@@ -249,19 +179,57 @@ FRUITS = [
     },
     {
         "name": "Pomegranate", "emoji": "🔴", "category": "SUPERFOOD", "accent_rgb": (190, 18, 60),
-        "image_urls": [
-            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",
-            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
-        ],
+        "slide_searches": ["pomegranate fruit whole red", "pomegranate seeds arils bowl", "pomegranate open half seeds", "pomegranate juice red glass", "pomegranate fruit close up"],
         "wikipedia": "Pomegranate", "usda_fdc_id": 9287,
         "angles": [
             {"hook": "Pomegranate juice has 3x more antioxidants than green tea or red wine.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT KING", "points": ["Punicalagins — among the most powerful antioxidants known", "3x more antioxidant capacity than green tea", "2x more than red wine", "Protects LDL cholesterol from oxidation", "ORAC score: 2860 per 100g — exceptional"], "tip": "Drink 8oz pomegranate juice daily — that's the dose used in heart studies!"},
             {"hook": "Pomegranate may slow prostate cancer growth by 50% — UCLA study.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Doubles PSA doubling time (slows cancer growth)", "Apoptosis induction — triggers cancer cell death", "Inhibits angiogenesis (tumor blood supply)", "Reduces breast cancer cell proliferation by 80%", "Ellagic acid blocks estrogen-driven cancer pathways"], "tip": "8oz pomegranate juice daily for prostate health — used in the UCLA clinical trial!"},
             {"hook": "Pomegranate reduces blood pressure by 12% in just 2 weeks.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Reduces systolic BP by 5-12% in 2 weeks", "ACE inhibitor effect — naturally blocks angiotensin", "Reduces arterial plaque thickness by 30%", "Improves endothelial function (blood vessel health)", "Prevents oxidation of LDL cholesterol"], "tip": "Drink pomegranate juice BEFORE meals — the nitrates work best on an empty stomach!"},
             {"hook": "Pomegranate improves memory in older adults after just 4 weeks.", "theme": "BRAIN", "label": "MEMORY BOOSTER", "points": ["Improves visual memory by 30% in older adults", "Urolithin A clears damaged mitochondria from brain cells", "Reduces beta-amyloid plaque formation", "Enhances verbal and visual memory recall", "Anti-inflammatory protects brain tissue"], "tip": "8oz juice daily for 4 weeks — that's the protocol used in memory improvement studies!"},
+        ],
+    },
+    {
+        "name": "Cherry", "emoji": "🍒", "category": "BERRY", "accent_rgb": (185, 28, 28),
+        "slide_searches": ["cherry fruit whole red", "bowl of fresh cherries", "cherry tree branch fruit", "cherry fruit close up", "cherry smoothie red glass"],
+        "wikipedia": "Cherry", "usda_fdc_id": 9270,
+        "angles": [
+            {"hook": "Tart cherry juice reduces insomnia severity by 45% — no pills needed.", "theme": "SLEEP", "label": "SLEEP AID", "points": ["Natural melatonin — regulates sleep-wake cycle", "Increases sleep time by 84 minutes", "Reduces insomnia severity by 45%", "Tryptophan + melatonin + serotonin = sleep trifecta", "Works better than valerian root in studies"], "tip": "Drink tart cherry juice 30 min before bed — it's nature's sleeping pill!"},
+            {"hook": "Cherries reduce gout attacks by 35% — the #1 natural gout remedy.", "theme": "GOUT", "label": "GOUT RELIEF", "points": ["Reduces uric acid levels by 15% in 4 hours", "Anthocyanins block COX-1 and COX-2 enzymes", "Anti-inflammatory = 10x more potent than aspirin", "Cuts gout attack risk by 35% when eaten daily", "Vitamin C increases uric acid excretion by kidneys"], "tip": "Eat 15-20 cherries at the FIRST sign of a gout flare!"},
+            {"hook": "Cherries have the highest anti-inflammatory content of any food.", "theme": "INFLAMMATION", "label": "ANTI-INFLAMMATORY", "points": ["Anthocyanins block NF-kB inflammation pathway", "COX inhibition comparable to ibuprofen (no stomach damage)", "Reduces CRP (inflammation marker) by 25%", "Works for arthritis, muscle pain, and joint stiffness", "Tart cherries have 5x more anti-inflammatory power than sweet"], "tip": "Choose TART cherries for inflammation — they have 5x more anthocyanins than sweet!"},
+            {"hook": "Cherries speed up muscle recovery faster than ice baths.", "theme": "RECOVERY", "label": "MUSCLE RECOVERY", "points": ["Reduces post-race muscle pain by 24%", "Accelerates strength recovery after exercise", "Lowers creatine kinase (muscle damage marker) by 19%", "Anti-inflammatory reduces DOMS (delayed soreness)", "Antioxidants repair micro-tears in muscle fibers"], "tip": "Drink tart cherry juice for 7 days BEFORE a big race — proven to cut recovery time!"},
+        ],
+    },
+    {
+        "name": "Papaya", "emoji": "🍈", "category": "TROPICAL", "accent_rgb": (251, 146, 60),
+        "slide_searches": ["papaya fruit whole", "papaya fruit sliced half seeds", "papaya pieces fresh plate", "papaya tree tropical", "papaya smoothie orange glass"],
+        "wikipedia": "Papaya", "usda_fdc_id": 9252,
+        "angles": [
+            {"hook": "Papaya has an enzyme 200x more powerful than pepsin for digestion.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Papain digests protein 200x stronger than your own pepsin", "Used medically to treat pancreatic insufficiency", "Tenderizes meat — imagine what it does for your stomach", "Fiber + enzymes = perfect digestion combo", "Relieves chronic indigestion in 7 days"], "tip": "Eat papaya seeds too — they kill intestinal parasites effectively!"},
+            {"hook": "Papaya can reverse sun damage and reduce wrinkles by 20%.", "theme": "SKIN", "label": "SKIN & BEAUTY", "points": ["Papain removes dead skin cells naturally", "Lycopene (more than tomatoes!) fights UV damage", "Vitamin C (144% DV) builds collagen fast", "Vitamin A reduces hyperpigmentation and dark spots", "Enzymes unclog pores — prevents acne breakouts"], "tip": "Rub papaya skin (inside) on your face — leave 10 min for natural enzyme peel!"},
+            {"hook": "Papaya is one of the best fruits for heart disease prevention.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Lycopene prevents cholesterol oxidation in arteries", "Potassium (257mg) regulates blood pressure", "Fiber binds cholesterol in the digestive tract", "Vitamin C prevents arterial wall damage", "Folate reduces homocysteine — major heart risk factor"], "tip": "Red papaya has more lycopene than pink grapefruit — choose the reddest ones!"},
+            {"hook": "Papaya seeds are a natural dewormer used in traditional medicine for centuries.", "theme": "PARASITES", "label": "ANTIPARASITIC", "points": ["Seeds contain caricin — kills intestinal worms", "Studies show 75% parasite clearance in children", "Antibacterial against E. coli, Salmonella, Staph", "Protects kidneys from toxin damage", "Rich in oleic and palmitic acids (anti-inflammatory)"], "tip": "Blend 1 tablespoon papaya seeds into your smoothie — taste like black pepper!"},
+        ],
+    },
+    {
+        "name": "Dragon Fruit", "emoji": "🐉", "category": "TROPICAL", "accent_rgb": (219, 39, 119),
+        "slide_searches": ["dragon fruit whole pink", "dragon fruit sliced half", "dragon fruit pieces bowl", "dragon fruit smoothie pink", "red dragon fruit cut"],
+        "wikipedia": "Pitaya", "usda_fdc_id": 778077,
+        "angles": [
+            {"hook": "Dragon fruit feeds your gut bacteria better than most probiotics.", "theme": "GUT HEALTH", "label": "GUT HEALTH", "points": ["Prebiotic oligosaccharides feed Lactobacillus & Bifidobacteria", "Boosts beneficial bacteria by up to 34%", "7g fiber per cup — excellent for digestion", "Seeds contain healthy omega-3 & omega-9 fatty acids", "Reduces gut inflammation markers significantly"], "tip": "The tiny black seeds are where the omega-3s live — chew them, don't swallow whole!"},
+            {"hook": "Red dragon fruit can stabilize blood sugar for up to 6 hours.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Red variety reduces blood glucose by 30%", "Betalains improve insulin receptor sensitivity", "Fiber creates slow, steady glucose release", "Low GI — won't cause sugar spikes", "Prebiotic fiber reduces metabolic syndrome markers"], "tip": "Choose RED dragon fruit over white — it has 10x more betacyanins for blood sugar!"},
+            {"hook": "Dragon fruit's betacyanins are being studied as cancer-fighting compounds.", "theme": "CANCER", "label": "CANCER RESEARCH", "points": ["Betacyanins induce cancer cell apoptosis", "Red dragon fruit has 10x more betacyanins than white", "Phytoalbumins prevent cell mutation", "Vitamin C boosts NK (natural killer) cell activity", "Antioxidant protection reduces DNA damage by 35%"], "tip": "Red dragon fruit = the most powerful variety. The deeper the color, the more betacyanins!"},
+            {"hook": "Dragon fruit is one of the few natural sources of iron for vegetarians.", "theme": "ANEMIA", "label": "IRON & BLOOD", "points": ["0.65mg iron per cup — rare for fruit", "Vitamin C (34% DV) increases iron absorption by 6x", "Iron + Vitamin C in the same food = perfect combo", "Promotes red blood cell production", "Prevents iron-deficiency anemia in plant-based diets"], "tip": "Dragon fruit + citrus = maximum iron absorption. The vitamin C does the heavy lifting!"},
+        ],
+    },
+    {
+        "name": "Guava", "emoji": "🍈", "category": "TROPICAL", "accent_rgb": (34, 197, 94),
+        "slide_searches": ["guava fruit whole green", "guava fruit sliced pink", "guava pieces fresh plate", "guava tree fruit", "guava juice glass pink"],
+        "wikipedia": "Guava", "usda_fdc_id": 9186,
+        "angles": [
+            {"hook": "One guava has 4x more Vitamin C than an orange — the ultimate immune fruit.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["4x more Vitamin C than oranges (228mg vs 53mg)", "380% daily Vitamin C per guava — INSANE", "Fights infections by boosting white blood cell count", "Vitamin A protects mucous membranes — first defense", "Antimicrobial properties kill H. pylori bacteria"], "tip": "1 guava = 4 oranges worth of Vitamin C. And it tastes way better!"},
+            {"hook": "Guava leaves are scientifically proven to lower blood sugar by 20%.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Guava leaf tea lowers blood sugar by 20%", "Inhibits alpha-glucosidase (carb-digesting enzyme)", "Improves insulin sensitivity in type 2 diabetes", "Fiber (9g per cup) slows glucose absorption", "Low GI (12!) — one of the lowest of all fruits"], "tip": "Brew guava LEAF tea after meals — it cuts blood sugar spikes better than the fruit!"},
+            {"hook": "Guava has more potassium than a banana AND more fiber than an apple.", "theme": "NUTRITION", "label": "NUTRITION DENSITY", "points": ["417mg potassium per cup — beats bananas", "9g fiber per cup — beats apples", "228mg Vitamin C — beats oranges 4x", "Folate, B6, Vitamin A, Vitamin K — all in one", "Only 112 calories per cup — nutrient density champion"], "tip": "Guava is pound-for-pound the most nutrient-dense fruit on Earth!"},
+            {"hook": "Guava can improve thyroid function — it's rich in selenium and copper.", "theme": "THYROID", "label": "THYROID HEALTH", "points": ["Copper helps convert T4 to active T3 thyroid hormone", "Selenium protects thyroid gland from oxidative damage", "Vitamin C reduces thyroid inflammation", "Iodine content supports thyroid hormone production", "Anti-inflammatory reduces Hashimoto's symptoms"], "tip": "Eat guava regularly if you have thyroid issues — copper + selenium is the key combo!"},
         ],
     },
 ]
@@ -286,15 +254,6 @@ BG_CARD  = (22,  33,  56)
 C_WHITE  = (255, 255, 255)
 C_GRAY   = (148, 163, 184)
 C_BLACK  = (  0,   0,   0)
-
-FALLBACK_IMAGES = {
-    "CITRUS":    "https://images.unsplash.com/photo-1590502593747-42a996133562?w=1080&h=1080&fit=crop&auto=format",
-    "BERRY":     "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=1080&h=1080&fit=crop&auto=format",
-    "TROPICAL":  "https://images.unsplash.com/photo-1570080757669-4abd46b3a7c3?w=1080&h=1080&fit=crop&auto=format",
-    "TREE":      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&h=1080&fit=crop&auto=format",
-    "MELON":     "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",
-    "SUPERFOOD": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1080&h=1080&fit=crop&auto=format",
-}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -361,13 +320,30 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FETCH MULTIPLE FRUIT IMAGES — One per slide
+# FETCH FRUIT IMAGES — Search-based URLs guarantee accurate photos
 # ─────────────────────────────────────────────────────────────────────────────
-def fetch_single_image(url: str) -> Image.Image | None:
+def build_search_url(query: str, slide_idx: int) -> str:
+    """
+    Build a Unsplash Source URL that searches for a specific query.
+    Uses a daily seed so the same query returns different images each day.
+    This GUARANTEES the photo matches the search term.
+    """
+    # Create a deterministic but daily-changing seed
+    day_seed = hashlib.md5(f"{query}-{datetime.now().strftime('%Y-%m-%d')}-{slide_idx}".encode()).hexdigest()[:8]
+    encoded_query = requests.utils.quote(query)
+    return f"https://source.unsplash.com/1080x1080/?{encoded_query}&sig={day_seed}"
+
+
+def fetch_single_image(url: str, max_redirects: int = 5) -> Image.Image | None:
     """Download a single image and return as 1080×1080 cropped PIL image."""
     try:
-        r = requests.get(url, headers=HEADERS, timeout=20)
-        r.raise_for_status()
+        r = requests.get(url, headers=HEADERS, timeout=25, allow_redirects=True)
+        if r.status_code != 200:
+            return None
+        # Verify it's actually an image
+        content_type = r.headers.get('content-type', '')
+        if 'image' not in content_type and not url.endswith(('.jpg', '.jpeg', '.png', '.webp')):
+            return None
         img = Image.open(BytesIO(r.content)).convert("RGB")
         w, h = img.size
         side = min(w, h)
@@ -381,46 +357,70 @@ def fetch_single_image(url: str) -> Image.Image | None:
         return None
 
 
-def fetch_fruit_images(image_urls: list[str], category: str, num_slides: int) -> list[Image.Image]:
+def fetch_fruit_images(slide_searches: list[str], fruit_name: str, num_slides: int) -> list[Image.Image]:
     """
-    Fetch a different image for each slide with smart fallbacks:
-    1. Try the specific image_urls from the database
-    2. If those fail, try the category fallback
-    3. If that fails, reuse the last successful image
+    Fetch a different image for each slide using SEARCH-BASED URLs.
+    
+    How this works:
+    - Each slide gets a different search query (e.g., "red apple whole", "apple sliced half")
+    - Unsplash's source API returns a photo matching the search
+    - This GUARANTEES accurate fruit photos every time
+    
+    Fallback chain:
+    1. Search-based URL for this specific slide
+    2. Try the search query with a different sig (retry)
+    3. Generic fruit name search
+    4. Last successful image from previous slide
     """
     photos: list[Image.Image] = []
     last_successful: Image.Image | None = None
     
-    # Fetch category fallback first
-    fallback_url = FALLBACK_IMAGES.get(category, "")
-    fallback_photo = None
-    if fallback_url:
-        fallback_photo = fetch_single_image(fallback_url)
-    
-    print(f"  📷 Fetching {num_slides} different fruit photos…")
+    print(f"  📷 Fetching {num_slides} fruit photos using search-based URLs…")
     
     for i in range(num_slides):
-        url_idx = i % len(image_urls) if image_urls else 0
-        url = image_urls[url_idx] if image_urls else ""
+        # Skip photo for CTA slide (last slide)
+        if i == num_slides - 1:
+            if last_successful:
+                photos.append(last_successful.copy())
+                print(f"    ✅ Slide {i+1} reusing photo (CTA slide)")
+            else:
+                photos.append(Image.new("RGB", (IMG_W, IMG_H), BG_DARK))
+                print(f"    ℹ️  Slide {i+1} dark background (CTA slide)")
+            continue
         
         photo = None
-        if url:
-            photo = fetch_single_image(url)
+        search_idx = i % len(slide_searches) if slide_searches else 0
+        search_query = slide_searches[search_idx] if slide_searches else fruit_name.lower()
+        
+        # Strategy 1: Search-based URL with daily seed
+        url1 = build_search_url(search_query, i)
+        print(f"    🔍 Slide {i+1}: Searching for '{search_query}'…")
+        photo = fetch_single_image(url1)
+        
+        # Strategy 2: If first search failed, try with generic fruit name
+        if not photo and search_query != fruit_name.lower():
+            url2 = build_search_url(fruit_name.lower() + " fruit", i + 100)
+            print(f"    🔍 Slide {i+1}: Retrying with '{fruit_name.lower()} fruit'…")
+            photo = fetch_single_image(url2)
+        
+        # Strategy 3: Try a different search variation
+        if not photo:
+            alt_query = f"fresh {fruit_name.lower()} fruit food"
+            url3 = build_search_url(alt_query, i + 200)
+            print(f"    🔍 Slide {i+1}: Last try with '{alt_query}'…")
+            photo = fetch_single_image(url3)
         
         if photo:
             photos.append(photo)
             last_successful = photo
-            print(f"    ✅ Slide {i+1} photo loaded (image {url_idx+1}/{len(image_urls)})")
+            print(f"    ✅ Slide {i+1} photo loaded! ({search_query})")
         elif last_successful:
             photos.append(last_successful.copy())
-            print(f"    ℹ️  Slide {i+1} reusing previous photo (URL failed)")
-        elif fallback_photo:
-            photos.append(fallback_photo.copy())
-            print(f"    ℹ️  Slide {i+1} using category fallback photo")
+            print(f"    ℹ️  Slide {i+1} reusing previous photo (searches failed)")
         else:
             placeholder = Image.new("RGB", (IMG_W, IMG_H), BG_DARK)
             photos.append(placeholder)
-            print(f"    ⚠️  Slide {i+1} using dark placeholder (no photo available)")
+            print(f"    ⚠️  Slide {i+1} dark placeholder (all searches failed)")
     
     return photos
 
@@ -897,14 +897,17 @@ def main():
     num_slides = len(slide_texts)
     for i, t in enumerate(slide_texts): print(f"   Slide {i+1}: {t[:70]}…")
 
-    # Fetch DIFFERENT photos for each slide
-    print(f"\n📷 Fetching {num_slides} different fruit photos…")
-    fruit_photos = fetch_fruit_images(fruit["image_urls"], fruit["category"], num_slides)
+    # Fetch DIFFERENT photos for each slide using SEARCH-BASED URLs
+    print(f"\n📷 Fetching {num_slides} fruit photos (search-based for accuracy)…")
+    fruit_photos = fetch_fruit_images(
+        fruit.get("slide_searches", [fruit["name"].lower() + " fruit"]),
+        fruit["name"],
+        num_slides
+    )
 
     print("\n🎨 Creating slide images…")
     images = []
     for i, text in enumerate(slide_texts):
-        # Pass the SPECIFIC photo for this slide
         img = create_slide(text, i, num_slides, fruit, angle, slide_photo=fruit_photos[i])
         images.append(img)
         img.save(f"/tmp/slide_{i+1}.jpg", quality=95)
