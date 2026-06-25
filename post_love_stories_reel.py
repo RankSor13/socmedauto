@@ -519,6 +519,7 @@ SLIDE_SCHEMA = {
     "part3":      "2 to 3 sentences — feelings, realizations, emotional impact.",
     "question":   "1 question to the followers. Start with 'Sa inyong palagay...' or 'Ano ang...' or 'Kayo ba...'",
     "cta":        "1 to 2 short CTA lines. Encourage commenters to help this anonymous member — use 'tayo' (we/us) framing like 'baka makatulong tayo sa ating kababayan' or 'tulungan natin siya'. Keep it warm, communal, and Taglish.",
+    "closing":    "2 to 3 sentences — written directly to the page, after the story ends. The anonymous sender is giving the page permission to post their story and asking for help or insights. Tone: genuine, a little vulnerable, casual Taglish. Must address the page as 'Dear Viral Video Challenge'. The sender explains they're reaching out because it's hard to talk to people they know personally — they want perspectives from strangers.",
 }
 
 CATEGORY_PROMPTS = {
@@ -613,6 +614,11 @@ Writing style RULES (very important):
 {curse_instruction}
 - Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ — plain text only
 - For the "cta" field: frame it as the COMMUNITY helping (use "tayo", "natin", "kababayan") — not the poster
+- For the "closing" field: this is a short personal note from the anonymous sender to the page, written AFTER the story ends. It must start with "Dear Viral Video Challenge," and give the page permission to share the story. The sender should explain in casual Taglish that they're sharing because it's hard to open up to people they know personally, and they're hoping for insights, advice, or a different perspective from strangers. Make it feel raw and real — not polished. Here are some varied examples to rotate from (DO NOT copy these verbatim — use them as inspiration only):
+  • "Dear Viral Video Challenge, okay lang po ba i-share ninyo 'to sa page? Nahihirapan kasi akong kausapin ang mga taong kilala ko tungkol dito — parang mas madali pag strangers ang sasagot. Baka may makatulong sa akin dito. 🙏"
+  • "Dear Viral Video Challenge, sana okay lang i-post ninyo 'to. Wala akong matanungan na talagang honest kasi lahat ng kakilala ko may bias. Gusto ko lang marinig ang totoo mula sa ibang tao."
+  • "Dear Viral Video Challenge, i-share na po kaya ninyo ito? Minsan mas komportable kang buksan sa mga hindi mo kilala kesa sa sariling pamilya o barkada. Umaasa lang ako na may makapagbigay ng insight."
+  • "Dear Viral Video Challenge, puwede po ba itong i-post? Hindi ko kayang kausapin ang mga kaibigan ko dito, masyado silang close sa sitwasyon. Baka ang mga followers ninyo ang makatulong sa akin."
 
 Respond ONLY with valid JSON (no markdown, no extra text, no code fences) matching this exact schema:
 {{
@@ -621,7 +627,8 @@ Respond ONLY with valid JSON (no markdown, no extra text, no code fences) matchi
   "part2": "{SLIDE_SCHEMA['part2']}",
   "part3": "{SLIDE_SCHEMA['part3']}",
   "question": "{SLIDE_SCHEMA['question']}",
-  "cta": "{SLIDE_SCHEMA['cta']}"
+  "cta": "{SLIDE_SCHEMA['cta']}",
+  "closing": "{SLIDE_SCHEMA['closing']}"
 }}"""
 
     try:
@@ -670,7 +677,8 @@ def _fallback_story(category: str) -> dict:
             "part2":    "nag-usap kami nang matagal that night. hanggang umaga. di ko na naalala kung kailan ako huling ganoon ka-comfortable sa isang tao. tapos ayun — nagtext siya kinabukasan.",
             "part3":    "ngayon hindi ko alam kung love na ito o attraction lang. pero tuwing wala siya, miss ko na siya agad. ganon na ba yun?",
             "question": "kayo ba, paano ninyo nalaman na love na at hindi lang crush?",
-            "cta":      "comment kayo ng advice para sa ating anonymous member — baka makatulong tayo. 💬"
+            "cta":      "comment kayo ng advice para sa ating anonymous member — baka makatulong tayo. 💬",
+            "closing":  "Dear Viral Video Challenge, okay lang po ba i-share ninyo 'to sa page? Nahihirapan kasi akong kausapin ang mga taong kilala ko tungkol dito — parang mas komportable kapag strangers ang nakikinig. Umaasa lang ako na may makapagbigay ng insight o kahit simpleng salita ng ginhawa. 🙏",
         },
         "CHEATING": {
             "hook":     "p*ta — tatlong taon pala akong pinagtaksilan niya...",
@@ -678,7 +686,8 @@ def _fallback_story(category: str) -> dict:
             "part2":    "nagpahiram ako ng phone niya para mag-call sa mama ko. may notification na lumabas. hindi ko sinadyang makita pero nakita ko na. p**e, may isa pa pala siyang kausap nang halos isang taon.",
             "part3":    "ngayon hindi ko malaman kung mag-stay o umalis na. nasaktan hindi lang sa ginawa niya — kundi sa lahat ng beses na sinabi niya mahal niya ako. totoo ba yun?",
             "question": "kayo ba, magpapatawad sa ganitong sitwasyon?",
-            "cta":      "ano ang dapat gawin ng ating kababayan? tulungan natin siya — mag-comment ng inyong saloobin. 💔"
+            "cta":      "ano ang dapat gawin ng ating kababayan? tulungan natin siya — mag-comment ng inyong saloobin. 💔",
+            "closing":  "Dear Viral Video Challenge, puwede po ba itong i-post? Wala akong matanungan na talagang honest — lahat ng kakilala ko ay kaibigan din niya. Gusto ko lang marinig ang totoo mula sa ibang tao na walang bias. Kahit one comment lang, malaki na para sa akin.",
         },
         "HEARTBREAK": {
             "hook":     "apat na taon — tapos 'we need to talk' na lang biglang sinabi niya...",
@@ -686,7 +695,8 @@ def _fallback_story(category: str) -> dict:
             "part2":    "sabi niya kailangan niya ng time para sa sarili. hindi na daw siya masaya. na hindi kasalanan niya, hindi rin daw kasalanan ko. p*ta, kung hindi kasalanan ng sinuman bakit may nasaktan?",
             "part3":    "bakit ako ang nag-iingat pa rin ng mga alaala namin habang siya ay sige lang sa buhay? kailan ito titigil na masakit?",
             "question": "paano kayo nakakaalis sa ganito? anong tumutulong sa inyo para gumalaw ulit?",
-            "cta":      "para sa ating anonymous member — hindi ka nag-iisa. 🤍 mag-comment tayo para makatulong."
+            "cta":      "para sa ating anonymous member — hindi ka nag-iisa. 🤍 mag-comment tayo para makatulong.",
+            "closing":  "Dear Viral Video Challenge, sana okay lang i-share ninyo ito. Nahihirapan kasi akong buksan sa mga kaibigan ko — alam nila siya personally at ayaw kong ma-awkward. Mas madali para sa akin na marinig ang pananaw ng ibang tao. Salamat.",
         },
         "AGE GAP": {
             "hook":     "15 taon ang pagitan namin — pero paano mo sasabihin sa puso na huwag?",
@@ -694,7 +704,8 @@ def _fallback_story(category: str) -> dict:
             "part2":    "nung nalaman ng pamilya ko, nagka-gulo lahat. sinabihan nila ako na huwag. na malayo daw ang mundo namin. bata pa raw ako para malaman kung ano ang gusto ko.",
             "part3":    "pero paano mo ipapaliwanag sa puso na huwag? siya ang pinakageniune na tao na nakilala ko. hindi ko alam kung ang edad ang hadlang — o ang takot lang ng iba.",
             "question": "sa inyong palagay, magiging okay ba ang ganitong relasyon?",
-            "cta":      "tulungan natin ang ating anonymous member — mag-comment ng inyong saloobin. 💬"
+            "cta":      "tulungan natin ang ating anonymous member — mag-comment ng inyong saloobin. 💬",
+            "closing":  "Dear Viral Video Challenge, puwede po bang i-post ninyo 'to? Hindi ko kayang kausapin ang pamilya at barkada ko tungkol dito — masyado silang may judgment. Gusto ko lang marinig ang ibang pananaw mula sa mga taong hindi ako kilala. Kahit anong insights, okay na. 🙏",
         },
         "COUSIN LOVE": {
             "hook":     "pinsan ko siya — pero bakit ganito ang nararamdaman ko tuwing nandoon siya...",
@@ -702,7 +713,8 @@ def _fallback_story(category: str) -> dict:
             "part2":    "ayaw kong aminin sa sarili ko. lagi ko sinasabi 'barkada lang' o 'family lang' — pero tuwing tumatawag siya, may kaba akong hindi ko mapaliwanagan.",
             "part3":    "hindi ko alam kung sasabihin ko o itatanim na lang sa puso ko habambuhay. takot ako sa reaction ng pamilya — at mas takot ako na mawala ang espesyal naming pagkakaibigan.",
             "question": "paano ninyo haharapin ang ganitong sitwasyon?",
-            "cta":      "huwag hatulan — tulungan natin ang ating kababayan. mag-comment ng inyong payo nang may malasakit. 🤍"
+            "cta":      "huwag hatulan — tulungan natin ang ating kababayan. mag-comment ng inyong payo nang may malasakit. 🤍",
+            "closing":  "Dear Viral Video Challenge, sana i-share po ninyo ito. Talagang hindi ko kaya itong ikwento sa mga taong kilala ko — baka pag-usapan pa ako ng buong pamilya. Pero kailangan ko ng makakarinig. Kahit anonymous lang, okay na. Salamat sa page ninyo.",
         },
     }
     return stories.get(category, stories["HEARTBREAK"])
@@ -719,6 +731,7 @@ SLIDE_CONFIGS = [
     ("story3",   False, "part3"),    # Slide 4: hook header + part3
     ("question", False, "question"), # Slide 5: question to followers
     ("cta",      False, "cta"),      # Slide 6: follow/CTA
+    ("closing",  False, "closing"),  # Slide 7: sender's note to the page
 ]
 
 
