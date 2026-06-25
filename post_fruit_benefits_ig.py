@@ -8,7 +8,7 @@ Required GitHub Secrets:
   FB_ACCESS_TOKEN      — Facebook Page Access Token (posting account)
   IMGBB_API_KEY        — Free at imgbb.com
   PAGE_NAME            — Your IG handle WITHOUT the @
-  PIXABAY_API_KEY      — Free instant signup at https://pixabay.com/api/docs/
+  PEXELS_API_KEY       — Free at https://www.pexels.com/api/ (for accurate fruit photos)
 
 Optional:
   USDA_API_KEY         — Free at https://api.data.gov/signup/
@@ -26,7 +26,7 @@ from datetime import datetime
 IG_USER_ID      = os.environ["IG_USER_ID"]
 FB_ACCESS_TOKEN = os.environ["FB_ACCESS_TOKEN"]
 IMGBB_API_KEY   = os.environ["IMGBB_API_KEY"]
-PIXABAY_API_KEY = os.environ.get("PIXABAY_API_KEY", "")
+PEXELS_API_KEY  = os.environ.get("PEXELS_API_KEY", "")
 USDA_API_KEY    = os.environ.get("USDA_API_KEY", "")
 GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
 PAGE_NAME       = os.environ.get("PAGE_NAME", "fruitfacts.daily")
@@ -69,7 +69,7 @@ FRUITS = [
     },
     {
         "name": "Strawberry", "emoji": "🍓", "category": "BERRY", "accent_rgb": (244, 63, 94),
-        "slide_searches": ["strawberry fruit red", "strawberry sliced", "bowl fresh strawberries", "strawberry field", "strawberry smoothie"],
+        "slide_searches": ["strawberry fruit whole red", "strawberry sliced", "bowl fresh strawberries", "strawberry field", "strawberry smoothie pink"],
         "wikipedia": "Strawberry", "usda_fdc_id": 9316,
         "angles": [
             {"hook": "Strawberries have MORE Vitamin C than oranges — per serving.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["149% daily Vitamin C per cup — beats oranges!", "Ellagic acid neutralizes carcinogens on contact", "Anthocyanins reduce inflammation markers 18%", "Manganese activates superoxide dismutase enzyme", "Vitamin B6 supports antibody production"], "tip": "Eat strawberries within 2 days of purchase — they lose 30% Vitamin C by day 3!"},
@@ -80,7 +80,7 @@ FRUITS = [
     },
     {
         "name": "Blueberry", "emoji": "🫐", "category": "BERRY", "accent_rgb": (99, 102, 241),
-        "slide_searches": ["blueberry fruit", "handful blueberries", "bowl fresh blueberries", "blueberry smoothie", "blueberry bush"],
+        "slide_searches": ["blueberry fruit whole", "handful blueberries", "bowl fresh blueberries", "blueberry smoothie", "blueberry bush"],
         "wikipedia": "Blueberry", "usda_fdc_id": 9052,
         "angles": [
             {"hook": "Blueberries can improve your MEMORY in just 12 weeks — Harvard study.", "theme": "BRAIN", "label": "BRAIN POWER", "points": ["Anthocyanins cross the blood-brain barrier", "Improves delayed memory by 15% in older adults", "Increases BDNF — brain's growth hormone", "Protects neurons from oxidative stress damage", "1 cup/day = measurable cognitive improvement"], "tip": "Eat 1 cup daily — that's the exact dose used in the Harvard memory study!"},
@@ -91,7 +91,7 @@ FRUITS = [
     },
     {
         "name": "Banana", "emoji": "🍌", "category": "TROPICAL", "accent_rgb": (250, 204, 21),
-        "slide_searches": ["banana fruit yellow", "banana peeled", "banana smoothie healthy", "banana tree bunch", "banana slices"],
+        "slide_searches": ["banana fruit whole yellow", "banana peeled", "banana smoothie healthy", "banana tree bunch", "banana slices plate"],
         "wikipedia": "Banana", "usda_fdc_id": 778089,
         "angles": [
             {"hook": "Bananas are a natural antidepressant — science confirms it.", "theme": "MOOD", "label": "MOOD & MENTAL HEALTH", "points": ["Tryptophan converts to serotonin — the happy hormone", "Vitamin B6 helps synthesize dopamine & norepinephrine", "Magnesium relaxes muscles and calms anxiety", "Natural sugar provides steady brain energy", "Potassium oxygenates the brain — clearer thinking"], "tip": "Eat a banana when stressed — it raises serotonin levels within 45 minutes!"},
@@ -102,7 +102,7 @@ FRUITS = [
     },
     {
         "name": "Mango", "emoji": "🥭", "category": "TROPICAL", "accent_rgb": (245, 158, 11),
-        "slide_searches": ["mango fruit ripe", "mango fruit sliced", "mango smoothie tropical", "mango tree", "ripe mango"],
+        "slide_searches": ["mango fruit whole ripe", "mango fruit sliced", "mango smoothie tropical", "mango on tree", "ripe mango close up"],
         "wikipedia": "Mango", "usda_fdc_id": 9174,
         "angles": [
             {"hook": "Mango polyphenols can suppress breast and colon cancer cells in lab studies.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Polyphenols suppress breast cancer cell growth", "Lupeol targets colon cancer cells selectively", "Gallotannins induce cancer cell death (apoptosis)", "Beta-carotene reduces lung cancer risk by 25%", "Mangiferin inhibits tumor blood vessel formation"], "tip": "Eat mango with black pepper — piperine increases polyphenol absorption by 200%!"},
@@ -113,7 +113,7 @@ FRUITS = [
     },
     {
         "name": "Pineapple", "emoji": "🍍", "category": "TROPICAL", "accent_rgb": (234, 179, 8),
-        "slide_searches": ["pineapple fruit whole", "pineapple sliced", "pineapple juice fresh", "pineapple tropical", "pineapple pieces"],
+        "slide_searches": ["pineapple fruit whole", "pineapple sliced rings", "pineapple juice fresh", "pineapple tropical", "pineapple cut pieces"],
         "wikipedia": "Pineapple", "usda_fdc_id": 9274,
         "angles": [
             {"hook": "Pineapple contains an enzyme that DIGESTS protein — it literally eats you back.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Bromelain breaks down protein into amino acids", "Reduces bloating after heavy protein meals", "Survives stomach acid — works in intestines too", "Eases symptoms of IBS and indigestion", "More effective than over-the-counter digestive enzymes"], "tip": "Eat pineapple between meals — bromelain works best on an empty stomach!"},
@@ -124,7 +124,7 @@ FRUITS = [
     },
     {
         "name": "Apple", "emoji": "🍎", "category": "TREE", "accent_rgb": (220, 38, 38),
-        "slide_searches": ["red apple fruit", "apple fruit sliced", "apple tree orchard", "apple juice fresh", "basket red apples"],
+        "slide_searches": ["red apple fruit whole", "apple fruit sliced half", "apple tree orchard", "apple juice fresh", "basket red apples"],
         "wikipedia": "Apple", "usda_fdc_id": 778079,
         "angles": [
             {"hook": "An apple a day lowers stroke risk by 52% — that's not a myth.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Quercetin lowers stroke risk by up to 52%", "Pectin reduces LDL cholesterol by 5-13%", "Polyphenols improve blood vessel elasticity", "Potassium helps maintain healthy blood pressure", "Fiber (4g) binds cholesterol in the gut"], "tip": "Eat the SKIN — 50% of the fiber and ALL the quercetin is in the peel!"},
@@ -135,7 +135,7 @@ FRUITS = [
     },
     {
         "name": "Avocado", "emoji": "🥑", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
-        "slide_searches": ["avocado fruit green", "avocado halves pit", "avocado toast", "ripe avocado", "avocado sliced"],
+        "slide_searches": ["avocado fruit whole green", "avocado halves pit", "avocado toast healthy", "ripe avocado green", "avocado sliced"],
         "wikipedia": "Avocado", "usda_fdc_id": 778075,
         "angles": [
             {"hook": "Avocados have MORE potassium than bananas — and that's just the start.", "theme": "NUTRITION", "label": "NUTRITION POWERHOUSE", "points": ["14% DV potassium per half — beats bananas", "13g fiber per avocado — 52% daily value!", "Monounsaturated fat (oleic acid) = heart-healthy", "20 vitamins and minerals in one fruit", "More protein than any other fruit (4g per avocado)"], "tip": "Half an avocado = 160 calories of pure nutrition. Don't fear the fat!"},
@@ -146,7 +146,7 @@ FRUITS = [
     },
     {
         "name": "Kiwi", "emoji": "🥝", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
-        "slide_searches": ["kiwi fruit", "kiwi fruit sliced green", "kiwi halves", "kiwi smoothie", "golden kiwi"],
+        "slide_searches": ["kiwi fruit whole", "kiwi fruit sliced green", "kiwi halves green", "kiwi smoothie", "golden kiwi fruit"],
         "wikipedia": "Kiwifruit", "usda_fdc_id": 9277,
         "angles": [
             {"hook": "Just 2 kiwis give you more Vitamin C than 2 oranges combined.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["273% daily Vitamin C per cup — vitamin BOMB", "Stimulates neutrophil production (infection fighters)", "More Vitamin C per gram than ANY citrus fruit", "Antioxidants reduce duration of upper respiratory infections", "Vitamin E supports immune cell membranes"], "tip": "2 kiwis at breakfast = more Vitamin C than your entire day needs, twice over!"},
@@ -157,7 +157,7 @@ FRUITS = [
     },
     {
         "name": "Watermelon", "emoji": "🍉", "category": "MELON", "accent_rgb": (34, 197, 94),
-        "slide_searches": ["watermelon fruit", "watermelon slices red", "watermelon juice", "watermelon cut", "watermelon fresh"],
+        "slide_searches": ["watermelon fruit whole", "watermelon slices red", "watermelon juice glass", "watermelon cut red", "watermelon fresh pieces"],
         "wikipedia": "Watermelon", "usda_fdc_id": 9326,
         "angles": [
             {"hook": "Watermelon is nature's best post-workout drink — beats sports drinks.", "theme": "RECOVERY", "label": "EXERCISE RECOVERY", "points": ["L-citrulline reduces muscle soreness by 40%", "92% water + electrolytes = instant rehydration", "Natural sugars replenish glycogen faster", "Reduces heart rate recovery time after exercise", "Less inflammatory than commercial sports drinks"], "tip": "Drink watermelon juice within 30 min after exercise — that's when muscles need it most!"},
@@ -168,7 +168,7 @@ FRUITS = [
     },
     {
         "name": "Grapes", "emoji": "🍇", "category": "BERRY", "accent_rgb": (139, 92, 246),
-        "slide_searches": ["purple grapes bunch", "grapes vineyard", "bowl fresh grapes", "red grapes close", "grapes fruit"],
+        "slide_searches": ["purple grapes bunch", "grapes vineyard branch", "bowl fresh grapes", "red grapes close", "grapes market pile"],
         "wikipedia": "Grape", "usda_fdc_id": 9189,
         "angles": [
             {"hook": "Resveratrol in grapes activates the same longevity gene as fasting.", "theme": "ANTI-AGING", "label": "LONGEVITY", "points": ["Resveratrol activates SIRT1 — the longevity gene", "Mimics caloric restriction without actually fasting", "Extends lifespan 30% in animal studies", "Protects telomeres — the aging clock in your DNA", "Reduces cellular senescence (zombie cells)"], "tip": "Red & purple grapes have 3x more resveratrol than green — always choose dark!"},
@@ -179,7 +179,7 @@ FRUITS = [
     },
     {
         "name": "Pomegranate", "emoji": "🔴", "category": "SUPERFOOD", "accent_rgb": (190, 18, 60),
-        "slide_searches": ["pomegranate fruit red", "pomegranate seeds arils", "pomegranate open half", "pomegranate juice", "pomegranate close up"],
+        "slide_searches": ["pomegranate fruit whole red", "pomegranate seeds arils", "pomegranate open half", "pomegranate juice red", "pomegranate close up"],
         "wikipedia": "Pomegranate", "usda_fdc_id": 9287,
         "angles": [
             {"hook": "Pomegranate juice has 3x more antioxidants than green tea or red wine.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT KING", "points": ["Punicalagins — among the most powerful antioxidants known", "3x more antioxidant capacity than green tea", "2x more than red wine", "Protects LDL cholesterol from oxidation", "ORAC score: 2860 per 100g — exceptional"], "tip": "Drink 8oz pomegranate juice daily — that's the dose used in heart studies!"},
@@ -190,7 +190,7 @@ FRUITS = [
     },
     {
         "name": "Cherry", "emoji": "🍒", "category": "BERRY", "accent_rgb": (185, 28, 28),
-        "slide_searches": ["cherry fruit red", "bowl fresh cherries", "cherry tree branch", "cherry close up", "cherry smoothie"],
+        "slide_searches": ["cherry fruit whole red", "bowl fresh cherries", "cherry tree branch fruit", "cherry close up", "cherry smoothie"],
         "wikipedia": "Cherry", "usda_fdc_id": 9270,
         "angles": [
             {"hook": "Tart cherry juice reduces insomnia severity by 45% — no pills needed.", "theme": "SLEEP", "label": "SLEEP AID", "points": ["Natural melatonin — regulates sleep-wake cycle", "Increases sleep time by 84 minutes", "Reduces insomnia severity by 45%", "Tryptophan + melatonin + serotonin = sleep trifecta", "Works better than valerian root in studies"], "tip": "Drink tart cherry juice 30 min before bed — it's nature's sleeping pill!"},
@@ -201,7 +201,7 @@ FRUITS = [
     },
     {
         "name": "Papaya", "emoji": "🍈", "category": "TROPICAL", "accent_rgb": (251, 146, 60),
-        "slide_searches": ["papaya fruit", "papaya sliced half", "papaya pieces fresh", "papaya tree tropical", "papaya smoothie"],
+        "slide_searches": ["papaya fruit whole", "papaya sliced half seeds", "papaya pieces fresh", "papaya tree tropical", "papaya smoothie"],
         "wikipedia": "Papaya", "usda_fdc_id": 9252,
         "angles": [
             {"hook": "Papaya has an enzyme 200x more powerful than pepsin for digestion.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Papain digests protein 200x stronger than your own pepsin", "Used medically to treat pancreatic insufficiency", "Tenderizes meat — imagine what it does for your stomach", "Fiber + enzymes = perfect digestion combo", "Relieves chronic indigestion in 7 days"], "tip": "Eat papaya seeds too — they kill intestinal parasites effectively!"},
@@ -212,7 +212,7 @@ FRUITS = [
     },
     {
         "name": "Dragon Fruit", "emoji": "🐉", "category": "TROPICAL", "accent_rgb": (219, 39, 119),
-        "slide_searches": ["dragon fruit pink", "dragon fruit sliced", "dragon fruit pieces", "dragon fruit smoothie", "red dragon fruit"],
+        "slide_searches": ["dragon fruit whole pink", "dragon fruit sliced half", "dragon fruit pieces bowl", "dragon fruit smoothie pink", "red dragon fruit cut"],
         "wikipedia": "Pitaya", "usda_fdc_id": 778077,
         "angles": [
             {"hook": "Dragon fruit feeds your gut bacteria better than most probiotics.", "theme": "GUT HEALTH", "label": "GUT HEALTH", "points": ["Prebiotic oligosaccharides feed Lactobacillus & Bifidobacteria", "Boosts beneficial bacteria by up to 34%", "7g fiber per cup — excellent for digestion", "Seeds contain healthy omega-3 & omega-9 fatty acids", "Reduces gut inflammation markers significantly"], "tip": "The tiny black seeds are where the omega-3s live — chew them, don't swallow whole!"},
@@ -223,7 +223,7 @@ FRUITS = [
     },
     {
         "name": "Guava", "emoji": "🍈", "category": "TROPICAL", "accent_rgb": (34, 197, 94),
-        "slide_searches": ["guava fruit green", "guava fruit pink", "guava pieces fresh", "guava tree", "guava juice"],
+        "slide_searches": ["guava fruit whole green", "guava fruit sliced pink", "guava pieces fresh", "guava tree fruit", "guava juice pink"],
         "wikipedia": "Guava", "usda_fdc_id": 9186,
         "angles": [
             {"hook": "One guava has 4x more Vitamin C than an orange — the ultimate immune fruit.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["4x more Vitamin C than oranges (228mg vs 53mg)", "380% daily Vitamin C per guava — INSANE", "Fights infections by boosting white blood cell count", "Vitamin A protects mucous membranes — first defense", "Antimicrobial properties kill H. pylori bacteria"], "tip": "1 guava = 4 oranges worth of Vitamin C. And it tastes way better!"},
@@ -320,46 +320,40 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PIXABAY API — Free instant signup, search-based, accurate fruit photos
+# PEXELS API — Free, instant signup, search-based, accurate photos
 # ─────────────────────────────────────────────────────────────────────────────
-def search_pixabay(query: str, per_page: int = 3) -> list[str]:
+def search_pexels(query: str, per_page: int = 3, page: int = 1) -> list[str]:
     """
-    Search Pixabay for photos matching the query.
-    Free API with instant signup: https://pixabay.com/api/docs/
-    Returns a list of image URLs (webformat ~640px, then large ~1280px).
-    5000 requests/hour — way more than we need.
+    Search Pexels for photos matching the query.
+    Returns a list of image URLs (original size).
+    Free API: 200 requests/hour. Signup at https://www.pexels.com/api/
     """
-    if not PIXABAY_API_KEY:
+    if not PEXELS_API_KEY:
         return []
     try:
         r = requests.get(
-            "https://pixabay.com/api/",
+            "https://api.pexels.com/v1/search",
+            headers={"Authorization": PEXELS_API_KEY},
             params={
-                "key": PIXABAY_API_KEY,
-                "q": query,
-                "image_type": "photo",
-                "orientation": "horizontal",
+                "query": query,
                 "per_page": per_page,
-                "safesearch": "true",
-                "lang": "en",
-                "min_width": 640,
-                "editors_choice": "true",  # Better quality results
+                "page": page,
+                "orientation": "square",
             },
-            headers=HEADERS,
             timeout=15,
         )
         r.raise_for_status()
         data = r.json()
-        hits = data.get("hits", [])
+        photos = data.get("photos", [])
         urls = []
-        for hit in hits:
-            # webformatURL is ~640px, largeImageURL is ~1280px, fullHDURL is 1920px
-            url = hit.get("largeImageURL") or hit.get("webformatURL") or hit.get("previewURL", "")
+        for p in photos:
+            # Use 'large2x' (800px) or 'original' — both are high quality
+            url = p.get("src", {}).get("large2x", "")
             if url:
                 urls.append(url)
         return urls
     except Exception as e:
-        print(f"    ⚠️  Pixabay search failed for '{query}': {e}")
+        print(f"    ⚠️  Pexels search failed for '{query}': {e}")
         return []
 
 
@@ -384,33 +378,40 @@ def fetch_single_image(url: str) -> Image.Image | None:
 
 def fetch_fruit_images(slide_searches: list[str], fruit_name: str, num_slides: int) -> list[Image.Image | None]:
     """
-    Fetch a different image for each slide using Pixabay search API.
+    Fetch a different image for each slide using Pexels search API.
+    
+    Strategy:
+    1. Pre-fetch ALL photo URLs for ALL search queries at once (fewer API calls)
+    2. Assign different photos to different slides
+    3. If Pexels fails, use a generic fruit search
+    4. If all fails, return None (will use dark background)
     """
     photos: list[Image.Image | None] = [None] * num_slides
     all_urls: list[str] = []
     
-    print(f"  📷 Fetching {num_slides} fruit photos via Pixabay API…")
+    print(f"  📷 Fetching {num_slides} fruit photos via Pexels API…")
     
     # Pre-fetch: Collect URLs from all search queries
-    if PIXABAY_API_KEY:
+    if PEXELS_API_KEY:
         for i, query in enumerate(slide_searches):
-            print(f"    🔍 Searching Pixabay for: '{query}'")
-            urls = search_pixabay(query, per_page=2)
+            print(f"    🔍 Searching Pexels for: '{query}'")
+            urls = search_pexels(query, per_page=2, page=1)
             all_urls.extend(urls)
-            time.sleep(0.3)
+            time.sleep(0.3)  # Be nice to the API
         
         # Also search generic fruit name as backup
         if len(all_urls) < num_slides:
             print(f"    🔍 Backup search: '{fruit_name} fruit fresh'")
-            backup_urls = search_pixabay(f"{fruit_name} fruit fresh", per_page=5)
+            backup_urls = search_pexels(f"{fruit_name} fruit fresh", per_page=5)
             all_urls.extend(backup_urls)
     else:
-        print("    ⚠️  No PIXABAY_API_KEY set — photos will use dark background!")
-        print("    → Get free key at: https://pixabay.com/api/docs/")
+        print("    ⚠️  No PEXELS_API_KEY set — photos will use dark background!")
+        print("    → Get free key at: https://www.pexels.com/api/")
     
     # Download and assign photos to slides
     last_successful: Image.Image | None = None
     for i in range(num_slides):
+        # CTA slide (last) reuses previous photo
         if i == num_slides - 1:
             if last_successful:
                 photos[i] = last_successful.copy()
@@ -420,12 +421,13 @@ def fetch_fruit_images(slide_searches: list[str], fruit_name: str, num_slides: i
                 print(f"    ℹ️  Slide {i+1} dark background (CTA)")
             continue
         
+        # Try to get a photo for this slide
         photo = None
-        url_idx = i
+        url_idx = i  # Each slide gets a different URL from the pre-fetched list
         while url_idx < len(all_urls) and photo is None:
             photo = fetch_single_image(all_urls[url_idx])
             if photo is None:
-                url_idx += 1
+                url_idx += 1  # Try next URL
         
         if photo:
             photos[i] = photo
@@ -436,7 +438,7 @@ def fetch_fruit_images(slide_searches: list[str], fruit_name: str, num_slides: i
             print(f"    ℹ️  Slide {i+1} reusing previous photo")
         else:
             photos[i] = None
-            print(f"    ⚠️  Slide {i+1} no photo available")
+            print(f"    ⚠️  Slide {i+1} no photo available (dark background)")
     
     return photos
 
@@ -457,10 +459,545 @@ def fetch_wikipedia_extract(article_title: str) -> str:
         print(f"  ⚠️  Wikipedia fetch failed: {e}")
         return ""
 
-def extract_fun_facts_from_wiki(wiki_text: str, fruit_name: str) -> list[str]:
-    """Extract interesting fun facts from Wikipedia text."""
+def extract_fun_facts_from_wiki(wiki_text: str, fruit_name: str) -> str:
     if not wiki_text:
-        return []
-    sentences = wiki_text.replace("\n", " ").split(". ")
-    facts = [s.strip() + "." for s in sentences if len(s.strip()) > 40]
-    return facts[:5]
+        return f"{fruit_name} is one of the most nutritious fruits you can eat!"
+    sentences = re.split(r'(?<=[.!?])\s+', wiki_text)
+    fact = " ".join(sentences[:2])
+    if len(fact) > 150: fact = fact[:147] + "..."
+    return fact
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# USDA API
+# ─────────────────────────────────────────────────────────────────────────────
+def fetch_usda_nutrition(fdc_id: int) -> dict | None:
+    if not USDA_API_KEY: return None
+    try:
+        url = f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}"
+        r = requests.get(url, params={"api_key": USDA_API_KEY}, headers=HEADERS, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        nutrients = {}
+        for n in data.get("foodNutrients", []):
+            name = n.get("nutrient", {}).get("name", "")
+            amount = n.get("amount", 0)
+            unit = n.get("nutrient", {}).get("unitName", "")
+            if name and amount: nutrients[name] = f"{amount:.0f}{unit}"
+        if nutrients: print(f"  🥗 USDA: Found {len(nutrients)} nutrients")
+        return nutrients
+    except Exception as e:
+        print(f"  ⚠️  USDA fetch failed: {e}")
+        return None
+
+def format_nutrition_line(fruit: dict, usda_data: dict | None) -> str:
+    if usda_data:
+        vit_c  = usda_data.get("Vitamin C, total ascorbic acid", "")
+        fiber  = usda_data.get("Fiber, total dietary", "")
+        potas  = usda_data.get("Potassium, K", "")
+        cal    = usda_data.get("Energy", "")
+        parts = []
+        if cal:    parts.append(f"{cal} kcal")
+        if fiber:  parts.append(f"{fiber} fiber")
+        if vit_c:  parts.append(f"{vit_c} Vit C")
+        if potas:  parts.append(f"{potas} potassium")
+        if parts: return " | ".join(parts[:4])
+    return "Packed with vitamins, minerals, and antioxidants!"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SLIDE CONTENT GENERATION
+# ─────────────────────────────────────────────────────────────────────────────
+def generate_slides_groq(fruit: dict, angle: dict) -> list[str] | None:
+    prompt = f"""You are a health & wellness social media content writer.
+Create content for a 6-slide Instagram carousel about: {fruit['name']} ({fruit['emoji']})
+Focus angle: {angle['theme']} — {angle['hook']}
+
+KEY FACTS TO INCLUDE:
+{chr(10).join(f'- {p}' for p in angle['points'])}
+
+INSTRUCTIONS:
+- Write in English, casual & engaging tone
+- Keep each slide SHORT (max 20 words)
+- Slide 1: Punchy hook headline
+- Slide 2: Why this matters
+- Slide 3: Top 3 key benefits
+- Slide 4: A surprising fact
+- Slide 5: Nutrition highlight + practical tip
+- Slide 6: CTA — "Follow for daily fruit facts!"
+
+Format as JSON array only:
+[
+  {{"slide": 1, "text": "..."}},
+  {{"slide": 2, "text": "..."}},
+  {{"slide": 3, "text": "..."}},
+  {{"slide": 4, "text": "..."}},
+  {{"slide": 5, "text": "..."}},
+  {{"slide": 6, "text": "..."}}
+]"""
+    try:
+        r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+            json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "temperature": 0.75, "max_tokens": 600},
+            timeout=30,
+        )
+        r.raise_for_status()
+        raw = r.json()["choices"][0]["message"]["content"].strip()
+        m = re.search(r"\[.*?\]", raw, re.DOTALL)
+        if m:
+            data = json.loads(m.group())
+            return [s["text"].strip() for s in data if "text" in s]
+    except Exception as e:
+        print(f"  ⚠️  Groq error: {e}")
+    return None
+
+def generate_slides(fruit: dict, angle: dict, wiki_text: str, nutrition_line: str) -> list[str]:
+    if GROQ_API_KEY:
+        print("  🤖 Generating content with Groq (Llama 3)…")
+        texts = generate_slides_groq(fruit, angle)
+        if texts and len(texts) >= 5: return texts
+    print("  ✍️  Using curated fruit data + Wikipedia…")
+    slide1 = angle["hook"]
+    slide2 = f"{fruit['name']} is incredible for {angle['theme'].lower()} — here's what science says."
+    benefits = angle["points"][:3]
+    slide3 = " • ".join([f"✓ {b}" for b in benefits])
+    if wiki_text:
+        slide4 = extract_fun_facts_from_wiki(wiki_text, fruit["name"])
+    else:
+        slide4 = angle["points"][3] if len(angle["points"]) > 3 else f"{fruit['name']} is packed with surprising health benefits!"
+    slide5 = f"📊 {nutrition_line}\n💡 {angle['tip']}"
+    slide6 = f"Follow @{PAGE_NAME} for daily fruit health facts! 🍎🍊🫐"
+    return [slide1, slide2, slide3, slide4, slide5, slide6]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BACKGROUND — NO OVERLAY, FRUIT 100% VISIBLE
+# ─────────────────────────────────────────────────────────────────────────────
+def make_bg(photo: Image.Image | None, accent: tuple) -> Image.Image:
+    if photo:
+        bg = photo.copy()
+        bg = bg.resize((IMG_W, IMG_H), Image.LANCZOS)
+        enhancer = ImageEnhance.Brightness(bg)
+        bg = enhancer.enhance(1.05)
+        tint = Image.new("RGB", (IMG_W, IMG_H), accent)
+        bg = Image.blend(bg, tint, alpha=0.04)
+        return bg
+    else:
+        bg = Image.new("RGB", (IMG_W, IMG_H), BG_DARK)
+        draw = ImageDraw.Draw(bg)
+        for y in range(IMG_H):
+            alpha = int(30 * (1 - y / IMG_H))
+            r = min(255, BG_DARK[0] + accent[0] * alpha // 255)
+            g = min(255, BG_DARK[1] + accent[1] * alpha // 255)
+            b = min(255, BG_DARK[2] + accent[2] * alpha // 255)
+            draw.line([(0, y), (IMG_W, y)], fill=(r, g, b))
+        return bg
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMAGE GENERATION — NO OVERLAYS, TEXT WITH SHADOWS
+# ─────────────────────────────────────────────────────────────────────────────
+def draw_rounded_rect(draw, x0, y0, x1, y1, r, fill):
+    draw.rectangle([x0 + r, y0, x1 - r, y1], fill=fill)
+    draw.rectangle([x0, y0 + r, x1, y1 - r], fill=fill)
+    draw.ellipse([x0, y0, x0 + 2*r, y0 + 2*r], fill=fill)
+    draw.ellipse([x1 - 2*r, y0, x1, y0 + 2*r], fill=fill)
+    draw.ellipse([x0, y1 - 2*r, x0 + 2*r, y1], fill=fill)
+    draw.ellipse([x1 - 2*r, y1 - 2*r, x1, y1], fill=fill)
+
+
+def draw_text_with_shadow(draw, xy, text, font, fill, shadow_offset=4):
+    x, y = xy
+    for dx, dy in [(shadow_offset, shadow_offset), (shadow_offset+1, shadow_offset), (shadow_offset, shadow_offset+1)]:
+        draw.text((x + dx, y + dy), text, font=font, fill=(0, 0, 0, 200))
+    draw.text((x, y), text, font=font, fill=fill)
+
+
+def fit_text(draw, text: str, font_size: int, max_w: int, max_lines: int, bold=True):
+    while font_size >= 28:
+        font = get_font(font_size, bold=bold)
+        words = text.split()
+        lines, cur = [], []
+        for word in words:
+            test = " ".join(cur + [word])
+            if draw.textbbox((0, 0), test, font=font)[2] > max_w and cur:
+                lines.append(" ".join(cur))
+                cur = [word]
+            else: cur.append(word)
+        if cur: lines.append(" ".join(cur))
+        if len(lines) <= max_lines: return font, lines
+        font_size -= 4
+    return get_font(28, bold=bold), lines
+
+
+def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
+                 slide_photo: Image.Image | None = None) -> Image.Image:
+    cat_data = CATEGORIES.get(fruit["category"], CATEGORIES["SUPERFOOD"])
+    accent = cat_data["rgb"]
+    cat_label = cat_data["label"]
+
+    is_hook = idx == 0
+    is_cta = idx == total - 1
+
+    # Each slide gets its OWN photo (or None for dark bg)
+    use_photo = slide_photo is not None and not is_cta
+    bg = make_bg(slide_photo if use_photo else None, accent)
+
+    img = bg.copy()
+    draw = ImageDraw.Draw(img)
+
+    # Top accent stripe
+    draw.rectangle([(0, 0), (IMG_W, 10)], fill=accent)
+
+    # Category pill
+    pill_font = get_font(24)
+    pill_text = f"{fruit['emoji']}  {cat_label}"
+    pill_bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
+    pw = pill_bbox[2] + 36
+    ph = 44
+    px, py = 48, 32
+    draw_rounded_rect(draw, px, py, px + pw, py + ph, 10, accent)
+    draw.text((px + 18, py + 9), pill_text, font=pill_font, fill=C_WHITE)
+
+    if not is_hook:
+        name_font = get_font(22, bold=False)
+        name_text = f"{fruit['name']} · {angle['theme']}"
+        name_bbox = draw.textbbox((0, 0), name_text, font=name_font)
+        nw = name_bbox[2] + 30
+        nx = px + pw + 12
+        draw_rounded_rect(draw, nx, py, nx + nw, py + ph, 10, BG_CARD)
+        draw.text((nx + 15, py + 9), name_text, font=name_font, fill=C_GRAY)
+
+    # Slide counter
+    ctr_font = get_font(24, bold=False)
+    draw.text((IMG_W - 56, 42), f"{idx+1}/{total}", font=ctr_font, anchor="rm", fill=C_GRAY)
+
+    # ══════════════ HOOK SLIDE ══════════════
+    if is_hook:
+        e_font = get_font(100)
+        draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
+
+        font, lines = fit_text(draw, text.upper(), 62, IMG_W - 120, 4)
+        fs = font.size
+        lh = fs + 16
+        y = 420
+        for line in lines:
+            bx = draw.textbbox((0, 0), line, font=font)[2]
+            x = (IMG_W - bx) // 2
+            draw_text_with_shadow(draw, (x, y), line, font, C_WHITE, shadow_offset=5)
+            y += lh
+
+        draw.rectangle([(IMG_W//2 - 80, y + 20), (IMG_W//2 + 80, y + 26)], fill=accent)
+
+        theme_font = get_font(22, bold=False)
+        theme_text = f"🎯 {angle['theme']}"
+        draw.text((IMG_W // 2, IMG_H - 160), theme_text, font=theme_font, anchor="mm", fill=accent)
+
+        prompt_font = get_font(24, bold=False)
+        draw.text((IMG_W // 2, IMG_H - 130), "Swipe to learn why →", font=prompt_font, anchor="mm", fill=C_GRAY)
+
+    # ══════════════ CTA SLIDE ══════════════
+    elif is_cta:
+        e_font = get_font(120)
+        draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
+
+        draw.text((IMG_W // 2, 450), "EAT MORE FRUIT", font=get_font(34, bold=False), anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, 530), f"Follow @{PAGE_NAME}", font=get_font(58), anchor="mm", fill=C_WHITE)
+        draw.text((IMG_W // 2, 620), "For daily fruit health facts! 🍎🍊🫐", font=get_font(28, bold=False), anchor="mm", fill=C_GRAY)
+        draw.rectangle([(160, 690), (IMG_W - 160, 697)], fill=accent)
+        draw.text((IMG_W // 2, 740), "Save this post for your next grocery run! 🛒", font=get_font(24, bold=False), anchor="mm", fill=C_GRAY)
+
+    # ══════════════ CONTENT SLIDES ══════════════
+    else:
+        label = SLIDE_LABELS[idx] if idx < len(SLIDE_LABELS) else ""
+
+        if label:
+            lbl_font = get_font(30)
+            lbl_bbox = draw.textbbox((0, 0), label, font=lbl_font)
+            lbl_w = lbl_bbox[2]
+            lbl_x = (IMG_W - lbl_w) // 2
+            lbl_y = 140
+            draw_text_with_shadow(draw, (lbl_x, lbl_y), label, lbl_font, accent, shadow_offset=3)
+            draw.rectangle([(lbl_x, lbl_y + lbl_bbox[3] + 6), (lbl_x + lbl_w, lbl_y + lbl_bbox[3] + 10)], fill=accent)
+
+        # Body text — each line has a thin backdrop bar
+        pad = 70
+        max_w = IMG_W - pad * 2
+        font, lines = fit_text(draw, text, 54, max_w, 8)
+        fs = font.size
+        lh = fs + 18
+        th = len(lines) * lh
+        y = max(230, (IMG_H - th) // 2 + 10)
+
+        # Draw backdrop bars behind text
+        if use_photo:
+            overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
+            odraw = ImageDraw.Draw(overlay)
+            for i, line in enumerate(lines):
+                bbox = draw.textbbox((pad, y + i * lh), line, font=font)
+                bar_padding = 6
+                odraw.rectangle(
+                    [(pad - 12, bbox[1] - bar_padding), (bbox[2] + 12, bbox[3] + bar_padding)],
+                    fill=(0, 0, 0, 140)
+                )
+            img_rgba = img.convert("RGBA")
+            img_rgba.alpha_composite(overlay)
+            img = img_rgba.convert("RGB")
+            draw = ImageDraw.Draw(img)
+
+        # Draw text
+        for i, line in enumerate(lines):
+            colour = accent if i == 0 else C_WHITE
+            draw_text_with_shadow(draw, (pad, y), line, font, colour, shadow_offset=3)
+            y += lh
+
+        # Accent left border
+        bar_top = max(230, (IMG_H - th) // 2 + 10) - 8
+        bar_bottom = bar_top + th + 8
+        draw.rectangle([(36, bar_top), (42, bar_bottom)], fill=accent)
+
+    # Bottom branding bar
+    draw.rectangle([(0, IMG_H - 72), (IMG_W, IMG_H)], fill=BG_CARD)
+    draw.rectangle([(0, IMG_H - 72), (IMG_W, IMG_H - 70)], fill=accent)
+    brand_font = get_font(26, bold=False)
+    draw.text((IMG_W // 2, IMG_H - 36), f"@{PAGE_NAME}", font=brand_font, anchor="mm", fill=C_GRAY)
+
+    return img
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TOKEN VALIDATION
+# ─────────────────────────────────────────────────────────────────────────────
+def validate_access_token() -> bool:
+    try:
+        r = requests.get(
+            f"{IG_BASE}/debug_token",
+            params={"input_token": FB_ACCESS_TOKEN, "access_token": FB_ACCESS_TOKEN},
+            timeout=10,
+        )
+        data = r.json()
+        if r.ok and "data" in data:
+            token_data = data["data"]
+            is_valid = token_data.get("is_valid", False)
+            expires_at = token_data.get("expires_at", 0)
+            if not is_valid:
+                print("  ❌ Token is INVALID or EXPIRED!")
+                print("  → Go to: https://developers.facebook.com/tools/explorer/")
+                return False
+            current_time = int(time.time())
+            days_left = (expires_at - current_time) // 86400
+            if days_left <= 0:
+                print("  ⚠️  Token expires VERY SOON!")
+                return False
+            elif days_left <= 7:
+                print(f"  ⚠️  WARNING: Token expires in {days_left} days!")
+            else:
+                print(f"  ✅ Token is valid (expires in {days_left} days)")
+            return True
+        else:
+            error_msg = data.get("error", {}).get("message", "Unknown error")
+            print(f"  ❌ Token validation failed: {error_msg}")
+            return False
+    except Exception as e:
+        print(f"  ⚠️  Could not validate token: {e}")
+        return True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMAGE HOSTING
+# ─────────────────────────────────────────────────────────────────────────────
+def upload_to_imgbb(img: Image.Image) -> str:
+    buf = BytesIO()
+    img.save(buf, format="JPEG", quality=93)
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
+    r = requests.post("https://api.imgbb.com/1/upload", data={"key": IMGBB_API_KEY, "image": img_b64, "expiration": 600}, timeout=30)
+    r.raise_for_status()
+    return r.json()["data"]["url"]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INSTAGRAM GRAPH API
+# ─────────────────────────────────────────────────────────────────────────────
+def ig_post(path: str, **params) -> dict:
+    r = requests.post(f"{IG_BASE}/{path}", params={"access_token": FB_ACCESS_TOKEN, **params}, timeout=30)
+    if not r.ok: print(f"  IG API error: {r.status_code} — {r.text}")
+    r.raise_for_status()
+    return r.json()
+
+def ig_get(path: str, **params) -> dict:
+    r = requests.get(f"{IG_BASE}/{path}", params={"access_token": FB_ACCESS_TOKEN, **params}, timeout=15)
+    r.raise_for_status()
+    return r.json()
+
+def upload_carousel_item(image_url: str) -> str:
+    data = ig_post(f"{IG_USER_ID}/media", image_url=image_url, is_carousel_item="true")
+    return data["id"]
+
+def wait_for_container(cid: str, retries: int = 12, interval: int = 5):
+    for attempt in range(retries):
+        status = ig_get(cid, fields="status_code").get("status_code", "")
+        print(f"    Container {cid}: {status}  (attempt {attempt+1}/{retries})")
+        if status == "FINISHED": return
+        if status == "ERROR": raise RuntimeError(f"Container {cid} errored during processing.")
+        time.sleep(interval)
+    raise TimeoutError(f"Container {cid} did not finish in time.")
+
+def create_carousel(children: list[str], caption: str) -> str:
+    data = ig_post(f"{IG_USER_ID}/media", media_type="CAROUSEL", children=",".join(children), caption=caption)
+    return data["id"]
+
+def publish_media(creation_id: str) -> str:
+    data = ig_post(f"{IG_USER_ID}/media_publish", creation_id=creation_id)
+    return data["id"]
+
+def post_comment(media_id: str, message: str) -> str:
+    r = requests.post(f"{IG_BASE}/{media_id}/comments", params={"access_token": FB_ACCESS_TOKEN, "message": message}, timeout=30)
+    if not r.ok: print(f"  ⚠️  Comment API error: {r.status_code} — {r.text}")
+    r.raise_for_status()
+    return r.json().get("id", "")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CAPTION
+# ─────────────────────────────────────────────────────────────────────────────
+def build_caption(fruit: dict, angle: dict) -> str:
+    emoji = fruit["emoji"]
+    name = fruit["name"]
+    theme = angle["theme"]
+    tags = f"#{name.lower()} #fruitbenefits #healthyeating #nutrition #fruitfacts #eatmorefruit #healthylifestyle #{theme.lower()} #wellness #healthtips #fruitlover #vitamins #antioxidants #cleaneating #plantbased"
+    return f"{emoji} {name} — {angle['hook']}\n\n👉 Swipe to discover what this fruit does for your {theme.lower()}!\n\n💾 Save this for your next grocery trip!\n\n{tags}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────────────────────────────────────────
+def main():
+    today = datetime.now().strftime("%Y-%m-%d %H:%M")
+    print("=" * 60)
+    print(f"  🍎 Benefits of Fruits — Instagram Carousel Bot")
+    print(f"  📅 {today}")
+    print("=" * 60)
+
+    # Validate token FIRST
+    print("\n🔑 Validating Instagram access token…")
+    if not validate_access_token():
+        print("\n❌ ABORTING: Access token is expired or invalid.")
+        print("   Fix: https://developers.facebook.com/tools/explorer/")
+        sys.exit(1)
+
+    print("\n📦 Setting up fonts…")
+    setup_fonts()
+
+    print("\n🎲 Selecting today's fruit & angle…")
+    fruit, angle_idx = pick_fruit_and_angle()
+    angle = fruit["angles"][angle_idx]
+    total_angles = len(fruit["angles"])
+    print(f"   ✅ {fruit['emoji']} {fruit['name']} — Angle {angle_idx+1}/{total_angles}: {angle['theme']}")
+    print(f"   Hook: {angle['hook']}")
+
+    # Generate slide texts FIRST
+    print("\n📖 Fetching Wikipedia data…")
+    wiki_text = ""
+    if fruit.get("wikipedia"): wiki_text = fetch_wikipedia_extract(fruit["wikipedia"])
+
+    nutrition_line = ""
+    if fruit.get("usda_fdc_id") and USDA_API_KEY:
+        print("\n🥗 Fetching USDA nutrition data…")
+        usda_data = fetch_usda_nutrition(fruit["usda_fdc_id"])
+        nutrition_line = format_nutrition_line(fruit, usda_data)
+    else:
+        if not USDA_API_KEY: print("\nℹ️  No USDA_API_KEY — using curated nutrition data.")
+        nutrition_line = "Per serving: packed with vitamins, minerals & antioxidants"
+
+    print("\n✍️  Generating slide content…")
+    slide_texts = generate_slides(fruit, angle, wiki_text, nutrition_line)
+    num_slides = len(slide_texts)
+    for i, t in enumerate(slide_texts): print(f"   Slide {i+1}: {t[:70]}…")
+
+    # Fetch DIFFERENT photos for each slide via Pexels
+    print(f"\n📷 Fetching {num_slides} fruit photos…")
+    fruit_photos = fetch_fruit_images(
+        fruit.get("slide_searches", [fruit["name"].lower() + " fruit"]),
+        fruit["name"],
+        num_slides
+    )
+
+    print("\n🎨 Creating slide images…")
+    images = []
+    for i, text in enumerate(slide_texts):
+        img = create_slide(text, i, num_slides, fruit, angle, slide_photo=fruit_photos[i])
+        images.append(img)
+        img.save(f"/tmp/slide_{i+1}.jpg", quality=95)
+        print(f"   Slide {i+1}/{num_slides} ✓  → /tmp/slide_{i+1}.jpg")
+
+    print("\n☁️  Uploading images to imgbb…")
+    image_urls = []
+    for i, img in enumerate(images):
+        url = upload_to_imgbb(img)
+        image_urls.append(url)
+        print(f"   Slide {i+1} → {url}")
+        time.sleep(1)
+
+    print("\n📱 Creating Instagram carousel items…")
+    children = []
+    for i, url in enumerate(image_urls):
+        try:
+            cid = upload_carousel_item(url)
+            children.append(cid)
+            print(f"   Item {i+1} container ID: {cid}")
+            time.sleep(4)
+        except Exception as e:
+            print(f"   ❌ Failed to upload carousel item {i+1}: {e}")
+            sys.exit(1)
+
+    print("\n⏳ Waiting for carousel items to process…")
+    try:
+        for cid in children: wait_for_container(cid)
+    except Exception as e:
+        print(f"   ❌ Carousel processing failed: {e}")
+        sys.exit(1)
+
+    caption = build_caption(fruit, angle)
+
+    print("\n🎠 Creating carousel container…")
+    try:
+        carousel_id = create_carousel(children, caption)
+        print(f"   Carousel ID: {carousel_id}")
+    except Exception as e:
+        print(f"   ❌ Failed to create carousel: {e}")
+        sys.exit(1)
+
+    print("\n⏳ Waiting for carousel to process…")
+    try:
+        wait_for_container(carousel_id)
+    except Exception as e:
+        print(f"   ❌ Carousel processing failed: {e}")
+        sys.exit(1)
+
+    print("\n🚀 Publishing to Instagram…")
+    try:
+        post_id = publish_media(carousel_id)
+        print(f"\n✅ SUCCESS! Post ID: {post_id}")
+    except Exception as e:
+        print(f"   ❌ Failed to publish: {e}")
+        sys.exit(1)
+
+    # Single comment from main account only
+    time.sleep(5)
+    print("\n💬 Posting nutrition info comment…")
+    try:
+        comment = f"📊 {fruit['name']} Nutrition Highlights:\n{'─' * 30}\n"
+        for p in angle["points"][:3]: comment += f"✓ {p}\n"
+        comment += f"\n💡 {angle['tip']}"
+        c = post_comment(post_id, comment)
+        print(f"   ✅ Comment posted: {c}")
+    except Exception as e:
+        print(f"   ⚠️  Could not post comment: {e}")
+
+    print(f"\n🍎 Posted: {fruit['emoji']} {fruit['name']} — {angle['theme']}")
+    print(f"   Angle {angle_idx+1}/{total_angles} | Post ID: {post_id}")
+    print("=" * 60)
+
+if __name__ == "__main__":
+    main()
