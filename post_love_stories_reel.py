@@ -471,7 +471,7 @@ SLIDE_SCHEMA = {
     "part2":      "2 to 3 sentences — the problem, twist, or what happened. More dramatic.",
     "part3":      "2 to 3 sentences — feelings, realizations, emotional impact.",
     "question":   "1 question to the followers. Start with 'Sa inyong palagay...' or 'Ano ang...' or 'Kayo ba...'",
-    "cta":        "1 short CTA line. Ask to comment, share, or follow. Keep it natural and Taglish.",
+    "cta":        "1 to 2 short CTA lines. Encourage commenters to help this anonymous member — use 'tayo' (we/us) framing like 'baka makatulong tayo sa ating kababayan' or 'tulungan natin siya'. Keep it warm, communal, and Taglish.",
 }
 
 CATEGORY_PROMPTS = {
@@ -514,6 +514,7 @@ The writing style is:
 - Age and gender can vary (common formats: "22F and 27M" etc.)
 - Avoid being too dramatic or formal — keep it conversational
 - Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ anywhere in the text — plain text only
+- For the "cta" field: always frame it as the COMMUNITY helping the anonymous member (use "tayo", "natin", "kababayan") — NOT asking the poster to follow or share for themselves
 
 Respond ONLY with valid JSON (no markdown, no extra text, no code fences) matching this exact schema:
 {{
@@ -568,7 +569,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "Nung una, friends lang kami. Tapos isang gabi, habang nag-uusap kami nang matagal, napagtanto ko na gusto ko na siyang higit pa sa kaibigan.",
             "part3":    "Takot akong sabihin kasi baka masira ang friendship namin. Pero hindi ko na kaya itago. Parang may nag-iingat sa akin sa kanya.",
             "question": "Kayo ba, sasabihin ninyo kung naramdaman ninyo ito? O titiisin na lang?",
-            "cta":      "I-share ito kung kaya mong i-relate! 💬 At follow na para sa mas maraming stories."
+            "cta":      "Comment kayo ng advice para sa ating anonymous member — baka makatulong tayo sa kanya. 💬"
         },
         "CHEATING": {
             "hook":     "Nalaman ko sa isang chat ang lahat — at hindi ko inaasahan na siya pala yun...",
@@ -576,7 +577,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "Isang gabi, nagpahiram ako ng phone niya para mag-call. Nakita ko ang messages. Matagal na pala silang nag-uusap ng isa pang babae.",
             "part3":    "Hindi ko malaman kung mananatili o lalayo. Nasaktan ako hindi lang sa ginawa niya, kundi sa lahat ng sinabi niyang mahal niya ako.",
             "question": "Kayo ba, magpapatawad kaya kayo sa ganitong sitwasyon?",
-            "cta":      "Mag-comment ng iyong opinion. Lahat ng naramdaman mo ay valid. 💔"
+            "cta":      "Ano ang dapat gawin ng ating kababayan? Tulungan natin siya — mag-comment ng inyong saloobin. 💔"
         },
         "HEARTBREAK": {
             "hook":     "Apat na taon — tapos biglang 'we need to talk' na lang...",
@@ -584,7 +585,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "Sabi niya kailangan niya ng time para sa sarili niya. Na hindi na siya masaya. Na hindi niya kasalanan, hindi rin daw kasalanan ko.",
             "part3":    "Pero bakit parang kasalanan ko ang sakit? Bakit ako ang nag-iingat ng mga alaala namin habang siya ay sige lang?",
             "question": "Paano kayo nakakaalis sa ganito? Anong tumutulong sa inyo para gumalaw?",
-            "cta":      "Para sa lahat ng may masakit sa puso ngayon — hindi ka nag-iisa. 🤍 Follow us."
+            "cta":      "Para sa ating anonymous member — hindi ka nag-iisa. 🤍 Mag-comment tayo para makatulong sa kanya."
         },
     }
     # Default fallback
