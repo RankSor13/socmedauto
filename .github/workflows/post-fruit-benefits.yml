@@ -38,6 +38,7 @@ jobs:
           IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PAGE_NAME: ${{ secrets.PAGE_NAME }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
         run: python post_fruit_benefits_ig.py
 
       - name: 📤 Upload slide artifacts (for debugging)
