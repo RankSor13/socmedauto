@@ -518,7 +518,7 @@ SLIDE_SCHEMA = {
     "part2":      "3 to 4 sentences — the TWIST, the revelation, or the ugliest moment of the story. This is where a blurred curse may naturally fall. The moment where everything changed. Make it physical — the narrator's body reacted, not just their mind.",
     "part3":      "3 to 4 sentences — the raw emotional aftermath. Include the narrator's CONTROVERSIAL OPINION or uncomfortable realization. Not just sad — angry, confused, ashamed, or still in love despite everything. End on a question the narrator is asking themselves.",
     "question":   "1 provocative question to the followers — something that will SPLIT the comment section. Start with 'Kayo ba...' or 'Sa inyong palagay...' or 'Ano ang gagawin ninyo...'",
-    "cta":        "1 to 2 short CTA lines. Use 'tayo' / 'natin' / 'kababayan' framing. Warm, communal, feels like a real community — not an engagement bait template.",
+    "cta":        "1 to 2 short lines of GENUINE NEUTRAL ADVICE — not 'tulungan natin' or 'kababayan' framing. Write it like a wise, calm older sister or kuya giving real advice. Taglish. Emotionally honest but neutral — no taking sides. Should feel like something someone would screenshot and save. End with one small emoji (💔 🤍 💬 🥺 or similar).",
     "closing":    "2 to 3 sentences — written directly to the page after the story ends. Starts with 'Dear Viral Video Challenge,'. Anonymous sender gives permission to post. They explain in casual, vulnerable Taglish that they can't talk to people who know them personally — they need honest perspectives from strangers. Feels raw and real.",
 }
 
@@ -620,7 +620,7 @@ Writing style RULES (critically important — break any of these and the story f
 - Mention {place} naturally at least once
 {curse_instruction}
 - Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ — plain text only
-- For the "cta" field: frame it as the COMMUNITY helping (use "tayo", "natin", "kababayan") — not the poster. Make it feel like the community genuinely cares, not just engagement bait.
+- For the "cta" field: give SHORT, GENUINE NEUTRAL ADVICE in Taglish. Write like a calm, caring older sister or kuya. No "tayo", "natin", or "kababayan" framing. No asking for comments or shares. Just real, emotionally honest wisdom that feels like something worth saving. Neutral — don't take sides, but don't be cold either. End with one small emoji (💔 🤍 💬 🥺 ✨).
 - For the "closing" field: this is a short personal note from the anonymous sender to the page, written AFTER the story ends. It must start with "Dear Viral Video Challenge," and give the page permission to share the story. The sender should explain in casual Taglish that they're sharing because it's hard to open up to people they know personally, and they're hoping for insights, advice, or a different perspective from strangers. Make it feel raw and real — vulnerable, not polished. Here are some varied examples to rotate from (DO NOT copy these verbatim — use them as INSPIRATION only):
   • "Dear Viral Video Challenge, okay lang po ba i-share ninyo 'to sa page? Nahihirapan kasi akong kausapin ang mga taong kilala ko tungkol dito — parang mas madali pag strangers ang sasagot. Baka may makatulong sa akin dito. 🙏"
   • "Dear Viral Video Challenge, sana okay lang i-post ninyo 'to. Wala akong matanungan na talagang honest kasi lahat ng kakilala ko may bias. Gusto ko lang marinig ang totoo mula sa ibang tao."
@@ -684,7 +684,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "at doon nagsimula yung problema ko. kasi habang lumalim yung aming usapan, nararamdaman ko na hindi lang friendship yung gusto ko. nanginginig ako tuwing may nag-iitext sa kanya sa harap ko. jealousy — pero wala naman kaming label. paano ko ipapaliwanag yun?",
             "part3":    "yung nakakatakot? hindi ko alam kung gusto ko siyang mahalin o takot lang akong mawala siya. controversial opinion ko: minsan ang love at attachment ay magkaibang bagay — pero pareho silang masakit.",
             "question": "kayo ba, paano ninyo nalaman kung love na talaga o takot lang na mawalan?",
-            "cta":      "para sa ating anonymous member — tulungan natin siya. mag-comment ng honest na pananaw ninyo. 💬",
+            "cta":      "Sometimes the problem isn't that you love each other. The problem is, love alone doesn't always make things work. Baka kailangan ninyong both decide to be better — not just feel more. 🤍",
             "closing":  "Dear Viral Video Challenge, okay lang po ba i-share ninyo 'to? Hindi ko kayang kausapin ang mga kaibigan ko tungkol dito — sila rin kilala niya. Gusto ko lang marinig ang totoo mula sa mga taong walang bias sa aming sitwasyon. Kahit isang salita lang ng clarity, malaki na yun para sa akin. 🙏",
         },
         "CHEATING": {
@@ -693,7 +693,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "nung nakita ko ang messages sa phone niya — hindi accident. naghahanap ako ng screenshot ng resibo ng grocery namin. at doon ko nakita ang iba. hindi isang beses. hindi dalawang beses. isang taon sila nagkikita. isang taon akong natutulog sa tabi ng isang taong may iba pala. nanlalamig pa rin ako tuwing naalala ko.",
             "part3":    "ang pinaka-masakit? hindi ang kataksilan. ang masakit ay nagmahal pa rin ako kahit alam ko na. at ayaw ko pang aminin yun sa sarili ko — p*ta ano ba ako.",
             "question": "kayo ba — magpapatawad kayo sa ganito? at kung nagpatawad na kayo noon, regret ba kayo o hindi?",
-            "cta":      "wag nating hayaang mag-isa ang ating kababayan — mag-comment ng inyong honest na pananaw. hindi paghatol — payo. 💔",
+            "cta":      "Cheating is never an accident. It's a choice they made, over and over. You don't have to understand why they did it — you just need to decide what you deserve. 💔",
             "closing":  "Dear Viral Video Challenge, puwede po ba itong i-post? Wala akong matanungan na talagang honest — lahat ng kakilala ko ay may bias. Gusto ko lang marinig ang totoo mula sa mga taong hindi kami kilala. Kahit masakit ang sasabihin ninyo — okay lang. Kailangan ko ng totoo.",
         },
         "HEARTBREAK": {
@@ -702,7 +702,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "'we need to talk.' iyon lang. walang explanation na sapat. 'hindi na daw siya masaya.' hindi kasalanan ko, hindi rin daw kasalanan niya. p*ta — kung walang may kasalanan, bakit ako yung nag-iiyak sa sahig ng CR namin nang mag-isang gabi? sino ang may kasalanan sa sakit na ito?",
             "part3":    "ang hindi ko matanggap: tatlong araw lang pagkatapos niyang umalis, nagpost siya ng smiley selfie. masaya na agad. parang wala. apat na taon... wala. at ako? hindi pa rin ako makakain ng tama. controversial: minsan ang taong pinaka-desperado mong ibalik ay yung taong pinaka-malaya kang pakawalan.",
             "question": "paano kayo gumalaw pagkatapos ng ganitong uri ng breakup — yung para bang tinanggal nila ang isang parte ng inyong sarili?",
-            "cta":      "para sa ating anonymous member — hindi ka nag-iisa sa sakit na ito. 🤍 samahan natin siya.",
+            "cta":      "Healing doesn't mean you stop missing them. It means one day, the missing doesn't hurt as much anymore. Bigyan mo ang sarili mo ng oras — hindi rush, hindi pressure. 🥺",
             "closing":  "Dear Viral Video Challenge, sana okay lang i-share ninyo ito. Nahihirapan akong buksan sa mga kaibigan ko — alam nila siya personally at ayaw kong ma-awkward. Mas madali para sa akin na marinig ang pananaw ng mga taong hindi involved. Salamat kung i-share ninyo.",
         },
         "AGE GAP": {
@@ -711,7 +711,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "nung nalaman ng pamilya ko? p*ta. 'manyakis yan.' 'ginagamit ka lang.' 'bata ka pa, hindi mo pa alam ang mundo.' sinasabi nila na protektahan ako nila — pero parang hinuhubaran nila ako ng karapatan kong pumili. ano, kasi bata ako hindi na ba ako pwedeng makaalam kung mahal na mahal ako?",
             "part3":    "controversial ang sasabihin ko: minsan mas matanda ang tao, mas alam niya ang sarili niya. mas alam niya kung ano ang gusto niya. at gusto niya ako. yung real na gusto — hindi yung kind na naghahanap ng iba pagkapagod. pero lahat sila nagbibingi-bingihan dahil sa numero.",
             "question": "sa inyong palagay — ang edad ba talaga ang sukatan ng kung tama o mali ang isang relasyon?",
-            "cta":      "tulungan natin ang ating kababayan — mag-comment ng inyong saloobin nang walang paghatol. 💬",
+            "cta":      "Age is just a number — but maturity, intentions, and respect are not. Tingnan mo kung paano ka niya tinrato sa pinakamahirap na sandali. Doon mo malalaman kung totoo siya. 💬",
             "closing":  "Dear Viral Video Challenge, puwede po bang i-post ninyo 'to? Hindi ko kayang kausapin ang pamilya at barkada ko — masyado silang may judgment na bago pa man marinig ang buong kwento. Gusto ko lang marinig ang ibang pananaw. Kahit anong insights, malaki na yun para sa akin. 🙏",
         },
         "COUSIN LOVE": {
@@ -720,7 +720,7 @@ def _fallback_story(category: str) -> dict:
             "part2":    "minahal ko siyang hindi ko dapat mahalin. at hindi ko alam kung kailan nagsimula — pero dumating yung araw na nakatingin siya sa ibang babae at nanginginig ang puso ko. p*ta... bakit ito ang nararamdaman ko? lagi ko sinasabi sa sarili ko 'family lang siya' pero parang gusto kong tumawa sa sarili ko sa kasinungalingan.",
             "part3":    "hindi ko sasabihin sa kanya. ever. ito ang pinaka-tiyak na desisyon ko sa buhay — itatanim ko na lang ito nang malalim. pero alam ninyo kung ano ang pinaka-masakit? every family gathering, makikita ko siya. at kailangan ko pa ring ngumiti. kailangan ko pang maging 'pinsan'.",
             "question": "sa inyong palagay — may pagkakataon bang labanan ng isang tao ang ganitong uri ng pakiramdam? o kailangan na lang talaga nilang tanggapin?",
-            "cta":      "huwag hatulan — tulungan natin ang ating kababayan. mag-comment ng inyong payo nang may malasakit. 🤍",
+            "cta":      "Some feelings are real, but not all real feelings are meant to be acted on. There's a difference between feeling something and choosing what to do with it. Take your time. ✨",
             "closing":  "Dear Viral Video Challenge, sana i-share po ninyo ito. Talagang hindi ko kaya itong ikwento sa kahit sino — baka pag-usapan pa ako ng buong pamilya. Pero kailangan ko ng makakarinig. Kailangan ko malaman na hindi ako nag-iisa sa ganitong uri ng sakit. Salamat.",
         },
     }
