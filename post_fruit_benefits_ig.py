@@ -40,18 +40,17 @@ FONT_REG_PATH   = "/tmp/Poppins-Regular.ttf"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FruitBenefitsBot/1.0)"}
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FRUIT DATABASE — Multiple photos per fruit (whole, sliced, tree, drink, etc.)
+# FRUIT DATABASE — Multiple photos per fruit
 # ─────────────────────────────────────────────────────────────────────────────
 FRUITS = [
     {
         "name": "Orange", "emoji": "🍊", "category": "CITRUS", "accent_rgb": (251, 146, 60),
         "image_urls": [
-            "https://images.unsplash.com/photo-1547514701-42782101795e?w=1080&h=1080&fit=crop&auto=format",  # Whole oranges
-            "https://images.unsplash.com/photo-1611088231317-53b59a8e272a?w=1080&h=1080&fit=crop&auto=format",  # Sliced orange
-            "https://images.unsplash.com/photo-1621506948008-7b3e8997e4f6?w=1080&h=1080&fit=crop&auto=format",  # Orange juice
-            "https://images.unsplash.com/photo-1586649117119-62b3c3fb4f26?w=1080&h=1080&fit=crop&auto=format",  # Orange tree
-            "https://images.unsplash.com/photo-1482012792084-a2c6b2a44e1e?w=1080&h=1080&fit=crop&auto=format",  # Pile of oranges
-            "https://images.unsplash.com/photo-1557800636-894a64c1696f?w=1080&h=1080&fit=crop&auto=format",  # Orange halves
+            "https://images.unsplash.com/photo-1547514701-42782101795e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1611088231317-53b59a8e272a?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1621506948008-7b3e8997e4f6?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1482012792084-a2c6b2a44e1e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1557800636-894a64c1696f?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Orange_(fruit)", "usda_fdc_id": 747447,
         "angles": [
@@ -64,12 +63,11 @@ FRUITS = [
     {
         "name": "Lemon", "emoji": "🍋", "category": "CITRUS", "accent_rgb": (250, 230, 80),
         "image_urls": [
-            "https://images.unsplash.com/photo-1590502593747-42a996133562?w=1080&h=1080&fit=crop&auto=format",  # Lemons
-            "https://images.unsplash.com/photo-1552252476-31b125789eb5?w=1080&h=1080&fit=crop&auto=format",  # Sliced lemon
-            "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=1080&h=1080&fit=crop&auto=format",  # Lemonade
-            "https://images.unsplash.com/photo-1599391245850-e285a8e8e2c6?w=1080&h=1080&fit=crop&auto=format",  # Lemon tree
-            "https://images.unsplash.com/photo-1565610222536-47916b9a5b80?w=1080&h=1080&fit=crop&auto=format",  # Lemon wedges
-            "https://images.unsplash.com/photo-1507389138075-3d0b4e7e5c60?w=1080&h=1080&fit=crop&auto=format",  # Lemon in water
+            "https://images.unsplash.com/photo-1590502593747-42a996133562?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1552252476-31b125789eb5?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1565610222536-47916b9a5b80?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1507389138075-3d0b4e7e5c60?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Lemon", "usda_fdc_id": 9153,
         "angles": [
@@ -82,12 +80,11 @@ FRUITS = [
     {
         "name": "Strawberry", "emoji": "🍓", "category": "BERRY", "accent_rgb": (244, 63, 94),
         "image_urls": [
-            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",  # Strawberries
-            "https://images.unsplash.com/photo-1587393855965-6bd5a75f3f3f?w=1080&h=1080&fit=crop&auto=format",  # Sliced strawberries
-            "https://images.unsplash.com/photo-1565680018093-ebb6b9ab5460?w=1080&h=1080&fit=crop&auto=format",  # Strawberry bowl
-            "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=1080&h=1080&fit=crop&auto=format",  # Strawberry field
-            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",  # Close up
-            "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=1080&h=1080&fit=crop&auto=format",  # Field
+            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1587393855965-6bd5a75f3f3f?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1565680018093-ebb6b9ab5460?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Strawberry", "usda_fdc_id": 9316,
         "angles": [
@@ -100,12 +97,11 @@ FRUITS = [
     {
         "name": "Blueberry", "emoji": "🫐", "category": "BERRY", "accent_rgb": (99, 102, 241),
         "image_urls": [
-            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",  # Blueberries
-            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Handful
-            "https://images.unsplash.com/photo-1577003811926-53b099a67e9c?w=1080&h=1080&fit=crop&auto=format",  # Blueberry bowl
-            "https://images.unsplash.com/photo-1588714477688-cf28a50e94f5?w=1080&h=1080&fit=crop&auto=format",  # Blueberry smoothie
-            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",  # Blueberry branch
-            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",  # Top view
+            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1577003811926-53b099a67e9c?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Blueberry", "usda_fdc_id": 9052,
         "angles": [
@@ -118,12 +114,11 @@ FRUITS = [
     {
         "name": "Banana", "emoji": "🍌", "category": "TROPICAL", "accent_rgb": (250, 204, 21),
         "image_urls": [
-            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",  # Bananas
-            "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=1080&h=1080&fit=crop&auto=format",  # Peeled banana
-            "https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=1080&h=1080&fit=crop&auto=format",  # Banana smoothie
-            "https://images.unsplash.com/photo-1574226516831-e1dff420e562?w=1080&h=1080&fit=crop&auto=format",  # Banana tree
-            "https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=1080&h=1080&fit=crop&auto=format",  # Banana slices
-            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",  # Bunch
+            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1574226516831-e1dff420e562?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Banana", "usda_fdc_id": 778089,
         "angles": [
@@ -136,11 +131,11 @@ FRUITS = [
     {
         "name": "Mango", "emoji": "🥭", "category": "TROPICAL", "accent_rgb": (245, 158, 11),
         "image_urls": [
-            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",  # Mango
-            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",  # Mango slices
-            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",  # Mango smoothie
-            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Mango pieces
-            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",  # Whole mangoes
+            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Mango", "usda_fdc_id": 9174,
         "angles": [
@@ -153,11 +148,11 @@ FRUITS = [
     {
         "name": "Pineapple", "emoji": "🍍", "category": "TROPICAL", "accent_rgb": (234, 179, 8),
         "image_urls": [
-            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",  # Pineapple
-            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",  # Pineapple slices
-            "https://images.unsplash.com/photo-1535082897607-4e4e9c77a2c6?w=1080&h=1080&fit=crop&auto=format",  # Pineapple juice
-            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",  # Whole
-            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",  # Sliced
+            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1535082897607-4e4e9c77a2c6?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Pineapple", "usda_fdc_id": 9274,
         "angles": [
@@ -170,12 +165,11 @@ FRUITS = [
     {
         "name": "Apple", "emoji": "🍎", "category": "TREE", "accent_rgb": (220, 38, 38),
         "image_urls": [
-            "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",  # Red apple
-            "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?w=1080&h=1080&fit=crop&auto=format",  # Sliced apple
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&h=1080&fit=crop&auto=format",  # Apple tree
-            "https://images.unsplash.com/photo-1471943311424-646960669fbc?w=1080&h=1080&fit=crop&auto=format",  # Apple juice
-            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",  # Bowl of apples
-            "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",  # Close up
+            "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1471943311424-646960669fbc?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Apple", "usda_fdc_id": 778079,
         "angles": [
@@ -188,11 +182,11 @@ FRUITS = [
     {
         "name": "Avocado", "emoji": "🥑", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
         "image_urls": [
-            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",  # Avocado
-            "https://images.unsplash.com/photo-1601039641840-7f3695a4e3b0?w=1080&h=1080&fit=crop&auto=format",  # Avocado halves
-            "https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=1080&h=1080&fit=crop&auto=format",  # Avocado toast
-            "https://images.unsplash.com/photo-1574226516831-e1dff420e562?w=1080&h=1080&fit=crop&auto=format",  # Avocado tree
-            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",  # Whole
+            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1601039641840-7f3695a4e3b0?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1601039641840-7f3695a4e3b0?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Avocado", "usda_fdc_id": 778075,
         "angles": [
@@ -205,11 +199,11 @@ FRUITS = [
     {
         "name": "Kiwi", "emoji": "🥝", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
         "image_urls": [
-            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",  # Kiwi
-            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Kiwi sliced
-            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",  # Whole kiwis
-            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Halves
-            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",  # Bowl
+            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Kiwifruit", "usda_fdc_id": 9277,
         "angles": [
@@ -222,11 +216,11 @@ FRUITS = [
     {
         "name": "Watermelon", "emoji": "🍉", "category": "MELON", "accent_rgb": (34, 197, 94),
         "image_urls": [
-            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",  # Watermelon
-            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",  # Watermelon slices
-            "https://images.unsplash.com/photo-1527325678964-54921661f888?w=1080&h=1080&fit=crop&auto=format",  # Watermelon juice
-            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",  # Whole
-            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",  # Sliced
+            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Watermelon", "usda_fdc_id": 9326,
         "angles": [
@@ -239,11 +233,11 @@ FRUITS = [
     {
         "name": "Grapes", "emoji": "🍇", "category": "BERRY", "accent_rgb": (139, 92, 246),
         "image_urls": [
-            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",  # Grapes
-            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",  # Grape vine
-            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",  # Bowl
-            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",  # Vineyard
-            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",  # Close up
+            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Grape", "usda_fdc_id": 9189,
         "angles": [
@@ -256,11 +250,11 @@ FRUITS = [
     {
         "name": "Pomegranate", "emoji": "🔴", "category": "SUPERFOOD", "accent_rgb": (190, 18, 60),
         "image_urls": [
-            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",  # Pomegranate
-            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",  # Pomegranate seeds
-            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",  # Whole
-            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",  # Opened
-            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",  # Close up
+            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",
+            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
         ],
         "wikipedia": "Pomegranate", "usda_fdc_id": 9287,
         "angles": [
@@ -389,14 +383,15 @@ def fetch_single_image(url: str) -> Image.Image | None:
 
 def fetch_fruit_images(image_urls: list[str], category: str, num_slides: int) -> list[Image.Image]:
     """
-    Fetch a different image for each slide.
-    If a URL fails, fall back to the previous successful image or category fallback.
-    Returns a list of exactly num_slides PIL Images.
+    Fetch a different image for each slide with smart fallbacks:
+    1. Try the specific image_urls from the database
+    2. If those fail, try the category fallback
+    3. If that fails, reuse the last successful image
     """
     photos: list[Image.Image] = []
     last_successful: Image.Image | None = None
     
-    # Try to fetch category fallback first as ultimate safety net
+    # Fetch category fallback first
     fallback_url = FALLBACK_IMAGES.get(category, "")
     fallback_photo = None
     if fallback_url:
@@ -405,7 +400,6 @@ def fetch_fruit_images(image_urls: list[str], category: str, num_slides: int) ->
     print(f"  📷 Fetching {num_slides} different fruit photos…")
     
     for i in range(num_slides):
-        # Get URL for this slide index (cycle through available URLs)
         url_idx = i % len(image_urls) if image_urls else 0
         url = image_urls[url_idx] if image_urls else ""
         
@@ -418,14 +412,12 @@ def fetch_fruit_images(image_urls: list[str], category: str, num_slides: int) ->
             last_successful = photo
             print(f"    ✅ Slide {i+1} photo loaded (image {url_idx+1}/{len(image_urls)})")
         elif last_successful:
-            # Reuse previous successful image
             photos.append(last_successful.copy())
             print(f"    ℹ️  Slide {i+1} reusing previous photo (URL failed)")
         elif fallback_photo:
             photos.append(fallback_photo.copy())
             print(f"    ℹ️  Slide {i+1} using category fallback photo")
         else:
-            # Create a dark placeholder — should rarely happen
             placeholder = Image.new("RGB", (IMG_W, IMG_H), BG_DARK)
             photos.append(placeholder)
             print(f"    ⚠️  Slide {i+1} using dark placeholder (no photo available)")
