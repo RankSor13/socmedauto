@@ -78,8 +78,20 @@ CATEGORY_MUSIC_MOOD = {
     "HIDDEN DESIRE": "dramatic",
     "CONFESSION":    "dramatic",
     "HEARTBREAK":    "heartbreak",
-    "AGE GAP":       "romantic",
-    "COUSIN LOVE":   "dramatic",
+    "AGE GAP":              "romantic",
+    "COUSIN LOVE":          "dramatic",
+    "THIRD PARTY":          "dramatic",
+    "SECRET ADMIRER":       "romantic",
+    "FRIENDZONE":           "melancholy",
+    "BALIK-LOVER":          "hopeful",
+    "ONLINE LOVE":          "romantic",
+    "BROKEN ENGAGEMENT":    "heartbreak",
+    "SUGAR RELATIONSHIP":   "dramatic",
+    "SITUATIONSHIP":        "melancholy",
+    "ASAWA VS KABIT":       "heartbreak",
+    "IN-LAW CONFLICT":      "melancholy",
+    "LONG DISTANCE":        "melancholy",
+    "CHILDHOOD SWEETHEART": "romantic",
 }
 
 MUSIC_VOLUME = 0.35   # keep it subtle — this is background music, not the main event
@@ -136,6 +148,18 @@ CATEGORIES = [
     "HEARTBREAK",
     "AGE GAP",
     "COUSIN LOVE",
+    "THIRD PARTY",
+    "SECRET ADMIRER",
+    "FRIENDZONE",
+    "BALIK-LOVER",
+    "ONLINE LOVE",
+    "BROKEN ENGAGEMENT",
+    "SUGAR RELATIONSHIP",
+    "SITUATIONSHIP",
+    "ASAWA VS KABIT",
+    "IN-LAW CONFLICT",
+    "LONG DISTANCE",
+    "CHILDHOOD SWEETHEART",
 ]
 
 CATEGORY_HASHTAGS = {
@@ -146,8 +170,20 @@ CATEGORY_HASHTAGS = {
     "HIDDEN DESIRE": "#HiddenDesire #SecretFeeling #NaramdamanKo #HindiKoMasabi #Gusto",
     "CONFESSION":    "#Confession #Pagtatapat #AnonymousStory #LoveConfession #Totoo",
     "HEARTBREAK":    "#Heartbreak #SakitNgPuso #MovingOn #LoveHurts #Masakit #Nawala",
-    "AGE GAP":       "#AgeGap #AgeGapLove #OlderAndYounger #LoveHasNoAge #AgeIsJustANumber #PagmamahalNaWalangHangganan",
-    "COUSIN LOVE":   "#CousinLove #ForbiddenLove #PinaghindilangPagmamahal #SecretFeeling #HiddenHeart #TabooLove",
+    "AGE GAP":              "#AgeGap #AgeGapLove #OlderAndYounger #LoveHasNoAge #AgeIsJustANumber #PagmamahalNaWalangHangganan",
+    "COUSIN LOVE":          "#CousinLove #ForbiddenLove #PinaghindilangPagmamahal #SecretFeeling #HiddenHeart #TabooLove",
+    "THIRD PARTY":          "#ThirdParty #Kabit #OtherWoman #OtherMan #LoveProblem #RealTalkPH #KabitStory",
+    "SECRET ADMIRER":       "#SecretAdmirer #CrushKo #HindiKoMasabi #LihimNaPagmamahal #SecretLove #SinabayangPuso",
+    "FRIENDZONE":           "#Friendzone #MahalKitaPeroBarkada #BarkadaLang #FriendzonedPH #LoveUnrequited #UmibigNa",
+    "BALIK-LOVER":          "#BalikLover #ExBack #SecondChance #Bumalik #MahalinUlit #PagkakataonPa",
+    "ONLINE LOVE":          "#OnlineLove #OnlineRelationship #MetOnline #LDROnline #DigitalLove #HindiPaNakikita",
+    "BROKEN ENGAGEMENT":    "#BrokenEngagement #CancelledWedding #HindiNaTuloy #SanaOl #NasiraAngSimbahan #NagpaliwanagNa",
+    "SUGAR RELATIONSHIP":   "#SugarRelationship #SugarDaddy #SugarMommy #ControversialLove #ConfessionPH #TotooIto",
+    "SITUATIONSHIP":        "#Situationship #KamiPeroHindiKami #DefineTheRelationship #DTR #GenZLove #AnoTayoMga",
+    "ASAWA VS KABIT":       "#AsawaVsKabit #Kabit #Asawa #InfidelityPH #WifeSide #HusbandSide #SabihinAngTotoo",
+    "IN-LAW CONFLICT":      "#InLawConflict #BiyenangProblema #PamilyaNiya #RelationshipProblems #SabihinMo #TulunganNatin",
+    "LONG DISTANCE":        "#LongDistance #LDR #MissKitaAraw #OFWLove #LongDistanceRelationship #KaylanManMuli",
+    "CHILDHOOD SWEETHEART": "#ChildhoodSweetheart #FirstLove #BataNgKasama #ReunitedLove #UnangPagmamahal #NatuklasanUlit",
 }
 
 # Pixabay search queries per category — Asian people, slightly blurred bg
@@ -161,8 +197,20 @@ CATEGORY_PHOTO_KEYWORDS_FEMALE = {
     "HIDDEN DESIRE": ["vietnamese beautiful woman", "asian woman mysterious", "korean beautiful woman"],
     "CONFESSION":    ["asian woman writing", "korean woman diary", "japanese woman letter"],
     "HEARTBREAK":    ["asian woman crying", "korean woman heartbreak", "chinese woman tears"],
-    "AGE GAP":       ["asian couple age difference", "older man younger woman asian", "korean couple romantic"],
-    "COUSIN LOVE":   ["asian woman secret love", "korean woman hidden feelings", "vietnamese woman thinking"],
+    "AGE GAP":              ["asian couple age difference", "older man younger woman asian", "korean couple romantic"],
+    "COUSIN LOVE":          ["asian woman secret love", "korean woman hidden feelings", "vietnamese woman thinking"],
+    "THIRD PARTY":          ["asian woman guilty", "korean woman conflicted", "vietnamese woman looking away"],
+    "SECRET ADMIRER":       ["asian woman shy smile", "korean woman blushing", "japanese woman looking afar"],
+    "FRIENDZONE":           ["asian woman and man friends", "korean friends laughing", "japanese friends close"],
+    "BALIK-LOVER":          ["asian woman looking back", "korean woman nostalgic", "vietnamese woman reunion"],
+    "ONLINE LOVE":          ["asian woman phone romantic", "korean woman texting smile", "japanese woman laptop love"],
+    "BROKEN ENGAGEMENT":    ["asian woman crying", "korean woman sad alone", "japanese woman heartbroken"],
+    "SUGAR RELATIONSHIP":   ["asian woman elegant", "korean woman luxury lifestyle", "vietnamese woman thoughtful"],
+    "SITUATIONSHIP":        ["asian woman confused love", "korean woman uncertain", "japanese woman thinking"],
+    "ASAWA VS KABIT":       ["asian woman confrontation", "korean woman angry sad", "vietnamese woman betrayed"],
+    "IN-LAW CONFLICT":      ["asian woman stressed", "korean woman family tension", "japanese woman conflict"],
+    "LONG DISTANCE":        ["asian woman missing someone", "korean woman alone window", "vietnamese woman waiting"],
+    "CHILDHOOD SWEETHEART": ["asian couple reunion", "korean couple nostalgic", "japanese couple memories"],
 }
 
 CATEGORY_PHOTO_KEYWORDS_MALE = {
@@ -173,15 +221,30 @@ CATEGORY_PHOTO_KEYWORDS_MALE = {
     "HIDDEN DESIRE": ["vietnamese handsome man", "asian man mysterious", "korean handsome man"],
     "CONFESSION":    ["asian man writing", "korean man diary", "japanese man letter"],
     "HEARTBREAK":    ["asian man heartbreak", "korean man sad", "chinese man alone"],
-    "AGE GAP":       ["asian couple age difference", "older woman younger man asian", "korean couple romantic"],
-    "COUSIN LOVE":   ["asian man secret love", "korean man hidden feelings", "vietnamese man thinking"],
+    "AGE GAP":              ["asian couple age difference", "older woman younger man asian", "korean couple romantic"],
+    "COUSIN LOVE":          ["asian man secret love", "korean man hidden feelings", "vietnamese man thinking"],
+    "THIRD PARTY":          ["asian man guilty", "korean man conflicted", "vietnamese man looking away"],
+    "SECRET ADMIRER":       ["asian man shy smile", "korean man admiring", "japanese man looking afar"],
+    "FRIENDZONE":           ["asian man and woman friends", "korean friends laughing", "japanese friends close"],
+    "BALIK-LOVER":          ["asian man looking back", "korean man nostalgic", "vietnamese man reunion"],
+    "ONLINE LOVE":          ["asian man phone romantic", "korean man texting smile", "japanese man laptop love"],
+    "BROKEN ENGAGEMENT":    ["asian man crying sad", "korean man alone heartbreak", "japanese man devastated"],
+    "SUGAR RELATIONSHIP":   ["asian man elegant", "korean man luxury lifestyle", "vietnamese man thoughtful"],
+    "SITUATIONSHIP":        ["asian man confused love", "korean man uncertain", "japanese man thinking"],
+    "ASAWA VS KABIT":       ["asian man confrontation", "korean man angry sad", "vietnamese man betrayed"],
+    "IN-LAW CONFLICT":      ["asian man stressed", "korean man family tension", "japanese man conflict"],
+    "LONG DISTANCE":        ["asian man missing someone", "korean man alone window", "vietnamese man waiting"],
+    "CHILDHOOD SWEETHEART": ["asian couple reunion", "korean couple nostalgic", "japanese couple memories"],
 }
 
 # Backwards-compat alias (some helper code/tests may still reference the old name)
 CATEGORY_PHOTO_KEYWORDS = CATEGORY_PHOTO_KEYWORDS_FEMALE
 
 # Categories that are always a couple shot regardless of gender roll
-COUPLE_CATEGORIES = {"LOVE STORY", "AGE GAP"}
+COUPLE_CATEGORIES = {
+    "LOVE STORY", "AGE GAP", "BALIK-LOVER", "ONLINE LOVE",
+    "LONG DISTANCE", "CHILDHOOD SWEETHEART", "FRIENDZONE",
+}
 
 # Nationality pool to rotate through for variety
 ASIAN_NATIONALITIES = ["korean", "japanese", "vietnamese", "chinese", "asian"]
@@ -530,8 +593,20 @@ CATEGORY_PROMPTS = {
     "HIDDEN DESIRE": "a haunting Tagalog story about secret feelings that are consuming the narrator — obsessive thoughts, jealousy watching that person with someone else, the physical ache of wanting someone you can't have.",
     "CONFESSION":    "a controversial and guilt-ridden Tagalog anonymous confession about something they did in a relationship that they're ashamed of — not just a mistake but a real moral failing. The narrator is torn between confessing and burying it forever.",
     "HEARTBREAK":    "a devastating Tagalog story about a breakup that broke more than just a relationship — it broke identity, future plans, who they thought they were. Raw anger mixed with deep love. The kind of pain that makes you numb.",
-    "AGE GAP":       "a controversial Tagalog love story with a significant age gap (at least 10 years) — society is judging them, family is threatening to disown, but the feelings are undeniable. Show the ugly fight between love and what everyone else thinks is right.",
-    "COUSIN LOVE":   "a deeply conflicted Tagalog anonymous confession about romantic feelings for a cousin — the shame, the confusion, the family dinners that feel like torture, the secret glances. The narrator is fighting against feelings they didn't choose and can never act on.",
+    "AGE GAP":              "a controversial Tagalog love story with a significant age gap (at least 10 years) — society is judging them, family is threatening to disown, but the feelings are undeniable. Show the ugly fight between love and what everyone else thinks is right.",
+    "COUSIN LOVE":          "a deeply conflicted Tagalog anonymous confession about romantic feelings for a cousin — the shame, the confusion, the family dinners that feel like torture, the secret glances. The narrator is fighting against feelings they didn't choose and can never act on.",
+    "THIRD PARTY":          "a raw Tagalog confession told from the 'third party' perspective — the other woman or man who knew they were wrong but stayed anyway. Explore the real feelings, the guilt they carry, the moments they almost walked away, and why they didn't. Controversial: make the reader almost understand even if they disagree.",
+    "SECRET ADMIRER":       "a haunting Tagalog story about someone who has been silently in love with a close friend for years — watching them date other people, celebrating their happiness while dying inside. The obsessive thoughts, the almost-confessions, the cowardice disguised as protection.",
+    "FRIENDZONE":           "a devastatingly relatable Tagalog story about being in love with a best friend who only sees you as a friend — the torture of being the shoulder they cry on after their breakups, of knowing them better than anyone, but being invisible as a lover.",
+    "BALIK-LOVER":          "a complicated Tagalog story about an ex who came back — and the terrifying truth that the narrator's heart never fully healed. The war between 'ayoko nang masaktan ulit' and 'pero mahal ko pa rin siya'. Second chances that might be mistakes.",
+    "ONLINE LOVE":          "a deeply emotional Tagalog story about falling in love with someone met online — calls at 2am, knowing every detail of each other's lives, feeling more understood than with anyone in real life, but never meeting. Is it real love or a beautiful illusion?",
+    "BROKEN ENGAGEMENT":    "a heartbreaking Tagalog confession about a cancelled wedding or broken engagement — who called it off, what really happened behind closed doors, and the grief of mourning a future that had already been planned down to the last detail.",
+    "SUGAR RELATIONSHIP":   "a controversial and honest Tagalog anonymous confession about being in a sugar relationship — blurred lines between money and real feelings, the judgment of others, the moments of genuine connection and the moments of deep shame. No easy answers.",
+    "SITUATIONSHIP":        "a painfully relatable Tagalog story about a 'situationship' — two people clearly in love but too scared to define it. Mixed signals, almost-confessions, soft launches, and the slow torture of not knowing where you stand with the person you think about every day.",
+    "ASAWA VS KABIT":       "a dramatic and raw Tagalog story told from the betrayed spouse's perspective — the discovery, the confrontation, the ugly truth of what the other person said, and the impossible decision of whether to stay, fight, or let go. No clean resolution.",
+    "IN-LAW CONFLICT":      "a deeply frustrating Tagalog story about in-law interference threatening a relationship — controlling family members, impossible standards, a partner who keeps choosing their family over the relationship. The narrator loves their partner but is being slowly crushed by the family around them.",
+    "LONG DISTANCE":        "a devastating Tagalog LDR story — the loneliness that becomes a third person in the relationship, the growing distance despite daily calls, the paranoia, the sacrifices, and the moment the narrator realized love alone might not be enough to survive the kilometers.",
+    "CHILDHOOD SWEETHEART": "a nostalgic and emotionally complex Tagalog story about reconnecting with a first love years later — both changed, both carrying old wounds, old butterflies rushing back. The beautiful terror of getting a second chance with someone who once broke your world open.",
 }
 
 # Philippine cities/places to randomly inject for authenticity
@@ -553,7 +628,11 @@ BLURRED_CURSES = [
 ]
 
 # Categories where blurred curses feel authentic
-CURSE_CATEGORIES = {"CHEATING", "HEARTBREAK", "STRUGGLES", "CONFESSION", "HIDDEN DESIRE", "AGE GAP"}
+CURSE_CATEGORIES = {
+    "CHEATING", "HEARTBREAK", "STRUGGLES", "CONFESSION", "HIDDEN DESIRE",
+    "AGE GAP", "THIRD PARTY", "BROKEN ENGAGEMENT", "ASAWA VS KABIT",
+    "SITUATIONSHIP", "BALIK-LOVER",
+}
 
 def get_random_female_age() -> int:
     return random.randint(20, 32)
@@ -589,6 +668,20 @@ def generate_story(category: str) -> dict:
 
     female_age = get_random_female_age()
     male_age   = get_random_male_age()
+
+    # For AGE GAP — enforce a realistic gap of 10–18 years and make it consistent
+    if category == "AGE GAP":
+        female_age = random.randint(20, 28)          # younger narrator
+        gap        = random.randint(10, 18)           # the gap itself
+        male_age   = female_age + gap                 # older partner = exact match
+        age_gap_note = (
+            f"- CRITICAL: The age gap is exactly {gap} years ({female_age}F ako, {male_age}M siya). "
+            f"The hook or part1 MUST mention '{gap} taon ang agwat namin' or '{gap}-year age gap' — "
+            f"the exact number must appear in the story so it feels real and specific."
+        )
+    else:
+        age_gap_note = ""
+
     place      = get_random_place()
     curse      = get_blurred_curse() if category in CURSE_CATEGORIES else ""
 
@@ -607,6 +700,7 @@ Important details to use:
 - The other person is a {male_age}-year-old male. In the story they are "siya". When showing their age, write "{male_age}M siya" (meaning: they are {male_age}, Male).
 - The story happens in or around {place}
 - Always refer to the narrator as "ako" and the other person as "siya" — NEVER use "kami" to describe them both together
+{age_gap_note}
 
 Writing style RULES (critically important — break any of these and the story fails):
 - Write like a real person whose hands are trembling while typing this — lowercase, broken sentences, some run-ons, real emotion leaking through every word
@@ -707,7 +801,7 @@ def _fallback_story(category: str) -> dict:
         },
         "AGE GAP": {
             "hook":     f"sabi ng lahat mali kami. pero wala silang alam kung gaano kami kabuti para sa isa't isa.",
-            "part1":    f"{female_age}F ako, {male_age}M siya — oo, malayo ang gap, alam ko. nagkakilala kami sa trabaho dito sa {place}. hindi ko sinadyang mahulog — honest. pero siya lang yung tao na nagparamdam sa akin na okay lang ako as I am. hindi siya naghanap ng iba. nandoon lang siya.",
+            "part1":    f"{female_age}F ako, {female_age + 12}M siya — 12 taon ang agwat namin, alam ko. nagkakilala kami sa trabaho dito sa {place}. hindi ko sinadyang mahulog — honest. pero siya lang yung tao na nagparamdam sa akin na okay lang ako as I am. hindi siya naghanap ng iba. nandoon lang siya.",
             "part2":    "nung nalaman ng pamilya ko? p*ta. 'manyakis yan.' 'ginagamit ka lang.' 'bata ka pa, hindi mo pa alam ang mundo.' sinasabi nila na protektahan ako nila — pero parang hinuhubaran nila ako ng karapatan kong pumili. ano, kasi bata ako hindi na ba ako pwedeng makaalam kung mahal na mahal ako?",
             "part3":    "controversial ang sasabihin ko: minsan mas matanda ang tao, mas alam niya ang sarili niya. mas alam niya kung ano ang gusto niya. at gusto niya ako. yung real na gusto — hindi yung kind na naghahanap ng iba pagkapagod. pero lahat sila nagbibingi-bingihan dahil sa numero.",
             "question": "sa inyong palagay — ang edad ba talaga ang sukatan ng kung tama o mali ang isang relasyon?",
@@ -722,6 +816,114 @@ def _fallback_story(category: str) -> dict:
             "question": "sa inyong palagay — may pagkakataon bang labanan ng isang tao ang ganitong uri ng pakiramdam? o kailangan na lang talaga nilang tanggapin?",
             "cta":      "Some feelings are real, but not all real feelings are meant to be acted on. There's a difference between feeling something and choosing what to do with it. Take your time. ✨",
             "closing":  "Dear Viral Video Challenge, sana i-share po ninyo ito. Talagang hindi ko kaya itong ikwento sa kahit sino — baka pag-usapan pa ako ng buong pamilya. Pero kailangan ko ng makakarinig. Kailangan ko malaman na hindi ako nag-iisa sa ganitong uri ng sakit. Salamat.",
+        },
+        "THIRD PARTY": {
+            "hook":     f"alam ko na may asawa siya. alam ko. pero bakit hindi ko pa rin kaya?",
+            "part1":    f"{female_age}F ako. nakilala namin sa {place} — hindi ko alam noon na may iba siya. nung nalaman ko, dapat umalis na ako. dapat. pero nanatili ako, at yun ang pinakamahirap na aminin ngayon.",
+            "part2":    "hindi ako bida dito. alam ko yun. pero gusto ko lang sabihin — hindi rin ako basta-basta napasok sa sitwasyong ito. may naramdaman akong tunay. may sinabi siya sa akin na hindi niya sinasabi sa kanya. at maling-mali man ito, yung pakiramdam... totoo.",
+            "part3":    "controversial: hindi lahat ng 'third party' ay monster. minsan tao ka lang na nahulog sa maling oras, maling sitwasyon. pero ang sakit ng ginagawa mo sa iba — hindi rin mapapawi ng kahit anong rasyonalisasyon. iyon ang pinaka-masakit na totoo na kailangan kong harapin.",
+            "question": "sa inyong palagay — puwede bang maging biktima din ang third party? o dapat walang awa sa kanila?",
+            "cta":      "Walang madaling sagot dito. Pero kung may masakit sa puso ngayon — ikaw man ang asawa, ang kabit, o ang nasa gitna — hindi ka nag-iisa. Mag-comment tayo para makatulong sa ating kababayan. 💬",
+            "closing":  "Dear Viral Video Challenge, alam ko na maraming mang-judge sa akin. Okay lang. Gusto ko lang marinig ang totoo — hindi yung puro pagmumura, kundi yung tunay na pananaw. Sana po i-post ninyo ito. Kailangan ko ng clarity.",
+        },
+        "SECRET ADMIRER": {
+            "hook":     f"pitong taon ko siyang minahal nang tahimik. pitong taon.",
+            "part1":    f"{female_age}F ako. magkaklase kami noon sa {place}. siya yung uri ng tao na hindi mo mapigilan na pagmasdan — hindi kasi siya nagpapanggap. totoo siya. at doon ako unang nahulog. hindi ko sinabi. matagal na akong sanay sa hindi pagsasabi.",
+            "part2":    "nakita ko siyang umibig sa iba. nakita ko siyang masaya. at ang trabaho ko sa tabi niya — ngumiti. palakpak para sa kanya. maging 'best friend' na laging nandoon. bawat 'crush ko siya' na ikinukwento niya sa akin — parang karayom na tusok sa dibdib, pero ngumingiti pa rin ako.",
+            "part3":    "pitong taon. sa wakas sinabi ko sa kanya — isang sulat, kasi takot akong makita ang mukha niya habang binabasa. ang sagot niya? 'alam ko na.' hindi pa rin ako nakakaalam hanggang ngayon kung mas mabuti o mas masakit ang sagot na iyon.",
+            "question": "kayo ba — mas pipiliin ninyong sabihin o itago na lang magpakailanman? alin ang mas hindi makakasakit?",
+            "cta":      "Kung mayroon kang sinasabihang 'sana sinabi ko' — baka oras na. Tulungan natin ang ating kababayan — mag-comment ng inyong payo. 💛",
+            "closing":  "Dear Viral Video Challenge, sana po i-share ninyo ito. Gusto ko lang malaman kung normal ba ang ganito — ang mahalin nang ganoon katagal nang tahimik. Salamat.",
+        },
+        "FRIENDZONE": {
+            "hook":     f"sabi niya 'ikaw yung pinaka-gets sa akin.' tapos iniyak niya sa akin ang lahat ng heartbreak niya.",
+            "part1":    f"{female_age}F ako. tatlong taon na kaming magkaibigan. {male_age}M siya — yung uri ng lalaki na mabait sa lahat pero espesyal ang galawan sa akin. o kaya naman iyon ang inaakala ko. dito sa {place}, lagi kaming magkasama. siya ang hinahanap ko sa lahat ng bagay.",
+            "part2":    "nung nagbreak siya sa dati niyang girlfriend, ako ang kinausap niya hanggang 3am. niyakap niya ako nang mahigpit at sabi niya 'sana lahat ng babae ay katulad mo.' p*ta — ano ba yun? anong ibig sabihin nun? kaya ba niya sinabi yun? o 'friend' lang talaga ako sa kanya?",
+            "part3":    "hindi ko alam kung kailan ko ito susukuan. baka hindi na. baka hanggang sa manligaw siya ng iba at ako ang maging best man... o bridesmaid. yung tipong ngingiti ka pa rin sa labas pero sa loob mo ay isang bagay lang ang iniisip mo: dapat sana kami.",
+            "question": "sa mga nakaranas ng ganito — paano ninyo nalaman kung oras na para lumayo o subok pa ng mas matagal?",
+            "cta":      "Hindi lahat ng 'best friend' ay nararapat lang doon. Pero hindi rin lahat ng pagmamahal ay kailangang sabihin para maging totoo. Tulungan natin siya — mag-comment ng inyong payo. 🤍",
+            "closing":  "Dear Viral Video Challenge, sana po i-post ninyo ito. Hindi ko kayang kausapin ang mga kaibigan namin — kilala nila siyang pareho. Gusto ko lang marinig ang outsider na pananaw. Salamat.",
+        },
+        "BALIK-LOVER": {
+            "hook":     f"bumalik siya. at yung sinabi kong 'hindi na' — napatunayang kasinungalingan ko sa sarili ko.",
+            "part1":    f"{female_age}F ako. nagbreak kami after {random.randint(1,3)} taon. {male_age}M siya. inakala ko na okay na ako — nagtatrabaho na sa {place}, nagsisimulang mag-move on, nagiging masaya na uli. tapos isang message lang niya... lahat bumagsak.",
+            "part2":    "'miss kita. mali ako. huwag mo akong bibitawan.' — yun ang sinabi niya. at ang tanong ko sa sarili ko: totoo ba ito o gusto lang niya ng familiar? kasi ganyan siya noon — bumabalik pag nag-iisa. pero baka naman... nagbago na talaga?",
+            "part3":    "ang pinakamasakit na katotohanan: hindi ko pa rin siya mahalin nang mas kaunti. kahit gusto ko. kahit subukan ko. p*ta, bakit ganyan ang puso? binibigyan ko siya ng another chance — at takot na takot ako na maging tanga na naman.",
+            "question": "sa mga nakaranas ng ganitong 'balik-lover' moment — regret ba kayo o hindi? nagbago ba talaga sila?",
+            "cta":      "Second chances are beautiful — but only if the reason they left is gone. Tulungan natin ang ating kababayan na madesisyon. Mag-comment ng inyong tunay na karanasan. 💬",
+            "closing":  "Dear Viral Video Challenge, puwede po ba i-share ninyo ito? Gusto ko marinig ang mga nakaranas ng same thing — hindi yung teorya, kundi ang tunay na nangyari. Kailangan ko ng katotohanan ngayon.",
+        },
+        "ONLINE LOVE": {
+            "hook":     f"hindi namin pa nakikita ang isa't isa. pero siya ang pinaka-nakakaalam sa akin sa buong mundo.",
+            "part1":    f"{female_age}F ako, {male_age}M siya. nagkita kami sa isang Facebook group tungkol sa mga libro — random, walang intensyon. nagsimula sa isang comment, tapos DM, tapos tawag. ngayon, halos araw-araw na kaming nag-uusap. siya ay nasa ibang lungsod. hindi kami nagkita kahit minsan.",
+            "part2":    "pero alam niya ang pangalan ng nanay ko. alam niya kung anong oras ako nagigising. narinig niya na akong umiyak — totoong umiyak, hindi nagpapanggap. at ako rin — narinig ko ang ingay ng bahay niya, ang boses niya pag gising pa lang. paano mo sasabihing hindi totoo iyon?",
+            "part3":    "ang tanong na palagi naming iniiwasan: paano kung nagkita tayo at... naiiba? paano kung ang lahat ng ito ay mas maganda sa screen kaysa sa totoo? takot akong malaman ang sagot. pero takot din akong hindi na malaman.",
+            "question": "kayo ba naniniwala sa online love? may nakaranas ba sa inyo ng ganitong uri ng koneksyon — at ano ang nangyari?",
+            "cta":      "Real feelings don't need a physical address. Pero tulungan natin ang ating kababayan — mag-comment ng inyong pananaw at karanasan. 💙",
+            "closing":  "Dear Viral Video Challenge, sana po i-share ninyo ito. Gusto ko malaman kung hindi lang ako sa ganitong sitwasyon. At kung may nakaranas na — ano ang ginawa ninyo?",
+        },
+        "BROKEN ENGAGEMENT": {
+            "hook":     f"ang singsing — nakalagay pa rin sa kahon. hindi ko pa kaya itapon.",
+            "part1":    f"{female_age}F ako. dapat kasal na kami nitong taon. lahat naka-plano na — venue sa {place}, entourage, catering, kahit yung vows ko, sinulat ko na. {male_age}M siya. dalawang taon kaming engaged. tapos isang gabi, binago niya ang lahat.",
+            "part2":    "sabi niya 'hindi pa siya ready.' hindi pa ready — pagkatapos ng dalawang taon ng engagement, pagkatapos ng lahat ng binalak namin. hindi niya sinabi kung may iba. hindi niya sinabi kung ano talaga. 'hindi pa ready' lang. paano mo tatanggapin iyon?",
+            "part3":    "ang singsing ay nasa kahon pa rin sa drawer ko. hindi ko alam kung bakit hindi ko itinapon — baka kasi pag itinapon ko, final na. at hindi pa rin ako handa sa final. pero hindi rin ako handang manatili sa limbo na ito. p*ta, paano ko to tatagalin?",
+            "question": "sa mga nakaranas ng broken engagement — paano kayo nakaahon? at paano ninyo natapos ang pag-ikot ng isip ninyo?",
+            "cta":      "Ang pagplanong ibinagsak ay isang uri ng pagkawala na hindi laging naiintindihan ng iba. Tulungan natin ang ating kababayan — mag-comment ng inyong puso. 💔",
+            "closing":  "Dear Viral Video Challenge, sana po i-post ninyo ito. Wala akong matanungan na hindi nalalaman ang buong kwento. Gusto ko lang marinig ang mga hindi involved — yung mga makakasabi ng totoo.",
+        },
+        "SUGAR RELATIONSHIP": {
+            "hook":     f"binibigyan niya ako ng lahat ng hindi ko kaya. at hindi ko alam kung kasama ba diyan ang pagmamahal.",
+            "part1":    f"{female_age}F ako. nakilala namin sa {place}. {male_age}M siya — mas matanda, matagumpay, at mabait sa paraan na hindi ko sanay. sinabi ko sa sarili ko sa simula: transaksyon lang ito. pero hindi ko inakala na magiging ganito kagulo.",
+            "part2":    "may oras siya para sa akin. tinatanong niya kung kumain na ako. naalala niya ang mga bagay na sinabi ko minsan lang. at ngayon hindi ko na alam kung nagmamahal na siya sa akin o ginagawa lang niya ito dahil kaya niya. at ang mas nakakatakot — hindi ko na alam kung ano ang nararamdaman ko.",
+            "part3":    "controversial na sasabihin ko: hindi lahat ng sugar relationship ay walang tunay na damdamin. pero hindi rin lahat ng tunay na damdamin ay sapat na basehan ng isang relasyon. at habang tinatanggap ko ang mga regalo niya, tinatanong ko ang sarili ko — binibili ba niya ang aking oras, o ang aking pagmamahal?",
+            "question": "sa inyong palagay — puwede bang lumabas ang tunay na pagmamahal sa ganitong uri ng setup? o lagi na lang itong komplikado?",
+            "cta":      "Walang simpleng sagot dito — at lahat tayo may karapatang marinig ang iba't ibang pananaw. Huwag hatulan — tulungan natin ang ating kababayan. Mag-comment ng inyong saloobin. 💬",
+            "closing":  "Dear Viral Video Challenge, sana po i-share ninyo ito nang walang judgment. Alam ko hindi ito popular. Pero totoo ito, at kailangan ko ng honest na pananaw mula sa mga hindi kilala ang aming sitwasyon.",
+        },
+        "SITUATIONSHIP": {
+            "hook":     f"'ano tayo?' — yung tanong na pareho naming alam ang sagot pero pareho ring ayaw sabihin.",
+            "part1":    f"{female_age}F ako, {male_age}M siya. dito sa {place}, ilang beses na kaming nag-uwian, nagtawagan hanggang umaga, nagkamay nang mahigpit sa cinema. pero kung tatanungin mo kung 'kami ba' — walang malinaw na sagot. 'ganyan talaga kami' daw.",
+            "part2":    "p*ta ang 'ganyan talaga kami.' kasi ang 'ganyan' ay ibig sabihin — pwede siyang makipagdate sa iba at wala akong karapatang masaktan. pwede akong mag-introduce ng iba at siya ay pagtitinginan lang ako. paano ka mabubuhay sa grey area na yan nang walang masisira?",
+            "part3":    "gusto kong itanong sa kanya — pero takot ako sa sagot. kasi kung 'wala tayo' ang sagot, mawawala ang lahat. at mas matakot akong mawala siya kaysa manatili sa limbo na ito. pero hanggang kailan? hanggang kailan ako magsasabing okay lang ito?",
+            "question": "kayo ba — mas pipiliin ninyong tanungin at riskin ang lahat, o titiisin ang situationship para hindi masira ang meron?",
+            "cta":      "Deserves kang ng isang taong sigurado sa iyo. Tulungan natin ang ating kababayan — mag-comment ng inyong advice at karanasan. 💛",
+            "closing":  "Dear Viral Video Challenge, sana po i-post ninyo ito. Nahihirapan akong pag-usapan ito sa mga kaibigan ko — kilala nila kaming dalawa. Gusto ko lang marinig ang totoo mula sa labas.",
+        },
+        "ASAWA VS KABIT": {
+            "hook":     f"nalaman ko sa isang text. isang text lang — at lahat ng nagtayo ko sa loob ng {random.randint(5,15)} taon, gumuho.",
+            "part1":    f"{female_age}F ako. {random.randint(5,15)} taon kaming kasal. may anak kami. nagtatrabaho kami pareho dito sa {place}. inakala ko — maayos tayo. hindi perpekto, pero maayos. tapos yung text. hindi niya basta-basta naiwan ang phone — sinabihan niya akong hawakan habang nagbabago siya. at naroon ito.",
+            "part2":    "hindi ko sinabi kaagad. tatlong araw akong nagdala ng sikreto — naghanda pa ako ng pagkain, natulog sa tabi niya, ngumiti sa mga bata. tatlong araw na alam ko na pero hindi pa siya. nang sabi ko sa kanya — hindi siya tumanggi. sinabi niya lang: 'sori.' p*ta. 'sori.'",
+            "part3":    "ang tanong na hindi ko masagot: mananatili ba ako para sa mga bata, o lalayo para sa sarili ko? kasi kahit anong desisyon ang gawin ko — may masisira. at kahit galit na galit ako sa kanya ngayon — mahal ko pa rin siyang p*ta. yun ang pinakamasama.",
+            "question": "sa mga nakaranas ng ganito — paano kayo nagdesisyon? at kung mag-iwan kayo ulit ng pagkakataon — paano ninyo naayos ang tiwala?",
+            "cta":      "Walang tamang sagot sa ganito — at hindi mo dapat pinagdesisyon ang sarili mo nang mag-isa. Tulungan natin ang ating kababayan — mag-comment ng inyong tunay na karanasan. 💔",
+            "closing":  "Dear Viral Video Challenge, sana po i-post ninyo ito. Wala akong mapag-usapan — lahat ng kaibigan ko ay kilala kami pareho. Kailangan ko ng outsider na pananaw. Kahit masakit — kailangan ko ng totoo.",
+        },
+        "IN-LAW CONFLICT": {
+            "hook":     f"mahal ko siya nang buo. pero ang pamilya niya — parang aktibong sinisigurado nilang hindi ito gagana.",
+            "part1":    f"{female_age}F ako, {male_age}M siya. dalawang taon na kaming magkasama dito sa {place}. siya ay mabait, mahal niya ako — sigurado ako doon. ang problema ay hindi kami dalawa lang sa relasyong ito. ang nanay niya ay palaging kasama.",
+            "part2":    "sinasabi ng nanay niya na hindi ako angkop. hindi daw ako galing sa 'magandang pamilya.' tinatanggal niya ang mga regalo ko sa bahay nila. sinasabihan siya na huwag akong pakasalan. at ang pinaka-masakit? inilalagay niya sa ulo ng anak niya na kailangan niyang pumili — at hindi pa rin siya pumipili nang malinaw.",
+            "part3":    "hindi ko siya hinihiling na tanggihan ang pamilya niya. mahal ko siya nang sapat para hindi ko iyon hihilingin. pero kailangan ko siyang pumili para sa amin — hindi laban sa pamilya niya, kundi para sa atin. at hindi ko alam kung kayang gawin iyon ng taong pinalaki sa ganyang kultura.",
+            "question": "sa mga nakaranas ng in-law conflict — paano ninyo nasolusyunan ito? o paano ninyo nalaman kung oras na para lumayo?",
+            "cta":      "Ang pag-ibig ay hindi lang para sa dalawa — minsan kailangan nilang harapin ang buong pamilya. Tulungan natin ang ating kababayan — mag-comment ng inyong karanasan. 🤍",
+            "closing":  "Dear Viral Video Challenge, sana po i-share ninyo ito. Hindi ko kayang pag-usapan ito sa mga kaibigan — alam nila ang pamilya niya. Kailangan ko ng neutral na pananaw. Salamat.",
+        },
+        "LONG DISTANCE": {
+            "hook":     f"lahat sabi 'kaya ninyo 'yan.' pero sila hindi nararamdaman ang gabi na mag-isa ka at ang tawag ay hindi nasasagot.",
+            "part1":    f"{female_age}F ako, {male_age}M siya. nagsimula kaming mag-LDR nung lumipat siya ng trabaho sa ibang bansa — kailangan, hindi choice. dito sa {place} ako naiwan. sabi namin: anim na buwan lang. tapos naging isang taon. tapos naging dalawa.",
+            "part2":    "ang simula — may schedule tayo ng tawag. may 'goodnight' tayo lagi. tapos dahan-dahang nawala ang schedule. 'busy lang' palagi. at ang tanong na hindi ko sinasabi nang malakas: busy ba talaga siya, o unti-unting lumalayo na?",
+            "part3":    "ang pinakamasakit na bagay sa LDR — hindi ang distansya. ang masakit ay ang pakiramdam na kahit nasa tawag kayo, may distansya pa rin. parang nandoon ang katawan niya sa screen — pero hindi na nandoon ang tao na mahal mo. at hindi mo alam kung kailan nagsimula ang pagbabago.",
+            "question": "sa mga nakasecond na LDR — ano ang nagpanatili sa inyo? at may point ba na sabi ninyo 'hindi na talaga kaya'?",
+            "cta":      "Distansya ay hindi palaging hadlang — pero hindi rin ito laging malalampasan. Tulungan natin ang ating kababayan — mag-comment ng inyong totoong karanasan sa LDR. ✈️",
+            "closing":  "Dear Viral Video Challenge, sana po i-post ninyo ito. Gusto ko marinig ang mga nakaranas ng same — hindi yung 'kaya ninyo,' kundi yung totoo. Yung ugly truth ng LDR. Salamat.",
+        },
+        "CHILDHOOD SWEETHEART": {
+            "hook":     f"sampung taon ang nakaitan. tapos nagtext siya. at parang wala ni isang araw ang lumipas.",
+            "part1":    f"{female_age}F ako. siya yung first love ko — noong bata pa kami dito sa {place}. {male_age}M siya ngayon. nagbreak kami nung high school, yung uri ng breakup na hindi mo pa lubos na nauunawaan pero lubos na nakakasakit. akala ko — tapos na. sampung taon nang tapos na.",
+            "part2":    "isang araw, nag-message siya. 'kumusta ka na?' — tatlong salita. tatlong salita at parang bumalik lahat ng nakalimutan ko. nagkita kami. iba na siya — mas mature, mas kalmado. pero yung ngiti? yung paraan ng pakikinig niya? yun — yun pa rin. at doon nagsimula ang problema ko.",
+            "part3":    "kasi hindi lang first love ang nararamdaman ko ngayon. nararamdaman ko rin ang lahat ng dating sakit. ang lahat ng dahilan kung bakit nagbreak kami. at ang takot — na baka ulitin namin ang lahat. pero baka naman... nagbago na tayo. baka naman tama na ang timing ngayon.",
+            "question": "sa mga nakaranas ng 'second chance' sa first love — mas maganda ba ang ending kaysa dati? o mas masakit?",
+            "cta":      "First love never really leaves — they just make room. Tulungan natin ang ating kababayan na malaman kung sulit ang another try. Mag-comment ng inyong karanasan. 🌸",
+            "closing":  "Dear Viral Video Challenge, sana po i-share ninyo ito. Gusto ko marinig ang mga nakaranas ng ganitong reunion — yung totoo, hindi yung pelikula. Salamat.",
         },
     }
     return stories.get(category, stories["HEARTBREAK"])
