@@ -533,6 +533,35 @@ CATEGORY_PROMPTS = {
     "COUSIN LOVE":   "a Tagalog anonymous confession from someone who has developed romantic feelings for their cousin — focus on the inner conflict, the secret feelings they can't act on, the family closeness that makes it confusing, and the pain of loving someone they can never be with",
 }
 
+# Philippine cities/places to randomly inject for authenticity
+PH_PLACES = [
+    "Maynila", "Quezon City", "Cebu", "Davao", "Iloilo",
+    "Cagayan de Oro", "Pampanga", "Batangas", "Bulacan", "Laguna",
+    "Cavite", "Pasig", "Makati", "Taguig", "Valenzuela",
+    "Antipolo", "Caloocan", "Bacolod", "General Santos", "Zamboanga",
+]
+
+# Blurred curse words — used in angry/emotional categories
+BLURRED_CURSES = [
+    "p*ta", "p**e", "b*k*t", "p**g ina", "s*ng*ng*",
+    "g*g*", "t*n*m*", "h*n*mo", "p*k* ka",
+]
+
+# Categories where blurred curses feel authentic
+CURSE_CATEGORIES = {"CHEATING", "HEARTBREAK", "STRUGGLES", "CONFESSION"}
+
+def get_random_female_age() -> int:
+    return random.randint(20, 32)
+
+def get_random_male_age() -> int:
+    return random.randint(20, 45)
+
+def get_random_place() -> str:
+    return random.choice(PH_PLACES)
+
+def get_blurred_curse() -> str:
+    return random.choice(BLURRED_CURSES)
+
 
 def sanitize_story_text(text: str) -> str:
     """Strip markdown emphasis (**bold**, *italic*, _underline_) that the LLM
@@ -553,17 +582,37 @@ def generate_story(category: str) -> dict:
         print("  ⚠️  No GROQ_API_KEY — using fallback story.")
         return _fallback_story(category)
 
-    prompt = f"""You are writing for a Filipino Facebook page similar to Boiling Waters PH.
+    female_age = get_random_female_age()
+    male_age   = get_random_male_age()
+    place      = get_random_place()
+    curse      = get_blurred_curse() if category in CURSE_CATEGORIES else ""
+
+    curse_instruction = (
+        f'- The story should feel emotionally charged and raw. Naturally include one blurred curse like "{curse}" '
+        f'somewhere in part1, part2, or part3 where it fits — the way a real angry or hurt person would type it.'
+        if curse else
+        "- Keep the tone warm and emotional but not angry."
+    )
+
+    prompt = f"""You are writing an anonymous submission for a Filipino Facebook page like Boiling Waters PH.
 Write {CATEGORY_PROMPTS.get(category, 'a relatable Tagalog relationship story')}.
 
-The writing style is:
-- Natural Taglish (mix of Tagalog and English, the way Filipinos actually text) — write MOSTLY in Tagalog, not English
-- Feels like a real anonymous submission from a real person
-- Emotional, raw, and relatable
-- Age and gender can vary (common formats: "22F and 27M" etc.)
-- Avoid being too dramatic or formal — keep it conversational
-- Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ anywhere in the text — plain text only
-- For the "cta" field: always frame it as the COMMUNITY helping the anonymous member (use "tayo", "natin", "kababayan") — NOT asking the poster to follow or share for themselves
+Important details to use:
+- The narrator (the one submitting) is a {female_age}F
+- The other person is a {male_age}M
+- The story happens in or around {place}
+- Always refer to the narrator as "ako" and the other person as "siya" — NEVER use "kami" to describe them both together (say "siya" not "kami")
+
+Writing style RULES (very important):
+- Write like a real person typing on their phone — short sentences, lowercase sometimes, a bit messy, not polished
+- Taglish — mostly Tagalog but natural English words mixed in like a real text message
+- Do NOT write like a book or essay — no perfect grammar, no formal Filipino
+- Feels like a real human story, not AI-generated
+- Use "{female_age}F siya" or "{male_age}M siya" to introduce ages — NOT "kami {female_age}F and {male_age}M"
+- Mention {place} naturally at least once (e.g. "dito sa {place}", "sa {place} kami nagkita")
+{curse_instruction}
+- Do NOT use any markdown formatting like **bold**, *italic*, or _underline_ — plain text only
+- For the "cta" field: frame it as the COMMUNITY helping (use "tayo", "natin", "kababayan") — not the poster
 
 Respond ONLY with valid JSON (no markdown, no extra text, no code fences) matching this exact schema:
 {{
@@ -611,51 +660,52 @@ Respond ONLY with valid JSON (no markdown, no extra text, no code fences) matchi
 
 
 def _fallback_story(category: str) -> dict:
+    female_age = get_random_female_age()
+    male_age   = get_random_male_age()
+    place      = get_random_place()
     stories = {
         "LOVE STORY": {
-            "hook":     "Dati akong naniniwala na hindi para sa akin ang mahalin nang ganito...",
-            "part1":    "Nakilala ko siya sa isang grupo ng mga kaibigan. 24F ako, 27M siya. Hindi ko inakala na magiging ganito kami.",
-            "part2":    "Nung una, friends lang kami. Tapos isang gabi, habang nag-uusap kami nang matagal, napagtanto ko na gusto ko na siyang higit pa sa kaibigan.",
-            "part3":    "Takot akong sabihin kasi baka masira ang friendship namin. Pero hindi ko na kaya itago. Parang may nag-iingat sa akin sa kanya.",
-            "question": "Kayo ba, sasabihin ninyo kung naramdaman ninyo ito? O titiisin na lang?",
-            "cta":      "Comment kayo ng advice para sa ating anonymous member — baka makatulong tayo sa kanya. 💬"
+            "hook":     "hindi ko inasahan na magiging ganito — pero nangyari talaga...",
+            "part1":    f"nakilala ko siya dito sa {place} sa isang inuman ng mga kaibigan. {male_age}M siya, medyo tahimik pero pag nagalak, wow talaga. hindi ko alam kung bakit ako na-attract agad.",
+            "part2":    "nag-usap kami nang matagal that night. hanggang umaga. di ko na naalala kung kailan ako huling ganoon ka-comfortable sa isang tao. tapos ayun — nagtext siya kinabukasan.",
+            "part3":    "ngayon hindi ko alam kung love na ito o attraction lang. pero tuwing wala siya, miss ko na siya agad. ganon na ba yun?",
+            "question": "kayo ba, paano ninyo nalaman na love na at hindi lang crush?",
+            "cta":      "comment kayo ng advice para sa ating anonymous member — baka makatulong tayo. 💬"
         },
         "CHEATING": {
-            "hook":     "Nalaman ko sa isang chat ang lahat — at hindi ko inaasahan na siya pala yun...",
-            "part1":    "25F ako. Tatlong taon kaming magkasama. Lagi akong nagtiwala sa kanya kahit may mga kaibigan akong nagsasabi na mag-ingat ako.",
-            "part2":    "Isang gabi, nagpahiram ako ng phone niya para mag-call. Nakita ko ang messages. Matagal na pala silang nag-uusap ng isa pang babae.",
-            "part3":    "Hindi ko malaman kung mananatili o lalayo. Nasaktan ako hindi lang sa ginawa niya, kundi sa lahat ng sinabi niyang mahal niya ako.",
-            "question": "Kayo ba, magpapatawad kaya kayo sa ganitong sitwasyon?",
-            "cta":      "Ano ang dapat gawin ng ating kababayan? Tulungan natin siya — mag-comment ng inyong saloobin. 💔"
+            "hook":     "p*ta — tatlong taon pala akong pinagtaksilan niya...",
+            "part1":    f"{female_age}F ako. nagkita kami sa {place} nung college. inakala ko siya na — seryoso, mabait, laging nandoon. tatlong taon kaming magkasama.",
+            "part2":    "nagpahiram ako ng phone niya para mag-call sa mama ko. may notification na lumabas. hindi ko sinadyang makita pero nakita ko na. p**e, may isa pa pala siyang kausap nang halos isang taon.",
+            "part3":    "ngayon hindi ko malaman kung mag-stay o umalis na. nasaktan hindi lang sa ginawa niya — kundi sa lahat ng beses na sinabi niya mahal niya ako. totoo ba yun?",
+            "question": "kayo ba, magpapatawad sa ganitong sitwasyon?",
+            "cta":      "ano ang dapat gawin ng ating kababayan? tulungan natin siya — mag-comment ng inyong saloobin. 💔"
         },
         "HEARTBREAK": {
-            "hook":     "Apat na taon — tapos biglang 'we need to talk' na lang...",
-            "part1":    "23F ako. Nagmahal ako nang buong-buo. Inakala ko na siya na ang magiging katabi ko habambuhay.",
-            "part2":    "Sabi niya kailangan niya ng time para sa sarili niya. Na hindi na siya masaya. Na hindi niya kasalanan, hindi rin daw kasalanan ko.",
-            "part3":    "Pero bakit parang kasalanan ko ang sakit? Bakit ako ang nag-iingat ng mga alaala namin habang siya ay sige lang?",
-            "question": "Paano kayo nakakaalis sa ganito? Anong tumutulong sa inyo para gumalaw?",
-            "cta":      "Para sa ating anonymous member — hindi ka nag-iisa. 🤍 Mag-comment tayo para makatulong sa kanya."
+            "hook":     "apat na taon — tapos 'we need to talk' na lang biglang sinabi niya...",
+            "part1":    f"{female_age}F ako. nagsimula kami sa {place}. nagmahal ako nang buong-buo — inakala ko na siya na talaga ang para sa akin.",
+            "part2":    "sabi niya kailangan niya ng time para sa sarili. hindi na daw siya masaya. na hindi kasalanan niya, hindi rin daw kasalanan ko. p*ta, kung hindi kasalanan ng sinuman bakit may nasaktan?",
+            "part3":    "bakit ako ang nag-iingat pa rin ng mga alaala namin habang siya ay sige lang sa buhay? kailan ito titigil na masakit?",
+            "question": "paano kayo nakakaalis sa ganito? anong tumutulong sa inyo para gumalaw ulit?",
+            "cta":      "para sa ating anonymous member — hindi ka nag-iisa. 🤍 mag-comment tayo para makatulong."
         },
         "AGE GAP": {
-            "hook":     "Mahal ko siya nang totoo — pero 15 taon ang pagitan namin at parang mundo ang layo...",
-            "part1":    "20F ako, 35M siya. Nagkakilala kami sa trabaho. Hindi ko inasahan na mahuhulog ako sa kanya — seryoso, mabait, at palaging nandoon para sa akin.",
-            "part2":    "Nung nalaman ng pamilya ko, parang nagka-gulo lahat. Sinabihan nila ako na huwag, na malayo daw ang mundo namin, na bata pa raw ako para malaman kung ano ang gusto ko.",
-            "part3":    "Pero paano mo ipapaliwanag sa puso na huwag? Siya ang pinaka-genuine na tao na nakilala ko. Hindi ko alam kung ang edad ang hadlang — o ang takot lang ng iba.",
-            "question": "Sa inyong palagay, magiging okay ba ang ganitong relasyon? O talagang may limitasyon ang age gap?",
-            "cta":      "Tulungan natin ang ating anonymous member na makita ang tamang landas — mag-comment ng inyong saloobin. 💬"
+            "hook":     "15 taon ang pagitan namin — pero paano mo sasabihin sa puso na huwag?",
+            "part1":    f"{female_age}F ako, {male_age}M siya. nagkakilala kami sa trabaho dito sa {place}. hindi ko inasahan na mahuhulog ako — seryoso siya, mabait, at palaging nandoon para sa akin.",
+            "part2":    "nung nalaman ng pamilya ko, nagka-gulo lahat. sinabihan nila ako na huwag. na malayo daw ang mundo namin. bata pa raw ako para malaman kung ano ang gusto ko.",
+            "part3":    "pero paano mo ipapaliwanag sa puso na huwag? siya ang pinakageniune na tao na nakilala ko. hindi ko alam kung ang edad ang hadlang — o ang takot lang ng iba.",
+            "question": "sa inyong palagay, magiging okay ba ang ganitong relasyon?",
+            "cta":      "tulungan natin ang ating anonymous member — mag-comment ng inyong saloobin. 💬"
         },
         "COUSIN LOVE": {
-            "hook":     "Pinsan ko siya — pero bakit ganito ang nararamdaman ko tuwing nandoon siya...",
-            "part1":    "21F ako. Mula pagkabata, lagi kaming magkasama sa mga family gatherings. Pero ngayon na mas malalaki na kami, nagsimula akong mapansin na... naiiba na ang pakiramdam ko sa kanya.",
-            "part2":    "Ayaw kong aminin sa sarili ko. Lagi ko sinasabi na 'barkada lang' o 'family lang' — pero tuwing tumatawag siya, o ngumingiti sa akin, may kaba akong hindi ko mapaliwanagan.",
-            "part3":    "Hindi ko alam kung sasabihin ko ito o itatanim na lang sa puso ko habambuhay. Takot ako sa reaction ng pamilya, at mas takot ako na mawala ang espesyal naming pagkakaibigan.",
-            "question": "Paano ninyo haharapin ang ganitong sitwasyon? May nakaranas na ba sa atin ng ganito?",
-            "cta":      "Huwag hatulan — tulungan natin ang ating kababayan. Mag-comment ng inyong payo nang may malasakit. 🤍"
+            "hook":     "pinsan ko siya — pero bakit ganito ang nararamdaman ko tuwing nandoon siya...",
+            "part1":    f"{female_age}F ako. lagi kaming magkasama sa family gatherings dito sa {place} mula pagkabata. pero ngayon na mas malalaki na kami, naiiba na ang pakiramdam ko sa kanya.",
+            "part2":    "ayaw kong aminin sa sarili ko. lagi ko sinasabi 'barkada lang' o 'family lang' — pero tuwing tumatawag siya, may kaba akong hindi ko mapaliwanagan.",
+            "part3":    "hindi ko alam kung sasabihin ko o itatanim na lang sa puso ko habambuhay. takot ako sa reaction ng pamilya — at mas takot ako na mawala ang espesyal naming pagkakaibigan.",
+            "question": "paano ninyo haharapin ang ganitong sitwasyon?",
+            "cta":      "huwag hatulan — tulungan natin ang ating kababayan. mag-comment ng inyong payo nang may malasakit. 🤍"
         },
     }
-    # Default fallback
-    default = stories.get(category, stories["HEARTBREAK"])
-    return default
+    return stories.get(category, stories["HEARTBREAK"])
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -684,16 +734,7 @@ def create_slide(slide_type: str, story: dict, bg: Image.Image,
     # ── Anonymous member badge (pushed down so it clears the mobile status bar) ──
     draw_anon_badge(draw, x=pad_x, y=160, fake_name=fake_name)
 
-    # ── Category label pill (top-right, aligned with badge) ──
-    cat_font = get_font(30, bold=True)
-    cat_text = f"  {category}  "
-    cat_w = int(draw.textlength(cat_text, font=cat_font)) + 20
-    cat_x = IMG_W - pad_x - cat_w
-    cat_y = 172
-    draw.rounded_rectangle([(cat_x, cat_y), (cat_x + cat_w, cat_y + 52)],
-                             radius=10, fill=ANON_ORANGE)
-    draw.text((cat_x + cat_w // 2, cat_y + 26), category,
-              font=cat_font, anchor="mm", fill=C_WHITE)
+    # (Category pill removed — looked automated; story speaks for itself)
 
     # ── HOOK HEADLINE (large bold italic) ──
     headline_y = int(IMG_H * 0.36)
