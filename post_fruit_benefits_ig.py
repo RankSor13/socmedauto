@@ -38,6 +38,8 @@ FONT_BOLD_URL   = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-
 FONT_REG_URL    = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Regular.ttf"
 FONT_BOLD_PATH  = "/tmp/Poppins-Bold.ttf"
 FONT_REG_PATH   = "/tmp/Poppins-Regular.ttf"
+FONT_EMOJI_URL  = "https://github.com/googlefonts/noto-emoji/raw/main/fonts/NotoColorEmoji.ttf"
+FONT_EMOJI_PATH = "/tmp/NotoColorEmoji.ttf"
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FruitBenefitsBot/1.0)"}
 
@@ -260,10 +262,10 @@ C_BLACK  = (  0,   0,   0)
 # FONTS
 # ─────────────────────────────────────────────────────────────────────────────
 def setup_fonts():
-    for url, path in [(FONT_BOLD_URL, FONT_BOLD_PATH), (FONT_REG_URL, FONT_REG_PATH)]:
+    for url, path in [(FONT_BOLD_URL, FONT_BOLD_PATH), (FONT_REG_URL, FONT_REG_PATH), (FONT_EMOJI_URL, FONT_EMOJI_PATH)]:
         if not os.path.exists(path):
             print(f"  Downloading font from {url} …")
-            r = requests.get(url, timeout=30)
+            r = requests.get(url, timeout=60)
             r.raise_for_status()
             with open(path, "wb") as f:
                 f.write(r.content)
@@ -273,6 +275,12 @@ def get_font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
     path = FONT_BOLD_PATH if bold else FONT_REG_PATH
     try:
         return ImageFont.truetype(path, size)
+    except Exception:
+        return ImageFont.load_default()
+
+def get_emoji_font(size: int) -> ImageFont.FreeTypeFont:
+    try:
+        return ImageFont.truetype(FONT_EMOJI_PATH, size)
     except Exception:
         return ImageFont.load_default()
 
@@ -381,19 +389,19 @@ def fetch_single_image(url: str) -> Image.Image | None:
 
 def fetch_fruit_images(slide_searches: list[str], fruit_name: str, num_slides: int) -> list[Image.Image | None]:
     """
-    Fetch a different image for each slide using Pixabay search API.
-
+    Fetch a different image for each slide using Pexels search API.
+    
     Strategy:
     1. Pre-fetch ALL photo URLs for ALL search queries at once (fewer API calls)
     2. Assign different photos to different slides
-    3. If Pixabay fails, use a generic fruit search
+    3. If Pexels fails, use a generic fruit search
     4. If all fails, return None (will use dark background)
     """
     photos: list[Image.Image | None] = [None] * num_slides
     all_urls: list[str] = []
-
+    
     print(f"  📷 Fetching {num_slides} fruit photos via Pixabay API…")
-
+    
     # Pre-fetch: Collect URLs from all search queries
     if PIXABAY_API_KEY:
         for i, query in enumerate(slide_searches):
@@ -401,7 +409,7 @@ def fetch_fruit_images(slide_searches: list[str], fruit_name: str, num_slides: i
             urls = search_pixabay(query, per_page=2)
             all_urls.extend(urls)
             time.sleep(0.3)  # Be nice to the API
-
+        
         # Also search generic fruit name as backup
         if len(all_urls) < num_slides:
             print(f"    🔍 Backup search: '{fruit_name} fruit fresh'")
@@ -653,15 +661,19 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
     # Top accent stripe
     draw.rectangle([(0, 0), (IMG_W, 10)], fill=accent)
 
-    # Category pill
+    # Category pill — draw emoji + label separately so each uses the right font
     pill_font = get_font(24)
-    pill_text = f"{fruit['emoji']}  {cat_label}"
-    pill_bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
-    pw = pill_bbox[2] + 36
+    emoji_font = get_emoji_font(24)
+    pill_label = f"  {cat_label}"
+    emoji_bbox = draw.textbbox((0, 0), fruit['emoji'], font=emoji_font)
+    label_bbox = draw.textbbox((0, 0), pill_label, font=pill_font)
+    pw = (emoji_bbox[2] - emoji_bbox[0]) + (label_bbox[2] - label_bbox[0]) + 36
     ph = 44
     px, py = 48, 32
     draw_rounded_rect(draw, px, py, px + pw, py + ph, 10, accent)
-    draw.text((px + 18, py + 9), pill_text, font=pill_font, fill=C_WHITE)
+    draw.text((px + 18, py + 9), fruit['emoji'], font=emoji_font, fill=C_WHITE)
+    emoji_w = emoji_bbox[2] - emoji_bbox[0]
+    draw.text((px + 18 + emoji_w, py + 9), pill_label, font=pill_font, fill=C_WHITE)
 
     if not is_hook:
         name_font = get_font(22, bold=False)
@@ -678,7 +690,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
 
     # ══════════════ HOOK SLIDE ══════════════
     if is_hook:
-        e_font = get_font(100)
+        e_font = get_emoji_font(100)
         draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
 
         font, lines = fit_text(draw, text.upper(), 62, IMG_W - 120, 4)
@@ -694,7 +706,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         draw.rectangle([(IMG_W//2 - 80, y + 20), (IMG_W//2 + 80, y + 26)], fill=accent)
 
         theme_font = get_font(22, bold=False)
-        theme_text = f"🎯 {angle['theme']}"
+        theme_text = angle['theme']
         draw.text((IMG_W // 2, IMG_H - 160), theme_text, font=theme_font, anchor="mm", fill=accent)
 
         prompt_font = get_font(24, bold=False)
@@ -702,14 +714,14 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
 
     # ══════════════ CTA SLIDE ══════════════
     elif is_cta:
-        e_font = get_font(120)
+        e_font = get_emoji_font(120)
         draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
 
         draw.text((IMG_W // 2, 450), "EAT MORE FRUIT", font=get_font(34, bold=False), anchor="mm", fill=C_GRAY)
         draw.text((IMG_W // 2, 530), f"Follow @{PAGE_NAME}", font=get_font(58), anchor="mm", fill=C_WHITE)
-        draw.text((IMG_W // 2, 620), "For daily fruit health facts! 🍎🍊🫐", font=get_font(28, bold=False), anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, 620), "For daily fruit health facts!", font=get_font(28, bold=False), anchor="mm", fill=C_GRAY)
         draw.rectangle([(160, 690), (IMG_W - 160, 697)], fill=accent)
-        draw.text((IMG_W // 2, 740), "Save this post for your next grocery run! 🛒", font=get_font(24, bold=False), anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, 740), "Save this post for your next grocery run!", font=get_font(24, bold=False), anchor="mm", fill=C_GRAY)
 
     # ══════════════ CONTENT SLIDES ══════════════
     else:
