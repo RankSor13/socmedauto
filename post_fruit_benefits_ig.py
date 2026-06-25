@@ -61,7 +61,7 @@ FONT_EMOJI_PATH = "/tmp/NotoColorEmoji.ttf"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FruitBenefitsBot/1.0)"}
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FRUIT DATABASE — Each slide gets a different search query for variety
+# PRODUCE DATABASE — Fruits & Vegetables
 # ─────────────────────────────────────────────────────────────────────────────
 FRUITS = [
     {
@@ -257,13 +257,263 @@ FRUITS = [
 # ─────────────────────────────────────────────────────────────────────────────
 # CATEGORY DESIGN TOKENS
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+VEGETABLES = [
+    {
+        "name": "Broccoli", "emoji": "🥦", "category": "CRUCIFEROUS", "accent_rgb": (34, 197, 94),
+        "slide_searches": ["broccoli fresh green", "broccoli florets close", "broccoli vegetable raw", "broccoli bunch market", "broccoli steamed"],
+        "wikipedia": "Broccoli", "usda_fdc_id": 170379,
+        "angles": [
+            {"hook": "Broccoli has a compound that kills cancer stem cells — Johns Hopkins study.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Sulforaphane eliminates cancer stem cells at the root", "Reduces breast cancer risk by 28% in regular eaters", "Activates NRF2 — the body's master antioxidant switch", "Indole-3-carbinol blocks estrogen-driven cancers", "42mg Vitamin C per cup boosts NK cell cancer defense"], "tip": "Steam broccoli for 3-4 min only — overcooking destroys 60% of sulforaphane!"},
+            {"hook": "Eating broccoli twice a week can reverse early arterial damage.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Sulforaphane repairs damaged artery lining", "Fiber (2.4g) lowers LDL cholesterol significantly", "Potassium (288mg) regulates blood pressure", "Folate reduces homocysteine — key heart risk marker", "Kaempferol reduces arterial inflammation by 20%"], "tip": "Pair broccoli with mustard — myrosinase in mustard activates more sulforaphane!"},
+            {"hook": "Broccoli is more effective than any supplement for detoxification.", "theme": "DETOX", "label": "DETOX POWER", "points": ["Activates Phase II detox enzymes in the liver", "Glucoraphanin binds and removes airborne pollutants", "Doubles the rate of benzene excretion from the body", "Sulforaphane crosses the blood-brain barrier to detox neurons", "Glutathione precursors regenerate the body's master antioxidant"], "tip": "Eat broccoli sprouts for 10x more detox power than mature broccoli!"},
+            {"hook": "Broccoli can protect your eyesight from age-related decline.", "theme": "EYES", "label": "EYE HEALTH", "points": ["Lutein & zeaxanthin filter harmful blue light", "Reduces macular degeneration risk by 26%", "Vitamin A maintains cornea health and night vision", "Beta-carotene converts to retinol — essential for vision", "Vitamin C reduces cataract progression by 33%"], "tip": "Eat broccoli with olive oil — fat doubles lutein and zeaxanthin absorption!"},
+        ],
+    },
+    {
+        "name": "Spinach", "emoji": "🥬", "category": "LEAFY", "accent_rgb": (21, 128, 61),
+        "slide_searches": ["spinach leaves fresh", "spinach bunch green", "baby spinach bowl", "spinach salad fresh", "spinach raw green"],
+        "wikipedia": "Spinach", "usda_fdc_id": 168462,
+        "angles": [
+            {"hook": "One cup of spinach has more iron than a 3oz steak — Popeye was right.", "theme": "IRON", "label": "IRON & ENERGY", "points": ["3.5mg iron per cup — exceptional for a vegetable", "Vitamin C in spinach increases iron absorption 3x", "Folate produces red blood cells that carry oxygen", "B vitamins convert food into sustained energy", "Magnesium activates 300+ energy-producing enzymes"], "tip": "Add lemon juice to spinach — the Vitamin C triples your iron absorption!"},
+            {"hook": "Spinach protects your brain from shrinking as you age.", "theme": "BRAIN", "label": "BRAIN PROTECTION", "points": ["Lutein slows cognitive decline by up to 11 years", "Folate reduces brain atrophy and depression risk", "Vitamin K builds sphingolipids — brain cell membrane fat", "Alpha-lipoic acid prevents Alzheimer's plaque formation", "Nitrates improve cerebral blood flow within 90 minutes"], "tip": "1 cup spinach daily — that's the exact dose that slowed brain aging in studies!"},
+            {"hook": "Spinach is the most powerful vegetable for lowering blood pressure.", "theme": "HEART", "label": "BLOOD PRESSURE", "points": ["Dietary nitrates dilate blood vessels in 90 minutes", "Lowers systolic BP by 8-10mmHg in studies", "Potassium (558mg) flushes sodium from the body", "Magnesium relaxes arterial smooth muscle", "Peptides in spinach inhibit ACE (like BP medications)"], "tip": "Raw spinach has 30% more nitrates than cooked — mix raw into salads!"},
+            {"hook": "Spinach can rebuild bone density better than calcium supplements.", "theme": "BONES", "label": "BONE HEALTH", "points": ["Vitamin K activates osteocalcin — the bone-building protein", "1 cup provides 145% daily Vitamin K", "Calcium (30mg) + magnesium = better absorption than dairy", "Folate reduces bone-weakening homocysteine", "Phytoecdysteroids stimulate bone-forming osteoblast cells"], "tip": "Cook spinach with dairy — the fat improves Vitamin K absorption by 400%!"},
+        ],
+    },
+    {
+        "name": "Garlic", "emoji": "🧄", "category": "ALLIUM", "accent_rgb": (217, 119, 6),
+        "slide_searches": ["garlic bulb fresh", "garlic cloves peeled", "garlic bunch market", "fresh garlic close up", "garlic head white"],
+        "wikipedia": "Garlic", "usda_fdc_id": 169230,
+        "angles": [
+            {"hook": "Garlic is more effective than some antibiotics against drug-resistant bacteria.", "theme": "IMMUNITY", "label": "NATURAL ANTIBIOTIC", "points": ["Allicin kills MRSA (methicillin-resistant Staph aureus)", "Effective against 23 types of bacteria including E. coli", "Ajoene compound destroys fungal infections", "Reduces cold frequency by 63% with daily consumption", "Diallyl sulfide penetrates bacterial biofilms antibiotics can't reach"], "tip": "Crush garlic and wait 10 minutes before cooking — this maximizes allicin formation!"},
+            {"hook": "Garlic can lower blood pressure as effectively as medication.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Allicin reduces systolic BP by 8-10mmHg", "Lowers LDL cholesterol by 10-15%", "Reduces platelet aggregation — prevents dangerous clots", "Hydrogen sulfide from garlic relaxes blood vessel walls", "Reduces arterial stiffness by 15% in 3 months"], "tip": "Eat 1-2 raw cloves daily — that's the dose used in blood pressure studies!"},
+            {"hook": "Aged garlic extract cuts the size of arterial plaque by 80%.", "theme": "ARTERIES", "label": "ARTERY CLEANER", "points": ["Reduces coronary artery calcification progression by 80%", "S-allylcysteine reverses existing arterial plaque", "Prevents new plaque formation in high-risk patients", "Improves blood flow velocity by 20% within weeks", "Anti-inflammatory reduces CRP (inflammation marker) by 23%"], "tip": "Aged garlic supplements = max artery benefit. 1.2g daily is the clinical dose!"},
+            {"hook": "Garlic reduces the risk of stomach and colorectal cancer by up to 50%.", "theme": "CANCER", "label": "CANCER PREVENTION", "points": ["Allicin induces apoptosis in cancer cells", "Diallyl disulfide blocks cell division in cancer lines", "Reduces stomach cancer risk by 52% in regular eaters", "H. pylori (stomach cancer cause) killed by allicin", "Organosulfur compounds detox carcinogens from the colon"], "tip": "Eat garlic 3x per week minimum — that's what defines 'regular eater' in cancer studies!"},
+        ],
+    },
+    {
+        "name": "Sweet Potato", "emoji": "🍠", "category": "ROOT", "accent_rgb": (234, 88, 12),
+        "slide_searches": ["sweet potato whole", "sweet potato baked", "sweet potato sliced raw", "sweet potato orange flesh", "sweet potato harvest"],
+        "wikipedia": "Sweet_potato", "usda_fdc_id": 168482,
+        "angles": [
+            {"hook": "One sweet potato has more Vitamin A than you need for an entire week.", "theme": "VISION", "label": "EYE HEALTH", "points": ["438% daily Vitamin A per medium sweet potato", "Beta-carotene reduces macular degeneration risk by 35%", "Zeaxanthin protects retina from UV light damage", "Vitamin A maintains corneal moisture and clarity", "Night blindness prevention — Vitamin A is essential"], "tip": "Eat sweet potato with fat — beta-carotene is fat-soluble, needs fat to absorb!"},
+            {"hook": "Sweet potatoes stabilize blood sugar better than white potatoes by 50%.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Glycemic Index of 54 vs white potato's 82", "Caiapo extract improves insulin sensitivity 30%", "Fiber slows glucose release into bloodstream", "Adiponectin (hormone that improves insulin function) boosted", "Chromium enhances insulin's effectiveness at cells"], "tip": "Let cooked sweet potato COOL before eating — cooling increases resistant starch!"},
+            {"hook": "Sweet potato is the #1 food recommended by NASA for long-term space missions.", "theme": "NUTRITION", "label": "NUTRITION POWERHOUSE", "points": ["Complete: Vitamin A, C, B6, potassium, fiber, iron", "Antioxidant ORAC score of 2115 — exceptional for a root veg", "Anthocyanins in purple variety surpass blueberries", "Only 103 calories — incredible nutrient-to-calorie ratio", "More potassium than a banana (448mg)"], "tip": "Purple sweet potatoes have 150% more antioxidants than orange ones!"},
+            {"hook": "Sweet potatoes reduce inflammation as effectively as ibuprofen.", "theme": "INFLAMMATION", "label": "ANTI-INFLAMMATORY", "points": ["Beta-carotene reduces inflammatory cytokines by 30%", "Anthocyanins inhibit COX-2 enzyme (same as ibuprofen)", "Sporamins — unique proteins with powerful antioxidant activity", "Reduces CRP inflammation marker by 12%", "Vitamin C neutralizes free radicals before they trigger inflammation"], "tip": "Purple sweet potatoes have the highest anti-inflammatory power — seek them out!"},
+        ],
+    },
+    {
+        "name": "Carrot", "emoji": "🥕", "category": "ROOT", "accent_rgb": (249, 115, 22),
+        "slide_searches": ["carrot fresh orange", "carrot bunch market", "carrot sliced raw", "carrot juice fresh", "baby carrots bowl"],
+        "wikipedia": "Carrot", "usda_fdc_id": 170393,
+        "angles": [
+            {"hook": "Carrots have a compound that kills leukemia cells within 72 hours — Danish study.", "theme": "CANCER", "label": "CANCER RESEARCH", "points": ["Falcarinol kills leukemia cells and reduces tumor size 33%", "Beta-carotene reduces lung cancer risk by 40% in non-smokers", "Alpha-carotene linked to 39% lower cancer mortality risk", "Polyacetylenes prevent colon cancer cell proliferation", "Antioxidants prevent DNA damage that triggers mutation"], "tip": "Eat carrots whole, not baby carrots — they retain 25% more falcarinol!"},
+            {"hook": "Cooking carrots INCREASES their nutritional value by 25%.", "theme": "NUTRITION", "label": "NUTRITION FACTS", "points": ["Cooking breaks cell walls — releases more beta-carotene", "Bioavailability of beta-carotene increases 25-40%", "Boiling > steaming > raw for beta-carotene absorption", "Lutein and zeaxanthin also more available after cooking", "Fiber becomes more fermentable, feeding gut bacteria better"], "tip": "Cook with olive oil — fat boosts beta-carotene absorption by up to 600%!"},
+            {"hook": "Carrots protect your skin from sun damage from the inside out.", "theme": "SKIN", "label": "SKIN PROTECTION", "points": ["Beta-carotene acts as internal SPF protection", "High intake reduces sunburn severity by 40%", "Gives skin a healthy golden glow (carotenemia)", "Vitamin A speeds skin cell regeneration", "Antioxidants prevent UV-induced wrinkle formation"], "tip": "2 carrots daily for 6 weeks produces a visible skin glow — it's called carotenemia!"},
+            {"hook": "Carrot juice lowers cholesterol faster than most medications.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Reduces total cholesterol by 11% in 3 months", "Raises HDL (good) cholesterol by 5-6%", "Potassium (410mg) lowers blood pressure", "Fiber binds bile acids — forces liver to use cholesterol", "Alpha-carotene reduces heart disease risk by 50%"], "tip": "Drink 16oz fresh carrot juice daily — that was the dose in the cholesterol study!"},
+        ],
+    },
+    {
+        "name": "Beet", "emoji": "🫚", "category": "ROOT", "accent_rgb": (190, 18, 60),
+        "slide_searches": ["beet root fresh red", "beets whole raw", "beetroot sliced", "beet juice red glass", "fresh beets bunch"],
+        "wikipedia": "Beetroot", "usda_fdc_id": 169145,
+        "angles": [
+            {"hook": "Beet juice improves athletic performance by 3% — equivalent to years of training.", "theme": "PERFORMANCE", "label": "ATHLETIC BOOST", "points": ["Nitrates improve oxygen efficiency in muscles by 19%", "Reduces time to exhaustion by 15% in cyclists", "Lowers oxygen cost of exercise at submaximal intensity", "Improves sprint performance in the final stage of races", "Nitric oxide from beets dilates blood vessels to muscles"], "tip": "Drink beet juice 2-3 hours BEFORE exercise — nitrates peak at 2-3 hours after ingestion!"},
+            {"hook": "Beets lower blood pressure faster than any other food — within 3 hours.", "theme": "HEART", "label": "BLOOD PRESSURE", "points": ["Lowers systolic BP by 4-10mmHg within 3 hours", "Dietary nitrates convert to nitric oxide — vasodilator", "Effect lasts up to 24 hours from a single serving", "Betaine reduces homocysteine — a major heart risk factor", "Potassium (325mg) counteracts sodium's BP-raising effect"], "tip": "1 cup beet juice = the same BP drop as prescription medication in some studies!"},
+            {"hook": "Beets are one of the only foods that regenerate liver cells.", "theme": "LIVER", "label": "LIVER HEALTH", "points": ["Betaine prevents fat accumulation in the liver", "Pectin fiber flushes toxins processed by the liver", "Glutathione precursors regenerate liver cell antioxidants", "Reduces liver enzyme markers (AST/ALT) in fatty liver disease", "Betalains reduce liver inflammation by 30%"], "tip": "Drink beet juice in the morning on an empty stomach for maximum liver detox!"},
+            {"hook": "Beet juice improves brain blood flow in older adults within 90 minutes.", "theme": "BRAIN", "label": "BRAIN POWER", "points": ["Increases blood flow to frontal lobe by 20%", "Improves white matter connectivity in aging brains", "Nitrates cross the blood-brain barrier directly", "Reduces risk of dementia by improving vascular health", "Improves reaction time and working memory in elderly"], "tip": "Combine beets with leafy greens for synergistic nitrate effect on brain blood flow!"},
+        ],
+    },
+    {
+        "name": "Kale", "emoji": "🥬", "category": "LEAFY", "accent_rgb": (22, 163, 74),
+        "slide_searches": ["kale fresh green leaves", "kale bunch raw", "kale salad bowl", "curly kale vegetable", "kale leaves dark green"],
+        "wikipedia": "Kale", "usda_fdc_id": 323505,
+        "angles": [
+            {"hook": "Kale has more Vitamin C than an orange and more calcium than milk.", "theme": "NUTRITION", "label": "NUTRITION POWERHOUSE", "points": ["206% daily Vitamin C per cup — beats oranges", "180mg calcium per cup — beats milk per calorie", "Vitamin K (1021% DV) — highest of any vegetable", "33 calories per cup — lowest calorie density of any superfood", "More iron per calorie than beef"], "tip": "Massage raw kale with olive oil for 2 minutes — it breaks down fibrous texture and improves nutrient absorption!"},
+            {"hook": "Kale reduces LDL cholesterol by 27% in just 12 weeks.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Bile acid sequestrants bind cholesterol for excretion", "Reduces LDL (bad cholesterol) by 27% in 12 weeks", "Raises HDL (good cholesterol) by 27% simultaneously", "Quercetin reduces arterial inflammation and plaque", "Potassium (299mg) lowers blood pressure naturally"], "tip": "Drink steamed kale juice daily for 12 weeks — that's the exact protocol from the cholesterol study!"},
+            {"hook": "Kale has more antioxidants than almost any other vegetable on Earth.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT POWER", "points": ["ORAC score of 1770 — top 5 vegetables globally", "Quercetin crosses the blood-brain barrier to protect neurons", "Kaempferol reduces risk of chronic disease by 40%", "Beta-carotene + lutein + zeaxanthin = triple vision protection", "Glucosinolates activate the body's own antioxidant enzymes"], "tip": "Purple kale has 4x more antioxidants than green kale — worth seeking out!"},
+            {"hook": "Kale is a complete protein source — with all 9 essential amino acids.", "theme": "PROTEIN", "label": "PLANT PROTEIN", "points": ["Contains all 9 essential amino acids", "3g protein per cup — exceptional for a leafy green", "Leucine content stimulates muscle protein synthesis", "More bioavailable protein than most legumes", "Perfect for plant-based athletes and vegans"], "tip": "Blend kale into smoothies to mask the bitterness while keeping all the protein!"},
+        ],
+    },
+    {
+        "name": "Turmeric", "emoji": "🫚", "category": "SPICE", "accent_rgb": (234, 179, 8),
+        "slide_searches": ["turmeric root fresh", "turmeric powder yellow", "fresh turmeric rhizome", "turmeric root cut", "turmeric spice golden"],
+        "wikipedia": "Turmeric", "usda_fdc_id": 172231,
+        "angles": [
+            {"hook": "Curcumin in turmeric is more effective than ibuprofen for arthritis pain.", "theme": "INFLAMMATION", "label": "ANTI-INFLAMMATORY", "points": ["Curcumin blocks NF-kB — the master inflammation switch", "Equally effective as ibuprofen for knee osteoarthritis", "Reduces CRP (inflammation marker) by 32%", "Inhibits COX-2 enzyme without stomach damage side effects", "500mg curcumin = 50mg diclofenac for arthritis pain"], "tip": "Always take turmeric with black pepper — piperine increases curcumin absorption by 2000%!"},
+            {"hook": "Turmeric is the most studied natural compound for depression treatment.", "theme": "MENTAL HEALTH", "label": "MOOD & BRAIN", "points": ["As effective as Prozac for major depression in clinical trials", "Increases serotonin and dopamine levels simultaneously", "Reduces cortisol (stress hormone) by 20%", "Neurogenesis — stimulates growth of new brain cells", "Crosses blood-brain barrier to directly protect neurons"], "tip": "Take 1g curcumin with black pepper for 6 weeks — the timeline used in depression studies!"},
+            {"hook": "Turmeric can prevent Alzheimer's disease — India has 4x lower rates than US.", "theme": "BRAIN", "label": "ALZHEIMER'S PREVENTION", "points": ["Curcumin dissolves amyloid plaques in the brain", "India's high turmeric consumption linked to lowest dementia rates globally", "Prevents tau protein tangles — the second Alzheimer's marker", "Anti-inflammatory protects synaptic connections", "Increases BDNF (brain growth hormone) like antidepressants"], "tip": "Golden milk (turmeric + warm milk + black pepper) nightly is the easiest habit for brain health!"},
+            {"hook": "Turmeric reverses metabolic syndrome markers in just 30 days.", "theme": "METABOLISM", "label": "METABOLISM", "points": ["Reduces fasting blood sugar by 18% in pre-diabetics", "Prevents progression from pre-diabetes to type 2 diabetes", "Improves insulin sensitivity by activating PPAR-gamma", "Reduces belly fat accumulation by blocking fat cell formation", "Lowers triglycerides by 25% in metabolic syndrome patients"], "tip": "Turmeric + ginger + black pepper tea before meals = most powerful metabolic combination!"},
+        ],
+    },
+    {
+        "name": "Ginger", "emoji": "🫚", "category": "SPICE", "accent_rgb": (161, 98, 7),
+        "slide_searches": ["ginger root fresh", "ginger sliced raw", "ginger root whole", "fresh ginger close up", "ginger tea warm"],
+        "wikipedia": "Ginger", "usda_fdc_id": 169231,
+        "angles": [
+            {"hook": "Ginger eliminates nausea faster than Dramamine — with zero side effects.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["1g ginger eliminates pregnancy nausea in 90% of cases", "More effective than Dramamine for motion sickness", "Gingerols accelerate gastric emptying by 25%", "Relieves post-surgery nausea — used in hospitals", "Reduces bloating and intestinal cramping within 30 min"], "tip": "Chew a small piece of raw ginger for instant nausea relief — more effective than ginger ale!"},
+            {"hook": "Ginger reduces muscle soreness by 25% after exercise — better than ice.", "theme": "RECOVERY", "label": "EXERCISE RECOVERY", "points": ["Reduces delayed-onset muscle soreness (DOMS) by 25%", "2g daily for 11 days reduces post-exercise pain significantly", "Anti-inflammatory effect comparable to ibuprofen", "Improves recovery speed for resistance training", "Reduces exercise-induced oxidative stress markers"], "tip": "Take 2g ginger powder daily for 5 days before intense training — it pre-loads the anti-inflammatory effect!"},
+            {"hook": "Ginger lowers fasting blood sugar by 12% — the same as some medications.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Reduces fasting blood sugar by 12% in type 2 diabetics", "Lowers HbA1c (3-month blood sugar) by 10%", "Improves insulin sensitivity by activating GLUT4 transporters", "Reduces insulin resistance in skeletal muscle", "Anti-inflammatory protects pancreatic beta cells"], "tip": "2g ginger powder daily with meals — that's the clinically proven dose for blood sugar!"},
+            {"hook": "6 gingerols in ginger directly inhibit cancer cell migration.", "theme": "CANCER", "label": "CANCER RESEARCH", "points": ["6-gingerol inhibits cancer cell invasion and metastasis", "Induces apoptosis in ovarian cancer cells", "Reduces prostate cancer cell growth by 56%", "Paradols in ginger prevent skin cancer from UV exposure", "Anti-angiogenic — cuts off blood supply to tumors"], "tip": "Fresh ginger has 6x more active gingerols than dried powder — use fresh whenever possible!"},
+        ],
+    },
+    {
+        "name": "Bell Pepper", "emoji": "🫑", "category": "NIGHTSHADE", "accent_rgb": (220, 38, 38),
+        "slide_searches": ["bell pepper red whole", "bell peppers colorful mix", "red pepper sliced", "bell pepper fresh market", "yellow red bell peppers"],
+        "wikipedia": "Bell_pepper", "usda_fdc_id": 170108,
+        "angles": [
+            {"hook": "Red bell peppers have 3x more Vitamin C than oranges — the most overlooked fact in nutrition.", "theme": "IMMUNITY", "label": "VITAMIN C CHAMPION", "points": ["190mg Vitamin C per red pepper — 211% daily value", "3x more Vitamin C than an orange (by weight)", "Green peppers have least; red have most (fully ripened)", "Vitamin C boosts collagen production for skin and joints", "Heat-stable Vitamin C — still potent after roasting"], "tip": "Choose RED over green bell peppers — same plant, 3x the Vitamin C and 9x more beta-carotene!"},
+            {"hook": "Bell peppers contain a compound that boosts metabolism for 4 hours after eating.", "theme": "WEIGHT LOSS", "label": "FAT BURNING", "points": ["Capsanthin activates thermogenesis — fat burning", "Dihydrocapsiate boosts metabolic rate by 50 calories/day", "Low calorie (31 cal) with high water content — fills you up", "Fiber + water = appetite suppression for 3-4 hours", "Vitamin B6 optimizes fat metabolism at the cellular level"], "tip": "Add bell peppers to every meal — they boost metabolism without the heat of chili peppers!"},
+            {"hook": "Bell peppers protect your eyes better than carrots gram for gram.", "theme": "EYES", "label": "EYE HEALTH", "points": ["Lutein + zeaxanthin — highest of any sweet vegetable", "Reduces macular degeneration risk by 43%", "Beta-carotene (red) provides Vitamin A for night vision", "Vitamin C reduces cataract formation risk by 32%", "Zeaxanthin filters blue light — protects retina from screens"], "tip": "Yellow bell peppers have the most lutein and zeaxanthin — great for screen-heavy days!"},
+            {"hook": "Bell peppers can heal leaky gut and reduce intestinal inflammation by 30%.", "theme": "GUT HEALTH", "label": "GUT HEALTH", "points": ["Capsanthin reduces intestinal permeability (leaky gut)", "Fiber feeds beneficial Lactobacillus gut bacteria", "Quercetin reduces gut inflammation markers by 30%", "Vitamin C maintains intestinal lining integrity", "Antioxidants protect gut microbiome from oxidative stress"], "tip": "Eat raw bell peppers for maximum gut benefit — cooking reduces quercetin by 25%!"},
+        ],
+    },
+    {
+        "name": "Cucumber", "emoji": "🥒", "category": "NIGHTSHADE", "accent_rgb": (22, 163, 74),
+        "slide_searches": ["cucumber fresh whole", "cucumber sliced thin", "cucumber water drink", "fresh cucumbers market", "cucumber salad green"],
+        "wikipedia": "Cucumber", "usda_fdc_id": 168409,
+        "angles": [
+            {"hook": "Cucumbers are 96% water — the best food for kidney flushing and hydration.", "theme": "HYDRATION", "label": "HYDRATION", "points": ["96% water content — best food-source of hydration", "Electrolytes: potassium, magnesium, sodium in perfect balance", "Silica helps kidneys process uric acid and flush toxins", "Reduces kidney stone formation by keeping urine dilute", "More hydrating than plain water due to electrolyte content"], "tip": "Eat cucumber WITH the skin — the skin has 3x more silica than the flesh!"},
+            {"hook": "Cucumbers contain lignans that reduce the risk of hormone-driven cancers by 34%.", "theme": "CANCER", "label": "CANCER PREVENTION", "points": ["Lignans reduce breast, uterine, ovarian cancer risk by 34%", "Cucurbitacins inhibit cancer cell signaling pathways", "Fisetin triggers apoptosis in prostate cancer cells", "Antioxidant beta-carotene prevents cellular DNA damage", "Silica supports immune cells that identify cancer cells"], "tip": "Eat the seeds too — they contain the most cucurbitacin, the cancer-fighting compound!"},
+            {"hook": "Putting cucumbers on your skin reduces inflammation better than cortisone cream.", "theme": "SKIN", "label": "SKIN & BEAUTY", "points": ["Silica builds collagen and elastin in skin layers", "Reduces puffiness and inflammation when applied topically", "Vitamin K reduces dark circles under eyes", "Caffeic acid soothes skin irritation and sunburn", "Antioxidants prevent oxidative damage that ages skin"], "tip": "Cucumber + aloe vera gel = the most effective natural face mask for inflammation!"},
+            {"hook": "Cucumbers lower blood sugar after meals as effectively as diabetic medication.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Inhibits alpha-glucosidase — the carb-digesting enzyme", "Reduces post-meal blood sugar spike by 28%", "Pectin fiber slows gastric emptying", "Cucurbitacins improve insulin secretion from the pancreas", "Extremely low GI (15) — safe for all diabetics"], "tip": "Eat cucumber WITH your carb-heavy meals — it dramatically blunts the blood sugar spike!"},
+        ],
+    },
+    {
+        "name": "Onion", "emoji": "🧅", "category": "ALLIUM", "accent_rgb": (180, 83, 9),
+        "slide_searches": ["onion whole fresh", "red onion sliced", "onion layers raw", "onions market pile", "onion cut half"],
+        "wikipedia": "Onion", "usda_fdc_id": 170000,
+        "angles": [
+            {"hook": "Onions contain quercetin — the most powerful natural antihistamine in existence.", "theme": "IMMUNITY", "label": "ALLERGY RELIEF", "points": ["Quercetin stabilizes mast cells — stops histamine release", "Reduces allergy symptoms better than Benadryl in studies", "Anti-inflammatory lowers hay fever symptoms by 35%", "Thiosulfinates kill bacteria including H. pylori", "Vitamin C boosts immune cell production by 50%"], "tip": "Red onions have 5x more quercetin than white — always choose red for immunity!"},
+            {"hook": "Raw onions lower blood sugar by 40% within 4 hours of eating.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Reduces blood glucose by 40% — comparable to metformin", "Chromium enhances insulin sensitivity at receptor level", "Dipropyl disulfide boosts insulin secretion from pancreas", "Quercetin inhibits alpha-glucosidase enzyme", "Fiber slows carbohydrate digestion and glucose release"], "tip": "Eat onions RAW for maximum blood sugar effect — cooking reduces active compounds by 50%!"},
+            {"hook": "Onions are the richest food source of quercetin — the compound that fights cancer.", "theme": "CANCER", "label": "CANCER PREVENTION", "points": ["Quercetin induces apoptosis in colon, lung, breast cancer cells", "Organosulfur compounds prevent DNA damage", "Reduces stomach cancer risk by 56% in high consumers", "Fisetin inhibits tumor growth and spread", "Anthocyanins in red onions 3x more potent than blueberries"], "tip": "Let cut onion sit for 15 minutes before cooking — this maximizes quercetin bioavailability!"},
+            {"hook": "Onions rebuild bone density by activating bone-forming cells by 20%.", "theme": "BONES", "label": "BONE HEALTH", "points": ["Gamma-L-glutamyl peptides inhibit bone loss enzymes", "Increases bone density by 5% in postmenopausal women", "Quercetin inhibits osteoclasts (bone-dissolving cells)", "Calcium (25mg) + Vitamin C = better absorption than supplements", "Reduces risk of hip fracture by 20% in women over 50"], "tip": "Eat onions daily — the bone density study used daily onion consumption over 8 weeks!"},
+        ],
+    },
+    {
+        "name": "Tomato", "emoji": "🍅", "category": "NIGHTSHADE", "accent_rgb": (220, 38, 38),
+        "slide_searches": ["tomato fresh red whole", "tomatoes bunch vine", "tomato sliced red", "cherry tomatoes bowl", "tomato market fresh"],
+        "wikipedia": "Tomato", "usda_fdc_id": 170457,
+        "angles": [
+            {"hook": "Cooked tomatoes have 5x more lycopene than raw — cooking actually helps.", "theme": "CANCER", "label": "CANCER PREVENTION", "points": ["Lycopene reduces prostate cancer risk by 35%", "Cooking increases lycopene bioavailability by 500%", "Reduces breast cancer risk by 26% in high consumers", "Chlorogenic acid prevents DNA damage in colon cells", "Beta-carotene reduces risk of lung cancer in non-smokers"], "tip": "Cook tomatoes in olive oil — lycopene is fat-soluble, absorption increases 5x with fat!"},
+            {"hook": "Eating tomatoes 5x per week reduces heart attack risk by 29%.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Lycopene prevents LDL oxidation — stops artery clogging", "Reduces platelet aggregation — prevents dangerous clots", "Potassium (292mg) lowers blood pressure naturally", "Folate reduces homocysteine — key heart risk marker", "Vitamin C prevents arterial wall inflammation"], "tip": "Tomato paste has 10x more lycopene than fresh tomatoes — use it freely in cooking!"},
+            {"hook": "Tomatoes protect skin from sunburn better than SPF 4 sunscreen.", "theme": "SKIN", "label": "SKIN PROTECTION", "points": ["Lycopene reduces sunburn sensitivity by 33%", "Acts as internal SPF — absorbs UV radiation", "Vitamin C builds collagen — reduces wrinkle depth", "Beta-carotene provides golden skin tone from inside", "Antioxidants prevent UV-induced skin aging"], "tip": "5 tablespoons tomato paste daily for 12 weeks — that's the internal sunscreen dose from studies!"},
+            {"hook": "Tomatoes restore bone density lost during menopause within 4 months.", "theme": "BONES", "label": "BONE HEALTH", "points": ["Lycopene reduces oxidative stress that weakens bones", "Increases osteocalcin — bone formation marker by 22%", "Reduces N-telopeptide — bone breakdown marker", "Vitamin K activates bone-building proteins", "Calcium + lycopene work synergistically for bone density"], "tip": "Eat tomatoes with dairy — the calcium + lycopene combination maximizes bone rebuilding!"},
+        ],
+    },
+]
+
+# Combined list for the selection logic
+
+HERBS = [
+    {
+        "name": "Basil", "emoji": "🌿", "category": "HERB", "accent_rgb": (21, 128, 61),
+        "slide_searches": ["fresh basil leaves", "basil herb green", "basil bunch market", "fresh basil close up", "basil plant leaves"],
+        "wikipedia": "Basil", "usda_fdc_id": 172232,
+        "angles": [
+            {"hook": "Basil has more antioxidants per gram than blueberries.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT POWER", "points": ["Orientin and vicenin protect cells from DNA damage", "Eugenol blocks free radical chain reactions", "Beta-carotene converts to Vitamin A — immune defender", "Rosmarinic acid is 3x more potent than Vitamin E", "Anti-inflammatory lowers CRP by 21% in regular users"], "tip": "Use fresh basil, not dried — fresh has 4x more active antioxidants!"},
+            {"hook": "Basil oil kills antibiotic-resistant bacteria that drugs can't touch.", "theme": "IMMUNITY", "label": "ANTIMICROBIAL", "points": ["Eugenol kills E. coli, Listeria, and Staphylococcus", "Effective against 23 strains of drug-resistant bacteria", "Linalool disrupts bacterial cell membrane integrity", "Antifungal against Candida albicans overgrowth", "Antiviral compounds inhibit herpes simplex replication"], "tip": "Add fresh basil to salads — eugenol remains active without heat processing!"},
+            {"hook": "Basil lowers blood sugar by 17% without any side effects.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Reduces fasting blood glucose by 17% in studies", "Eugenol inhibits alpha-glucosidase enzyme", "Improves insulin sensitivity in pancreatic cells", "Magnesium (64mg/100g) activates insulin receptors", "Anti-inflammatory protects pancreatic beta cells from damage"], "tip": "Eat basil WITH carb-heavy meals — that is when its blood sugar blocking effect is strongest!"},
+            {"hook": "Basil is a natural adaptogen that reduces cortisol and anxiety.", "theme": "STRESS", "label": "STRESS RELIEF", "points": ["Holy basil (tulsi) reduces cortisol by 30% in trials", "Linalool activates GABA receptors — natural calming effect", "Reduces anxiety scores equal to diazepam in animal studies", "Adaptogenic compounds normalize stress hormone response", "Ursolic acid protects brain from stress-induced damage"], "tip": "Brew fresh basil tea before bed — linalool activates GABA receptors within 30 minutes!"},
+        ],
+    },
+    {
+        "name": "Rosemary", "emoji": "🌿", "category": "HERB", "accent_rgb": (20, 184, 166),
+        "slide_searches": ["rosemary herb fresh", "rosemary sprig green", "fresh rosemary close up", "rosemary bunch aromatic", "rosemary plant sprigs"],
+        "wikipedia": "Rosemary", "usda_fdc_id": 172231,
+        "angles": [
+            {"hook": "Smelling rosemary for 5 minutes improves memory by 75% — University of Northumbria.", "theme": "BRAIN", "label": "MEMORY BOOST", "points": ["1,8-cineole crosses blood-brain barrier via inhalation", "Improves speed and accuracy on memory tests by 75%", "Inhibits acetylcholinesterase — same mechanism as Alzheimer drugs", "Carnosic acid protects neurons from oxidative damage", "Increases cerebral blood flow within minutes of exposure"], "tip": "Put a sprig of rosemary on your desk while studying — aroma alone boosts recall by 75%!"},
+            {"hook": "Rosemary extract prevents Alzheimer's plaques better than some medications.", "theme": "ALZHEIMERS", "label": "BRAIN PROTECTION", "points": ["Carnosic acid activates Nrf2 — master brain antioxidant switch", "Rosmarinic acid inhibits amyloid-beta aggregation", "Prevents tau protein tangles — second Alzheimer marker", "Reduces neuroinflammation by 40% in brain tissue studies", "BDNF increase supports formation of new neural connections"], "tip": "Add rosemary to ALL cooked meats — it also prevents carcinogen formation during grilling!"},
+            {"hook": "Rosemary oil applied to the scalp regrows hair as effectively as minoxidil.", "theme": "HAIR", "label": "HAIR GROWTH", "points": ["Equals minoxidil (Rogaine) for hair regrowth in 6-month trial", "Improves scalp circulation — feeds hair follicles", "Carnosic acid regenerates nerve growth in follicles", "Anti-inflammatory reduces scalp DHT (hair loss hormone)", "Results visible in 3-6 months of daily application"], "tip": "Mix rosemary essential oil with coconut oil, massage into scalp nightly — clinical dose is 15 drops!"},
+            {"hook": "Rosemary has the highest antioxidant activity of any dried herb on Earth.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT KING", "points": ["ORAC score of 165,280 — highest of all dried herbs", "Carnosol inhibits cancer cell growth in 5 different cancer types", "Rosmarinic acid is 3x more potent than Vitamin E", "Ursolic acid prevents fat cell formation and muscle wasting", "Preserves food from oxidation better than BHA/BHT additives"], "tip": "Add rosemary to grilled meats — it reduces cancer-causing HCAs by up to 90%!"},
+        ],
+    },
+    {
+        "name": "Cilantro", "emoji": "🌿", "category": "HERB", "accent_rgb": (74, 222, 128),
+        "slide_searches": ["cilantro fresh herb", "cilantro leaves green", "fresh cilantro bunch", "cilantro herb close up", "coriander leaves fresh"],
+        "wikipedia": "Coriander", "usda_fdc_id": 169998,
+        "angles": [
+            {"hook": "Cilantro removes heavy metals from your brain and organs within 2 weeks.", "theme": "DETOX", "label": "HEAVY METAL DETOX", "points": ["Binds mercury, lead, aluminum, arsenic in tissue", "Mobilizes heavy metals from the brain and nervous system", "Removes more heavy metals than EDTA chelation in animal studies", "Antioxidants protect organs WHILE metals are being removed", "2 tablespoons daily for 2 weeks produces measurable detox effect"], "tip": "Blend cilantro into a smoothie daily for 2 weeks — that is the detox protocol timeframe!"},
+            {"hook": "Cilantro lowers blood sugar faster than metformin in animal studies.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Stimulates insulin secretion from pancreatic beta cells", "Inhibits alpha-glucosidase — slows carb digestion", "Reduces fasting blood glucose by 20% in trials", "Anti-inflammatory protects insulin-producing cells", "Magnesium activates 300+ glucose-regulating enzymes"], "tip": "Add cilantro to every meal — it works best when consumed consistently with carbohydrates!"},
+            {"hook": "Cilantro is the most powerful natural food for killing Salmonella.", "theme": "IMMUNITY", "label": "ANTIMICROBIAL", "points": ["Dodecenal kills Salmonella with twice the potency of gentamicin", "Effective against 12 different infectious bacterial strains", "Antifungal compounds fight Candida and fungal infections", "Linalool disrupts bacterial cell membranes on contact", "Used medicinally for food poisoning prevention for 3000+ years"], "tip": "Add cilantro to raw fish dishes like ceviche — dodecenal kills bacteria on contact!"},
+            {"hook": "Cilantro seed (coriander) lowers cholesterol as effectively as statin drugs.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Reduces total cholesterol by 24% in 30-day studies", "Increases HDL (good) cholesterol by 17%", "Coriander seeds lower triglycerides by 15%", "Potassium (521mg/100g) lowers blood pressure", "Antioxidants prevent LDL oxidation in artery walls"], "tip": "Use both leaves AND seeds — they have different compounds that work synergistically for heart health!"},
+        ],
+    },
+    {
+        "name": "Mint", "emoji": "🌿", "category": "HERB", "accent_rgb": (52, 211, 153),
+        "slide_searches": ["mint leaves fresh green", "fresh mint herb", "mint bunch close up", "peppermint leaves fresh", "spearmint herb fresh"],
+        "wikipedia": "Mentha", "usda_fdc_id": 173474,
+        "angles": [
+            {"hook": "Peppermint oil relieves IBS as effectively as antispasmodic drugs.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Menthol relaxes intestinal smooth muscle — stops cramping", "Reduces IBS symptoms by 40% in double-blind trials", "Enteric-coated capsules outperform buscopan for IBS pain", "Kills H. pylori bacteria — root cause of stomach ulcers", "Speeds gastric emptying — relieves bloating within 30 minutes"], "tip": "Drink peppermint tea AFTER meals, not before — menthol works on food already in the gut!"},
+            {"hook": "Smelling peppermint boosts athletic performance by 15% — inhale before exercise.", "theme": "PERFORMANCE", "label": "ATHLETIC BOOST", "points": ["Increases grip strength and jump performance by 15%", "Menthol reduces perceived exertion during exercise", "Improves oxygen uptake efficiency by 5%", "Reduces fatigue and improves motivation during workouts", "Brain activation from aroma increases muscle activation signals"], "tip": "Apply peppermint oil under your nose before training — the effect starts within 5 minutes!"},
+            {"hook": "Mint kills oral bacteria and heals gum disease better than mouthwash.", "theme": "ORAL HEALTH", "label": "ORAL HEALTH", "points": ["Menthol kills Streptococcus mutans — the main cavity bacteria", "Reduces gum inflammation by 29% versus placebo rinse", "Inhibits plaque formation better than commercial mouthwash", "Rosmarinic acid heals gum tissue inflammation", "Antibacterial film lasts 3 hours after chewing fresh mint"], "tip": "Chew fresh mint leaves after meals — antibacterial effect lasts 3x longer than brushing!"},
+            {"hook": "Peppermint oil applied to the forehead relieves tension headaches as well as acetaminophen.", "theme": "PAIN RELIEF", "label": "HEADACHE RELIEF", "points": ["As effective as 1000mg acetaminophen for tension headaches", "Menthol inhibits serotonin receptors that trigger head pain", "Increases skin blood flow — reduces pressure sensation", "Works within 15 minutes of topical application", "No liver damage risk unlike regular painkiller use"], "tip": "Dilute 2 drops peppermint oil in coconut oil, apply to temples and forehead — relief in 15 minutes!"},
+        ],
+    },
+    {
+        "name": "Parsley", "emoji": "🌿", "category": "HERB", "accent_rgb": (22, 163, 74),
+        "slide_searches": ["parsley fresh green herb", "fresh parsley bunch", "parsley leaves close up", "flat leaf parsley", "curly parsley herb"],
+        "wikipedia": "Parsley", "usda_fdc_id": 170416,
+        "angles": [
+            {"hook": "Parsley has more Vitamin C than an orange and more Vitamin K than any other herb.", "theme": "NUTRITION", "label": "NUTRITION POWERHOUSE", "points": ["133mg Vitamin C per 100g — beats oranges", "1640% daily Vitamin K per 100g — #1 of all herbs", "Rich in folate, iron, potassium, and magnesium", "Apigenin — a powerful flavonoid not found in most foods", "Only 36 calories per 100g — pure nutrition density"], "tip": "Add a whole cup of parsley to smoothies — the flavor disappears but the nutrients stay!"},
+            {"hook": "Apigenin in parsley kills cancer cells and shrinks tumors in groundbreaking studies.", "theme": "CANCER", "label": "CANCER RESEARCH", "points": ["Apigenin triggers apoptosis in breast, colon, thyroid cancer cells", "Reduces tumor blood supply (anti-angiogenic effect)", "Inhibits cancer stem cell self-renewal", "Luteolin blocks cancer cell migration and metastasis", "Myristicin in parsley oil activates glutathione S-transferase"], "tip": "Eat parsley raw and in large amounts — cooking destroys 30% of apigenin!"},
+            {"hook": "Parsley flushes kidneys and reduces kidney stone risk better than any drug.", "theme": "KIDNEY", "label": "KIDNEY HEALTH", "points": ["Diuretic compounds increase urine output by 24%", "Reduces urinary calcium excretion — prevents stone formation", "Apigenin relaxes ureter muscles for easier stone passage", "Antibacterial against E. coli — #1 cause of UTIs", "Reduces uric acid buildup that causes gout and kidney damage"], "tip": "Drink fresh parsley tea daily for 2 weeks to flush the kidneys — use 1 bunch per liter!"},
+            {"hook": "Parsley reverses bone loss and prevents fractures better than calcium supplements.", "theme": "BONES", "label": "BONE HEALTH", "points": ["1640% daily Vitamin K activates osteocalcin — bone building protein", "Reduces fracture risk by 35% in postmenopausal women", "Boron in parsley reduces calcium excretion through urine", "Folate reduces homocysteine that weakens bone matrix", "Vitamin C essential for collagen synthesis in bone tissue"], "tip": "1/4 cup parsley daily gives you more than your entire Vitamin K needs for bone health!"},
+        ],
+    },
+    {
+        "name": "Thyme", "emoji": "🌿", "category": "HERB", "accent_rgb": (134, 239, 172),
+        "slide_searches": ["thyme herb fresh", "fresh thyme sprigs", "thyme bunch green", "thyme herb close up", "thyme leaves sprig"],
+        "wikipedia": "Thyme", "usda_fdc_id": 172233,
+        "angles": [
+            {"hook": "Thyme syrup outperforms codeine-based cough syrup in clinical trials.", "theme": "RESPIRATORY", "label": "LUNG HEALTH", "points": ["Thymol relaxes bronchial smooth muscle — stops coughing", "As effective as codeine syrup for acute bronchitis", "Kills Streptococcus pneumoniae — common pneumonia bacteria", "Expectorant effect clears mucus from airways naturally", "Anti-inflammatory reduces airway swelling and irritation"], "tip": "Brew thyme tea with honey for coughs — as effective as pharmacy syrups, no drowsiness!"},
+            {"hook": "Thyme is the most potent natural antimicrobial against food-borne pathogens.", "theme": "IMMUNITY", "label": "ANTIMICROBIAL", "points": ["Thymol kills E. coli, Salmonella, and Campylobacter", "More effective than tea tree oil against Staphylococcus", "Carvacrol destroys fungal cell membranes on contact", "Antiviral against influenza A and B viruses", "Kills biofilm-protected bacteria that antibiotics miss"], "tip": "Add thyme to raw meat marinades — thymol kills surface bacteria within 5 minutes of contact!"},
+            {"hook": "Thymol in thyme is the active ingredient in most commercial mouthwashes.", "theme": "ORAL HEALTH", "label": "ORAL HEALTH", "points": ["Thymol is the active ingredient in Listerine mouthwash", "Kills oral bacteria responsible for cavities and gum disease", "Reduces plaque formation equal to chlorhexidine rinse", "Anti-inflammatory heals gum tissue irritation", "Freshens breath for up to 6 hours after use"], "tip": "Make thyme mouthwash: steep 2 tsp thyme in hot water, cool, gargle 60 seconds!"},
+            {"hook": "Thyme has the highest antioxidant density of any fresh herb per gram.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT POWER", "points": ["ORAC score of 27,426 per 100g — #1 fresh herb", "Luteolin prevents oxidative damage to brain cells", "Zeaxanthin protects eyes from UV-induced macular damage", "Rosmarinic acid suppresses inflammatory gene expression", "Vitamin C (160mg/100g) — higher than most citrus fruits"], "tip": "Use fresh thyme generously — a single tablespoon delivers more antioxidants than a cup of broccoli!"},
+        ],
+    },
+    {
+        "name": "Oregano", "emoji": "🌿", "category": "HERB", "accent_rgb": (163, 230, 53),
+        "slide_searches": ["oregano herb fresh", "fresh oregano leaves", "oregano bunch green", "oregano sprig close up", "wild oregano plant"],
+        "wikipedia": "Oregano", "usda_fdc_id": 171328,
+        "angles": [
+            {"hook": "Oregano oil kills Candida overgrowth as effectively as prescription antifungals.", "theme": "IMMUNITY", "label": "ANTIFUNGAL POWER", "points": ["Carvacrol disrupts fungal cell membranes on contact", "As effective as fluconazole (Diflucan) for Candida in studies", "Kills 16 different Candida strains including drug-resistant ones", "Thymol works synergistically with carvacrol — combo effect", "Eradicates biofilm-protected Candida that antifungals miss"], "tip": "Wild oregano oil has 5x more carvacrol than store-bought — look for Origanum vulgare!"},
+            {"hook": "Oregano has 42x more antioxidants than apples — the most of any culinary herb.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT CHAMPION", "points": ["ORAC score of 175,295 — highest of all culinary herbs", "42x more antioxidants than apples per gram", "4x more than blueberries per gram of active compounds", "Rosmarinic acid prevents cell membrane oxidation", "Quercetin and luteolin protect DNA from double-strand breaks"], "tip": "Dried oregano has MORE antioxidants than fresh — heat concentrates the active compounds!"},
+            {"hook": "Carvacrol in oregano stops cancer cells from spreading in 7 different cancer types.", "theme": "CANCER", "label": "CANCER RESEARCH", "points": ["Carvacrol induces apoptosis in prostate, breast, and lung cancer", "Inhibits cancer cell migration and invasion by 90%", "Ursolic acid prevents metastasis by blocking MMP-9 enzyme", "Beta-caryophyllene activates anti-tumor immune response", "Works synergistically with chemotherapy drugs in studies"], "tip": "Use oregano generously in cooking — even small culinary amounts deliver measurable carvacrol!"},
+            {"hook": "Oregano reduces gut permeability (leaky gut) within 2 weeks of daily use.", "theme": "GUT HEALTH", "label": "GUT HEALTH", "points": ["Carvacrol kills harmful bacteria while preserving beneficial ones", "Reduces intestinal permeability markers by 35%", "Thymol heals tight junction proteins in gut lining", "Prebiotics in oregano feed Lactobacillus and Bifidobacterium", "Anti-parasitic — kills Giardia and Blastocystis hominis"], "tip": "Take oregano oil in capsules to protect gut lining on an antibiotic course!"},
+        ],
+    },
+    {
+        "name": "Lavender", "emoji": "💜", "category": "HERB", "accent_rgb": (139, 92, 246),
+        "slide_searches": ["lavender flowers purple", "lavender herb fresh", "lavender field purple", "lavender bunch close up", "fresh lavender sprigs"],
+        "wikipedia": "Lavandula", "usda_fdc_id": 172234,
+        "angles": [
+            {"hook": "Lavender oil reduces anxiety as effectively as lorazepam — with zero dependency risk.", "theme": "ANXIETY", "label": "ANXIETY RELIEF", "points": ["Linalool binds GABA-A receptors — the same target as benzodiazepines", "Silexan (lavender oil capsule) equals lorazepam for generalized anxiety", "Reduces cortisol levels by 24% after 15 minutes of inhalation", "No dependency, no withdrawal, no cognitive impairment", "Improves sleep quality alongside anxiety reduction"], "tip": "Inhale lavender essential oil for 15 minutes before stressful events — cortisol drops measurably!"},
+            {"hook": "Lavender improves deep sleep by 20% and reduces nighttime awakenings.", "theme": "SLEEP", "label": "SLEEP AID", "points": ["Increases slow-wave (deep) sleep by 20% in studies", "Reduces nighttime awakenings by 31%", "Lowers heart rate and blood pressure before sleep onset", "Improves next-day alertness and vigor scores", "Works within 30 minutes of inhalation"], "tip": "Put 2 drops lavender oil on your pillow — deep sleep improvement is measurable by night 3!"},
+            {"hook": "Lavender speeds wound healing and reduces scar formation by 40%.", "theme": "HEALING", "label": "SKIN HEALING", "points": ["Linalool accelerates wound closure by stimulating collagen synthesis", "Reduces scar tissue formation by 40% versus controls", "Anti-inflammatory prevents excessive healing response", "Antimicrobial prevents infection while wound heals", "Promotes faster granulation tissue formation"], "tip": "Dilute lavender oil in coconut oil (3 drops per tsp), apply to cuts and burns for faster healing!"},
+            {"hook": "Lavender reduces chemotherapy-related nausea by 62% — used in cancer centers.", "theme": "NAUSEA", "label": "NAUSEA RELIEF", "points": ["Aromatherapy reduces chemo-induced nausea by 62%", "Used in oncology wards at major cancer treatment centers", "Works faster than anti-nausea medication in some patients", "Linalool normalizes serotonin signaling in the gut-brain axis", "No drug interactions — safe alongside chemotherapy"], "tip": "Inhale lavender oil directly from the bottle at the first sign of nausea — relief in under 5 minutes!"},
+        ],
+    },
+]
+
+PRODUCE = FRUITS + VEGETABLES + HERBS
+
 CATEGORIES = {
     "CITRUS":    {"rgb": (251, 146,  60), "emoji": "🍊", "label": "CITRUS"},
     "BERRY":     {"rgb": (244,  63,  94), "emoji": "🫐", "label": "BERRY"},
     "TROPICAL":  {"rgb": (245, 158,  11), "emoji": "🌴", "label": "TROPICAL"},
     "TREE":      {"rgb": (220,  38,  38), "emoji": "🌳", "label": "TREE FRUIT"},
     "MELON":     {"rgb": ( 34, 197,  94), "emoji": "🍉", "label": "MELON"},
-    "SUPERFOOD": {"rgb": ( 16, 185, 129), "emoji": "✨", "label": "SUPERFOOD"},
+    "SUPERFOOD":    {"rgb": ( 16, 185, 129), "emoji": "✨",  "label": "SUPERFOOD"},
+    "CRUCIFEROUS":  {"rgb": ( 34, 197,  94), "emoji": "🥦",  "label": "CRUCIFEROUS"},
+    "LEAFY":        {"rgb": ( 21, 128,  61), "emoji": "🥬",  "label": "LEAFY GREEN"},
+    "ROOT":         {"rgb": (234,  88,  12), "emoji": "🥕",  "label": "ROOT VEG"},
+    "ALLIUM":       {"rgb": (217, 119,   6), "emoji": "🧄",  "label": "ALLIUM"},
+    "NIGHTSHADE":   {"rgb": (220,  38,  38), "emoji": "🍅",  "label": "NIGHTSHADE"},
+    "SPICE":        {"rgb": (234, 179,   8), "emoji": "🌿",  "label": "SPICE"},
+    "HERB":         {"rgb": ( 74, 222, 128), "emoji": "🌿",  "label": "HERB"},
 }
 
 SLIDE_LABELS = ["", "WHY IT MATTERS", "TOP BENEFITS", "DID YOU KNOW?", "NUTRITION FACTS", ""]
@@ -305,8 +555,8 @@ def get_emoji_font(size: int) -> ImageFont.FreeTypeFont:
 # ─────────────────────────────────────────────────────────────────────────────
 # FRUIT SELECTION
 # ─────────────────────────────────────────────────────────────────────────────
-RECENT_FILE = "/tmp/recent_fruit_angles.txt"
-MAX_RECENT = 30
+RECENT_FILE = "/tmp/recent_produce_angles.txt"
+MAX_RECENT = 88
 
 def get_recent() -> list[str]:
     try:
@@ -326,7 +576,7 @@ def save_recent(key: str):
 def pick_fruit_and_angle() -> tuple[dict, int]:
     recent = get_recent()
     combos = []
-    for fruit in FRUITS:
+    for fruit in PRODUCE:
         for angle_idx in range(len(fruit["angles"])):
             key = f"{fruit['name']}:{angle_idx}"
             if key not in recent:
@@ -335,7 +585,7 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
         try: os.remove(RECENT_FILE)
         except OSError: pass
         combos = []
-        for fruit in FRUITS:
+        for fruit in PRODUCE:
             for angle_idx in range(len(fruit["angles"])):
                 key = f"{fruit['name']}:{angle_idx}"
                 combos.append((fruit, angle_idx, key))
@@ -734,9 +984,9 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         e_font = get_emoji_font(120)
         draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
 
-        draw.text((IMG_W // 2, 450), "EAT MORE FRUIT", font=get_font(34, bold=False), anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, 450), "EAT MORE PLANTS", font=get_font(34, bold=False), anchor="mm", fill=C_GRAY)
         draw.text((IMG_W // 2, 530), f"Follow @{PAGE_NAME}", font=get_font(58), anchor="mm", fill=C_WHITE)
-        draw.text((IMG_W // 2, 620), "For daily fruit health facts!", font=get_font(28, bold=False), anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, 620), "Fruits, veggies & herbs - daily!", font=get_font(28, bold=False), anchor="mm", fill=C_GRAY)
         draw.rectangle([(160, 690), (IMG_W - 160, 697)], fill=accent)
         draw.text((IMG_W // 2, 740), "Save this post for your next grocery run!", font=get_font(24, bold=False), anchor="mm", fill=C_GRAY)
 
@@ -897,8 +1147,8 @@ def build_caption(fruit: dict, angle: dict) -> str:
     emoji = fruit["emoji"]
     name = fruit["name"]
     theme = angle["theme"]
-    tags = f"#{name.lower()} #fruitbenefits #healthyeating #nutrition #fruitfacts #eatmorefruit #healthylifestyle #{theme.lower()} #wellness #healthtips #fruitlover #vitamins #antioxidants #cleaneating #plantbased"
-    return f"{emoji} {name} — {angle['hook']}\n\n👉 Swipe to discover what this fruit does for your {theme.lower()}!\n\n💾 Save this for your next grocery trip!\n\n{tags}"
+    tags = f"#{name.lower().replace(' ', '')} #healthyeating #nutrition #healthfacts #eatrealfood #healthylifestyle #{theme.lower()} #wellness #healthtips #vitamins #antioxidants #cleaneating #plantbased #wholefoods #superfood"
+    return f"{emoji} {name} — {angle['hook']}\n\n👉 Swipe to discover what {name} does for your {theme.lower()}!\n\n💾 Save this for your next grocery run!\n\n{tags}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -907,7 +1157,7 @@ def build_caption(fruit: dict, angle: dict) -> str:
 def main():
     today = datetime.now().strftime("%Y-%m-%d %H:%M")
     print("=" * 60)
-    print(f"  🍎 Benefits of Fruits — Instagram Carousel Bot")
+    print(f"  🌿 Benefits of Fruits, Vegetables & Herbs — Instagram Carousel Bot")
     print(f"  📅 {today}")
     print("=" * 60)
 
@@ -921,7 +1171,7 @@ def main():
     print("\n📦 Setting up fonts…")
     setup_fonts()
 
-    print("\n🎲 Selecting today's fruit & angle…")
+    print("\n🎲 Selecting today's produce & angle…")
     fruit, angle_idx = pick_fruit_and_angle()
     angle = fruit["angles"][angle_idx]
     total_angles = len(fruit["angles"])
@@ -947,7 +1197,7 @@ def main():
     num_slides = len(slide_texts)
     for i, t in enumerate(slide_texts): print(f"   Slide {i+1}: {t[:70]}…")
 
-    # Fetch DIFFERENT photos for each slide via Pexels
+    # Fetch DIFFERENT photos for each slide via Pixabay
     print(f"\n📷 Fetching {num_slides} fruit photos…")
     fruit_photos = fetch_fruit_images(
         fruit.get("slide_searches", [fruit["name"].lower() + " fruit"]),
