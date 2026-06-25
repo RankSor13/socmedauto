@@ -10,8 +10,6 @@ Required GitHub Secrets:
   PAGE_NAME            — Your IG handle WITHOUT the @
 
 Optional:
-  COMMENT_IG_USER_ID   — Instagram User ID for COMMENTS (different account)
-  COMMENT_FB_ACCESS_TOKEN — Access token for the commenting account
   USDA_API_KEY         — Free at https://api.data.gov/signup/
   GROQ_API_KEY         — Free at console.groq.com
 """
@@ -31,10 +29,6 @@ USDA_API_KEY    = os.environ.get("USDA_API_KEY", "")
 GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
 PAGE_NAME       = os.environ.get("PAGE_NAME", "fruitfacts.daily")
 
-# Comment account (different from posting account)
-COMMENT_IG_USER_ID   = os.environ.get("COMMENT_IG_USER_ID", "")
-COMMENT_FB_ACCESS_TOKEN = os.environ.get("COMMENT_FB_ACCESS_TOKEN", "")
-
 IMG_W, IMG_H    = 1080, 1080
 IG_BASE         = "https://graph.facebook.com/v21.0"
 
@@ -46,12 +40,19 @@ FONT_REG_PATH   = "/tmp/Poppins-Regular.ttf"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FruitBenefitsBot/1.0)"}
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FRUIT DATABASE
+# FRUIT DATABASE — Multiple photos per fruit (whole, sliced, tree, drink, etc.)
 # ─────────────────────────────────────────────────────────────────────────────
 FRUITS = [
     {
         "name": "Orange", "emoji": "🍊", "category": "CITRUS", "accent_rgb": (251, 146, 60),
-        "image_url": "https://images.unsplash.com/photo-1547514701-42782101795e?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1547514701-42782101795e?w=1080&h=1080&fit=crop&auto=format",  # Whole oranges
+            "https://images.unsplash.com/photo-1611088231317-53b59a8e272a?w=1080&h=1080&fit=crop&auto=format",  # Sliced orange
+            "https://images.unsplash.com/photo-1621506948008-7b3e8997e4f6?w=1080&h=1080&fit=crop&auto=format",  # Orange juice
+            "https://images.unsplash.com/photo-1586649117119-62b3c3fb4f26?w=1080&h=1080&fit=crop&auto=format",  # Orange tree
+            "https://images.unsplash.com/photo-1482012792084-a2c6b2a44e1e?w=1080&h=1080&fit=crop&auto=format",  # Pile of oranges
+            "https://images.unsplash.com/photo-1557800636-894a64c1696f?w=1080&h=1080&fit=crop&auto=format",  # Orange halves
+        ],
         "wikipedia": "Orange_(fruit)", "usda_fdc_id": 747447,
         "angles": [
             {"hook": "One orange gives you MORE than a full day's Vitamin C.", "theme": "IMMUNITY", "label": "IMMUNITY BOOST", "points": ["116% daily Vitamin C in a single orange", "Stimulates white blood cell production", "Shortens cold duration by 8-14%", "Flavonoids fight respiratory infections", "Vitamin A strengthens mucous membranes"], "tip": "Eat the white pith — it contains the most flavonoids!"},
@@ -62,7 +63,14 @@ FRUITS = [
     },
     {
         "name": "Lemon", "emoji": "🍋", "category": "CITRUS", "accent_rgb": (250, 230, 80),
-        "image_url": "https://images.unsplash.com/photo-1590502593747-42a996133562?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1590502593747-42a996133562?w=1080&h=1080&fit=crop&auto=format",  # Lemons
+            "https://images.unsplash.com/photo-1552252476-31b125789eb5?w=1080&h=1080&fit=crop&auto=format",  # Sliced lemon
+            "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=1080&h=1080&fit=crop&auto=format",  # Lemonade
+            "https://images.unsplash.com/photo-1599391245850-e285a8e8e2c6?w=1080&h=1080&fit=crop&auto=format",  # Lemon tree
+            "https://images.unsplash.com/photo-1565610222536-47916b9a5b80?w=1080&h=1080&fit=crop&auto=format",  # Lemon wedges
+            "https://images.unsplash.com/photo-1507389138075-3d0b4e7e5c60?w=1080&h=1080&fit=crop&auto=format",  # Lemon in water
+        ],
         "wikipedia": "Lemon", "usda_fdc_id": 9153,
         "angles": [
             {"hook": "Lemon water every morning can transform your digestion in 7 days.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Citric acid stimulates stomach acid production", "Pectin fiber feeds beneficial gut bacteria", "Encourages bile production for fat breakdown", "Relieves bloating and water retention", "Warm lemon water activates digestive enzymes"], "tip": "Use WARM water, not cold — it activates the citric acid faster!"},
@@ -72,19 +80,15 @@ FRUITS = [
         ],
     },
     {
-        "name": "Grapefruit", "emoji": "🍊", "category": "CITRUS", "accent_rgb": (251, 113, 133),
-        "image_url": "https://images.unsplash.com/photo-1616401784186-1e74cc6a6ba4?w=1080&h=1080&fit=crop&auto=format",
-        "wikipedia": "Grapefruit", "usda_fdc_id": 9119,
-        "angles": [
-            {"hook": "Eating half a grapefruit before meals can help you lose 1.6kg in 12 weeks.", "theme": "WEIGHT LOSS", "label": "WEIGHT LOSS", "points": ["Naringenin reprograms liver to burn fat, not store it", "Low GI (25) — won't spike blood sugar", "High water (92%) keeps you full longer", "Insulin regulation reduces fat storage signals", "Only 52 calories per half — huge volume, tiny calories"], "tip": "Eat HALF a grapefruit 20 min before meals — it cuts appetite by 20%!"},
-            {"hook": "Grapefruit can interact with 85+ medications — this is critical to know.", "theme": "SAFETY", "label": "DRUG INTERACTIONS", "points": ["Furanocoumarins block CYP3A4 enzyme in your gut", "Can increase drug blood levels by 200-400%", "Affects statins, blood pressure meds, and antihistamines", "Effect lasts 24-72 hours after eating grapefruit", "Ask your doctor if you take ANY daily medication"], "tip": "If on medication, ask your pharmacist BEFORE eating grapefruit daily!"},
-            {"hook": "Grapefruit has a unique compound that activates fat-burning genes.", "theme": "METABOLISM", "label": "METABOLISM", "points": ["Naringenin activates PPAR-alpha fat-burning gene", "Nootkatone increases energy expenditure 30%", "AMPK activation mimics exercise at cellular level", "Improves insulin sensitivity by 25%", "Reduces visceral fat — the dangerous belly fat"], "tip": "Red grapefruit has 28x more beta-carotene than white — choose red!"},
-            {"hook": "Pink grapefruit has more lycopene than a raw tomato.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANTS", "points": ["Lycopene fights free radical damage", "Beta-carotene protects skin from UV aging", "Naringenin reduces DNA damage in cells", "Vitamin C regenerates other antioxidants", "Red grapefruit = 28x more beta-carotene than white"], "tip": "Choose pink or red grapefruit — they have 3x more lycopene than the white ones!"},
-        ],
-    },
-    {
         "name": "Strawberry", "emoji": "🍓", "category": "BERRY", "accent_rgb": (244, 63, 94),
-        "image_url": "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",  # Strawberries
+            "https://images.unsplash.com/photo-1587393855965-6bd5a75f3f3f?w=1080&h=1080&fit=crop&auto=format",  # Sliced strawberries
+            "https://images.unsplash.com/photo-1565680018093-ebb6b9ab5460?w=1080&h=1080&fit=crop&auto=format",  # Strawberry bowl
+            "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=1080&h=1080&fit=crop&auto=format",  # Strawberry field
+            "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1080&h=1080&fit=crop&auto=format",  # Close up
+            "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=1080&h=1080&fit=crop&auto=format",  # Field
+        ],
         "wikipedia": "Strawberry", "usda_fdc_id": 9316,
         "angles": [
             {"hook": "Strawberries have MORE Vitamin C than oranges — per serving.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["149% daily Vitamin C per cup — beats oranges!", "Ellagic acid neutralizes carcinogens on contact", "Anthocyanins reduce inflammation markers 18%", "Manganese activates superoxide dismutase enzyme", "Vitamin B6 supports antibody production"], "tip": "Eat strawberries within 2 days of purchase — they lose 30% Vitamin C by day 3!"},
@@ -95,7 +99,14 @@ FRUITS = [
     },
     {
         "name": "Blueberry", "emoji": "🫐", "category": "BERRY", "accent_rgb": (99, 102, 241),
-        "image_url": "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",  # Blueberries
+            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Handful
+            "https://images.unsplash.com/photo-1577003811926-53b099a67e9c?w=1080&h=1080&fit=crop&auto=format",  # Blueberry bowl
+            "https://images.unsplash.com/photo-1588714477688-cf28a50e94f5?w=1080&h=1080&fit=crop&auto=format",  # Blueberry smoothie
+            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",  # Blueberry branch
+            "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=1080&h=1080&fit=crop&auto=format",  # Top view
+        ],
         "wikipedia": "Blueberry", "usda_fdc_id": 9052,
         "angles": [
             {"hook": "Blueberries can improve your MEMORY in just 12 weeks — Harvard study.", "theme": "BRAIN", "label": "BRAIN POWER", "points": ["Anthocyanins cross the blood-brain barrier", "Improves delayed memory by 15% in older adults", "Increases BDNF — brain's growth hormone", "Protects neurons from oxidative stress damage", "1 cup/day = measurable cognitive improvement"], "tip": "Eat 1 cup daily — that's the exact dose used in the Harvard memory study!"},
@@ -105,30 +116,15 @@ FRUITS = [
         ],
     },
     {
-        "name": "Raspberry", "emoji": "🫐", "category": "BERRY", "accent_rgb": (220, 38, 38),
-        "image_url": "https://images.unsplash.com/photo-1577003811926-53b099a67e9c?w=1080&h=1080&fit=crop&auto=format",
-        "wikipedia": "Raspberry", "usda_fdc_id": 9302,
-        "angles": [
-            {"hook": "Raspberries have more fiber per calorie than almost any food on Earth.", "theme": "DIGESTION", "label": "FIBER POWERHOUSE", "points": ["8g fiber per cup — 32% daily value!", "Fiber-to-calorie ratio is among the best of ALL foods", "Prebiotic fiber feeds beneficial gut bacteria", "Prevents constipation and promotes regularity", "Low glycemic load — won't spike blood sugar"], "tip": "1 cup of raspberries = same fiber as 3 slices of whole wheat bread!"},
-            {"hook": "Raspberries contain a natural compound that triggers cancer cell death.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Ellagic acid induces apoptosis (programmed cell death)", "Inhibits tumor blood vessel formation", "Reduces COX-2 enzyme (linked to inflammation & cancer)", "Black raspberries specifically target colon cancer cells", "Works synergistically with chemotherapy in studies"], "tip": "Black raspberries are 10x more potent — but any raspberry is powerful!"},
-            {"hook": "Raspberries are one of the lowest-sugar fruits — perfect for keto.", "theme": "WEIGHT LOSS", "label": "LOW SUGAR", "points": ["Only 5g sugar per cup — one of the lowest fruits", "Ketosis-friendly at just 64 calories per cup", "Ketone bodies from raspberries boost fat burning", "Raspberry ketones increase adiponectin (fat-burn hormone)", "High volume-to-calorie ratio keeps you full"], "tip": "On keto? Raspberries + full-fat Greek yogurt = perfect low-carb dessert!"},
-            {"hook": "Raspberries have anti-aging compounds that rival expensive skincare.", "theme": "ANTI-AGING", "label": "ANTI-AGING", "points": ["Ellagic acid prevents collagen destruction from UV rays", "Vitamin C (54% DV) builds new collagen fibers", "Anthocyanins protect against photoaging", "Manganese activates skin-repairing enzymes", "Omega-3 fatty acids maintain skin barrier function"], "tip": "Mash raspberries + coconut oil = anti-aging lip treatment. Leave on 10 min!"},
-        ],
-    },
-    {
-        "name": "Cherry", "emoji": "🍒", "category": "BERRY", "accent_rgb": (185, 28, 28),
-        "image_url": "https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=1080&h=1080&fit=crop&auto=format",
-        "wikipedia": "Cherry", "usda_fdc_id": 9270,
-        "angles": [
-            {"hook": "Tart cherry juice reduces insomnia severity by 45% — no pills needed.", "theme": "SLEEP", "label": "SLEEP AID", "points": ["Natural melatonin — regulates sleep-wake cycle", "Increases sleep time by 84 minutes", "Reduces insomnia severity by 45%", "Tryptophan + melatonin + serotonin = sleep trifecta", "Works better than valerian root in studies"], "tip": "Drink tart cherry juice 30 min before bed — it's nature's sleeping pill!"},
-            {"hook": "Cherries reduce gout attacks by 35% — the #1 natural gout remedy.", "theme": "GOUT", "label": "GOUT RELIEF", "points": ["Reduces uric acid levels by 15% in 4 hours", "Anthocyanins block COX-1 and COX-2 enzymes", "Anti-inflammatory = 10x more potent than aspirin", "Cuts gout attack risk by 35% when eaten daily", "Vitamin C increases uric acid excretion by kidneys"], "tip": "Eat 15-20 cherries or drink tart cherry juice at the FIRST sign of a gout flare!"},
-            {"hook": "Cherries have the highest anti-inflammatory content of any food.", "theme": "INFLAMMATION", "label": "ANTI-INFLAMMATORY", "points": ["Anthocyanins block NF-kB inflammation pathway", "COX inhibition comparable to ibuprofen (no stomach damage)", "Reduces CRP (inflammation marker) by 25%", "Works for arthritis, muscle pain, and joint stiffness", "Tart cherries have 5x more anti-inflammatory power than sweet"], "tip": "Choose TART cherries for inflammation — they have 5x more anthocyanins than sweet!"},
-            {"hook": "Cherries speed up muscle recovery faster than ice baths.", "theme": "RECOVERY", "label": "MUSCLE RECOVERY", "points": ["Reduces post-race muscle pain by 24%", "Accelerates strength recovery after exercise", "Lowers creatine kinase (muscle damage marker) by 19%", "Anti-inflammatory reduces DOMS (delayed soreness)", "Antioxidants repair micro-tears in muscle fibers"], "tip": "Drink tart cherry juice for 7 days BEFORE a big race — proven to cut recovery time!"},
-        ],
-    },
-    {
         "name": "Banana", "emoji": "🍌", "category": "TROPICAL", "accent_rgb": (250, 204, 21),
-        "image_url": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",  # Bananas
+            "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=1080&h=1080&fit=crop&auto=format",  # Peeled banana
+            "https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=1080&h=1080&fit=crop&auto=format",  # Banana smoothie
+            "https://images.unsplash.com/photo-1574226516831-e1dff420e562?w=1080&h=1080&fit=crop&auto=format",  # Banana tree
+            "https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=1080&h=1080&fit=crop&auto=format",  # Banana slices
+            "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1080&h=1080&fit=crop&auto=format",  # Bunch
+        ],
         "wikipedia": "Banana", "usda_fdc_id": 778089,
         "angles": [
             {"hook": "Bananas are a natural antidepressant — science confirms it.", "theme": "MOOD", "label": "MOOD & MENTAL HEALTH", "points": ["Tryptophan converts to serotonin — the happy hormone", "Vitamin B6 helps synthesize dopamine & norepinephrine", "Magnesium relaxes muscles and calms anxiety", "Natural sugar provides steady brain energy", "Potassium oxygenates the brain — clearer thinking"], "tip": "Eat a banana when stressed — it raises serotonin levels within 45 minutes!"},
@@ -139,7 +135,13 @@ FRUITS = [
     },
     {
         "name": "Mango", "emoji": "🥭", "category": "TROPICAL", "accent_rgb": (245, 158, 11),
-        "image_url": "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",  # Mango
+            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",  # Mango slices
+            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",  # Mango smoothie
+            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Mango pieces
+            "https://images.unsplash.com/photo-1553279768-865429fa0078?w=1080&h=1080&fit=crop&auto=format",  # Whole mangoes
+        ],
         "wikipedia": "Mango", "usda_fdc_id": 9174,
         "angles": [
             {"hook": "Mango polyphenols can suppress breast and colon cancer cells in lab studies.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Polyphenols suppress breast cancer cell growth", "Lupeol targets colon cancer cells selectively", "Gallotannins induce cancer cell death (apoptosis)", "Beta-carotene reduces lung cancer risk by 25%", "Mangiferin inhibits tumor blood vessel formation"], "tip": "Eat mango with black pepper — piperine increases polyphenol absorption by 200%!"},
@@ -150,7 +152,13 @@ FRUITS = [
     },
     {
         "name": "Pineapple", "emoji": "🍍", "category": "TROPICAL", "accent_rgb": (234, 179, 8),
-        "image_url": "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",  # Pineapple
+            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",  # Pineapple slices
+            "https://images.unsplash.com/photo-1535082897607-4e4e9c77a2c6?w=1080&h=1080&fit=crop&auto=format",  # Pineapple juice
+            "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=1080&h=1080&fit=crop&auto=format",  # Whole
+            "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=1080&h=1080&fit=crop&auto=format",  # Sliced
+        ],
         "wikipedia": "Pineapple", "usda_fdc_id": 9274,
         "angles": [
             {"hook": "Pineapple contains an enzyme that DIGESTS protein — it literally eats you back.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Bromelain breaks down protein into amino acids", "Reduces bloating after heavy protein meals", "Survives stomach acid — works in intestines too", "Eases symptoms of IBS and indigestion", "More effective than over-the-counter digestive enzymes"], "tip": "Eat pineapple between meals — bromelain works best on an empty stomach!"},
@@ -160,41 +168,15 @@ FRUITS = [
         ],
     },
     {
-        "name": "Papaya", "emoji": "🍈", "category": "TROPICAL", "accent_rgb": (251, 146, 60),
-        "image_url": "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",
-        "wikipedia": "Papaya", "usda_fdc_id": 9252,
-        "angles": [
-            {"hook": "Papaya has an enzyme 200x more powerful than pepsin for digestion.", "theme": "DIGESTION", "label": "DIGESTION", "points": ["Papain digests protein 200x stronger than your own pepsin", "Used medically to treat pancreatic insufficiency", "Tenderizes meat — imagine what it does for your stomach", "Fiber + enzymes = perfect digestion combo", "Relieves chronic indigestion in 7 days"], "tip": "Eat papaya seeds too — they kill intestinal parasites effectively!"},
-            {"hook": "Papaya can reverse sun damage and reduce wrinkles by 20%.", "theme": "SKIN", "label": "SKIN & BEAUTY", "points": ["Papain removes dead skin cells naturally", "Lycopene (more than tomatoes!) fights UV damage", "Vitamin C (144% DV) builds collagen fast", "Vitamin A reduces hyperpigmentation and dark spots", "Enzymes unclog pores — prevents acne breakouts"], "tip": "Rub papaya skin (inside) on your face — leave 10 min for natural enzyme peel!"},
-            {"hook": "Papaya is one of the best fruits for heart disease prevention.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Lycopene prevents cholesterol oxidation in arteries", "Potassium (257mg) regulates blood pressure", "Fiber binds cholesterol in the digestive tract", "Vitamin C prevents arterial wall damage", "Folate reduces homocysteine — major heart risk factor"], "tip": "Red papaya has more lycopene than pink grapefruit — choose the reddest ones!"},
-            {"hook": "Papaya seeds are a natural dewormer used in traditional medicine for centuries.", "theme": "PARASITES", "label": "ANTIPARASITIC", "points": ["Seeds contain caricin — kills intestinal worms", "Studies show 75% parasite clearance in children", "Antibacterial against E. coli, Salmonella, Staph", "Protects kidneys from toxin damage", "Rich in oleic and palmitic acids (anti-inflammatory)"], "tip": "Blend 1 tablespoon papaya seeds into your smoothie — taste like black pepper!"},
-        ],
-    },
-    {
-        "name": "Guava", "emoji": "🍈", "category": "TROPICAL", "accent_rgb": (34, 197, 94),
-        "image_url": "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
-        "wikipedia": "Guava", "usda_fdc_id": 9186,
-        "angles": [
-            {"hook": "One guava has 4x more Vitamin C than an orange — the ultimate immune fruit.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["4x more Vitamin C than oranges (228mg vs 53mg)", "380% daily Vitamin C per guava — INSANE", "Fights infections by boosting white blood cell count", "Vitamin A protects mucous membranes — first defense", "Antimicrobial properties kill H. pylori bacteria"], "tip": "1 guava = 4 oranges worth of Vitamin C. And it tastes way better!"},
-            {"hook": "Guava leaves are scientifically proven to lower blood sugar by 20%.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Guava leaf tea lowers blood sugar by 20%", "Inhibits alpha-glucosidase (carb-digesting enzyme)", "Improves insulin sensitivity in type 2 diabetes", "Fiber (9g per cup) slows glucose absorption", "Low GI (12!) — one of the lowest of all fruits"], "tip": "Brew guava LEAF tea after meals — it cuts blood sugar spikes better than the fruit!"},
-            {"hook": "Guava has more potassium than a banana AND more fiber than an apple.", "theme": "NUTRITION", "label": "NUTRITION DENSITY", "points": ["417mg potassium per cup — beats bananas", "9g fiber per cup — beats apples", "228mg Vitamin C — beats oranges 4x", "Folate, B6, Vitamin A, Vitamin K — all in one", "Only 112 calories per cup — nutrient density champion"], "tip": "Guava is pound-for-pound the most nutrient-dense fruit on Earth!"},
-            {"hook": "Guava can improve thyroid function — it's rich in selenium and copper.", "theme": "THYROID", "label": "THYROID HEALTH", "points": ["Copper helps convert T4 to active T3 thyroid hormone", "Selenium protects thyroid gland from oxidative damage", "Vitamin C reduces thyroid inflammation", "Iodine content supports thyroid hormone production", "Anti-inflammatory reduces Hashimoto's symptoms"], "tip": "Eat guava regularly if you have thyroid issues — copper + selenium is the key combo!"},
-        ],
-    },
-    {
-        "name": "Dragon Fruit", "emoji": "🐉", "category": "TROPICAL", "accent_rgb": (219, 39, 119),
-        "image_url": "https://images.unsplash.com/photo-1527325678964-54921661f888?w=1080&h=1080&fit=crop&auto=format",
-        "wikipedia": "Pitaya", "usda_fdc_id": 778077,
-        "angles": [
-            {"hook": "Dragon fruit feeds your gut bacteria better than most probiotics.", "theme": "GUT HEALTH", "label": "GUT HEALTH", "points": ["Prebiotic oligosaccharides feed Lactobacillus & Bifidobacteria", "Boosts beneficial bacteria by up to 34%", "7g fiber per cup — excellent for digestion", "Seeds contain healthy omega-3 & omega-9 fatty acids", "Reduces gut inflammation markers significantly"], "tip": "The tiny black seeds are where the omega-3s live — chew them, don't swallow whole!"},
-            {"hook": "Red dragon fruit can stabilize blood sugar for up to 6 hours.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Red variety reduces blood glucose by 30%", "Betalains improve insulin receptor sensitivity", "Fiber creates slow, steady glucose release", "Low GI — won't cause sugar spikes", "Prebiotic fiber reduces metabolic syndrome markers"], "tip": "Choose RED dragon fruit over white — it has 10x more betacyanins for blood sugar!"},
-            {"hook": "Dragon fruit's betacyanins are being studied as cancer-fighting compounds.", "theme": "CANCER", "label": "CANCER RESEARCH", "points": ["Betacyanins induce cancer cell apoptosis", "Red dragon fruit has 10x more betacyanins than white", "Phytoalbumins prevent cell mutation", "Vitamin C boosts NK (natural killer) cell activity", "Antioxidant protection reduces DNA damage by 35%"], "tip": "Red dragon fruit = the most powerful variety. The deeper the color, the more betacyanins!"},
-            {"hook": "Dragon fruit is one of the few natural sources of iron for vegetarians.", "theme": "ANEMIA", "label": "IRON & BLOOD", "points": ["0.65mg iron per cup — rare for fruit", "Vitamin C (34% DV) increases iron absorption by 6x", "Iron + Vitamin C in the same food = perfect combo", "Promotes red blood cell production", "Prevents iron-deficiency anemia in plant-based diets"], "tip": "Dragon fruit + citrus = maximum iron absorption. The vitamin C does the heavy lifting!"},
-        ],
-    },
-    {
         "name": "Apple", "emoji": "🍎", "category": "TREE", "accent_rgb": (220, 38, 38),
-        "image_url": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",  # Red apple
+            "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?w=1080&h=1080&fit=crop&auto=format",  # Sliced apple
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1080&h=1080&fit=crop&auto=format",  # Apple tree
+            "https://images.unsplash.com/photo-1471943311424-646960669fbc?w=1080&h=1080&fit=crop&auto=format",  # Apple juice
+            "https://images.unsplash.com/photo-1568702846914-96b305d2ead1?w=1080&h=1080&fit=crop&auto=format",  # Bowl of apples
+            "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=1080&h=1080&fit=crop&auto=format",  # Close up
+        ],
         "wikipedia": "Apple", "usda_fdc_id": 778079,
         "angles": [
             {"hook": "An apple a day lowers stroke risk by 52% — that's not a myth.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Quercetin lowers stroke risk by up to 52%", "Pectin reduces LDL cholesterol by 5-13%", "Polyphenols improve blood vessel elasticity", "Potassium helps maintain healthy blood pressure", "Fiber (4g) binds cholesterol in the gut"], "tip": "Eat the SKIN — 50% of the fiber and ALL the quercetin is in the peel!"},
@@ -205,7 +187,13 @@ FRUITS = [
     },
     {
         "name": "Avocado", "emoji": "🥑", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
-        "image_url": "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",  # Avocado
+            "https://images.unsplash.com/photo-1601039641840-7f3695a4e3b0?w=1080&h=1080&fit=crop&auto=format",  # Avocado halves
+            "https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=1080&h=1080&fit=crop&auto=format",  # Avocado toast
+            "https://images.unsplash.com/photo-1574226516831-e1dff420e562?w=1080&h=1080&fit=crop&auto=format",  # Avocado tree
+            "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=1080&h=1080&fit=crop&auto=format",  # Whole
+        ],
         "wikipedia": "Avocado", "usda_fdc_id": 778075,
         "angles": [
             {"hook": "Avocados have MORE potassium than bananas — and that's just the start.", "theme": "NUTRITION", "label": "NUTRITION POWERHOUSE", "points": ["14% DV potassium per half — beats bananas", "13g fiber per avocado — 52% daily value!", "Monounsaturated fat (oleic acid) = heart-healthy", "20 vitamins and minerals in one fruit", "More protein than any other fruit (4g per avocado)"], "tip": "Half an avocado = 160 calories of pure nutrition. Don't fear the fat!"},
@@ -216,7 +204,13 @@ FRUITS = [
     },
     {
         "name": "Kiwi", "emoji": "🥝", "category": "SUPERFOOD", "accent_rgb": (34, 197, 94),
-        "image_url": "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",  # Kiwi
+            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Kiwi sliced
+            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",  # Whole kiwis
+            "https://images.unsplash.com/photo-1596591868231-05e882e23b28?w=1080&h=1080&fit=crop&auto=format",  # Halves
+            "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=1080&h=1080&fit=crop&auto=format",  # Bowl
+        ],
         "wikipedia": "Kiwifruit", "usda_fdc_id": 9277,
         "angles": [
             {"hook": "Just 2 kiwis give you more Vitamin C than 2 oranges combined.", "theme": "IMMUNITY", "label": "IMMUNITY", "points": ["273% daily Vitamin C per cup — vitamin BOMB", "Stimulates neutrophil production (infection fighters)", "More Vitamin C per gram than ANY citrus fruit", "Antioxidants reduce duration of upper respiratory infections", "Vitamin E supports immune cell membranes"], "tip": "2 kiwis at breakfast = more Vitamin C than your entire day needs, twice over!"},
@@ -226,19 +220,14 @@ FRUITS = [
         ],
     },
     {
-        "name": "Pomegranate", "emoji": "🔴", "category": "SUPERFOOD", "accent_rgb": (190, 18, 60),
-        "image_url": "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",
-        "wikipedia": "Pomegranate", "usda_fdc_id": 9287,
-        "angles": [
-            {"hook": "Pomegranate juice has 3x more antioxidants than green tea or red wine.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT KING", "points": ["Punicalagins — among the most powerful antioxidants known", "3x more antioxidant capacity than green tea", "2x more than red wine", "Protects LDL cholesterol from oxidation", "ORAC score: 2860 per 100g — exceptional"], "tip": "Drink 8oz pomegranate juice daily — that's the dose used in heart studies!"},
-            {"hook": "Pomegranate may slow prostate cancer growth by 50% — UCLA study.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Doubles PSA doubling time (slows cancer growth)", "Apoptosis induction — triggers cancer cell death", "Inhibits angiogenesis (tumor blood supply)", "Reduces breast cancer cell proliferation by 80%", "Ellagic acid blocks estrogen-driven cancer pathways"], "tip": "8oz pomegranate juice daily for prostate health — used in the UCLA clinical trial!"},
-            {"hook": "Pomegranate reduces blood pressure by 12% in just 2 weeks.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Reduces systolic BP by 5-12% in 2 weeks", "ACE inhibitor effect — naturally blocks angiotensin", "Reduces arterial plaque thickness by 30%", "Improves endothelial function (blood vessel health)", "Prevents oxidation of LDL cholesterol"], "tip": "Drink pomegranate juice BEFORE meals — the nitrates work best on an empty stomach!"},
-            {"hook": "Pomegranate improves memory in older adults after just 4 weeks.", "theme": "BRAIN", "label": "MEMORY BOOSTER", "points": ["Improves visual memory by 30% in older adults", "Urolithin A clears damaged mitochondria from brain cells", "Reduces beta-amyloid plaque formation", "Enhances verbal and visual memory recall", "Anti-inflammatory protects brain tissue"], "tip": "8oz juice daily for 4 weeks — that's the protocol used in memory improvement studies!"},
-        ],
-    },
-    {
         "name": "Watermelon", "emoji": "🍉", "category": "MELON", "accent_rgb": (34, 197, 94),
-        "image_url": "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",  # Watermelon
+            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",  # Watermelon slices
+            "https://images.unsplash.com/photo-1527325678964-54921661f888?w=1080&h=1080&fit=crop&auto=format",  # Watermelon juice
+            "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=1080&h=1080&fit=crop&auto=format",  # Whole
+            "https://images.unsplash.com/photo-1561574184-7edac5e40657?w=1080&h=1080&fit=crop&auto=format",  # Sliced
+        ],
         "wikipedia": "Watermelon", "usda_fdc_id": 9326,
         "angles": [
             {"hook": "Watermelon is nature's best post-workout drink — beats sports drinks.", "theme": "RECOVERY", "label": "EXERCISE RECOVERY", "points": ["L-citrulline reduces muscle soreness by 40%", "92% water + electrolytes = instant rehydration", "Natural sugars replenish glycogen faster", "Reduces heart rate recovery time after exercise", "Less inflammatory than commercial sports drinks"], "tip": "Drink watermelon juice within 30 min after exercise — that's when muscles need it most!"},
@@ -249,13 +238,36 @@ FRUITS = [
     },
     {
         "name": "Grapes", "emoji": "🍇", "category": "BERRY", "accent_rgb": (139, 92, 246),
-        "image_url": "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",
+        "image_urls": [
+            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",  # Grapes
+            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",  # Grape vine
+            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",  # Bowl
+            "https://images.unsplash.com/photo-1515658412406-5a729b5f2a98?w=1080&h=1080&fit=crop&auto=format",  # Vineyard
+            "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=1080&h=1080&fit=crop&auto=format",  # Close up
+        ],
         "wikipedia": "Grape", "usda_fdc_id": 9189,
         "angles": [
             {"hook": "Resveratrol in grapes activates the same longevity gene as fasting.", "theme": "ANTI-AGING", "label": "LONGEVITY", "points": ["Resveratrol activates SIRT1 — the longevity gene", "Mimics caloric restriction without actually fasting", "Extends lifespan 30% in animal studies", "Protects telomeres — the aging clock in your DNA", "Reduces cellular senescence (zombie cells)"], "tip": "Red & purple grapes have 3x more resveratrol than green — always choose dark!"},
             {"hook": "Grapes protect your brain from Alzheimer's — University of Switzerland study.", "theme": "BRAIN", "label": "BRAIN PROTECTION", "points": ["Resveratrol clears amyloid-beta plaques", "Polyphenols improve cerebral blood flow", "Protects hippocampus — the memory center", "Reduces neuroinflammation by 35%", "Improves memory recall in age-related decline"], "tip": "Concord grape juice = brain benefits without alcohol. 2 cups daily for 12 weeks!"},
             {"hook": "Grape seed extract is 20x more powerful than Vitamin C and 50x more than Vitamin E.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT POWER", "points": ["OPC (oligomeric proanthocyanidins) are the magic compounds", "20x more powerful antioxidant than Vitamin C", "50x more powerful antioxidant than Vitamin E", "Crosses blood-brain barrier — protects brain directly", "Strengthens collagen in blood vessels & skin"], "tip": "Don't spit out the seeds — they contain the MOST antioxidants in the grape!"},
             {"hook": "Grapes can reduce blood sugar spikes by 30% when eaten with meals.", "theme": "DIABETES", "label": "BLOOD SUGAR", "points": ["Resveratrol improves insulin sensitivity", "Reduces fasting blood glucose by 15%", "Protects pancreatic beta cells from damage", "Fiber slows glucose absorption from food", "Low GI (53) — moderate impact on blood sugar"], "tip": "Freeze grapes and eat them frozen — slower sugar release + refreshing treat!"},
+        ],
+    },
+    {
+        "name": "Pomegranate", "emoji": "🔴", "category": "SUPERFOOD", "accent_rgb": (190, 18, 60),
+        "image_urls": [
+            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",  # Pomegranate
+            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",  # Pomegranate seeds
+            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",  # Whole
+            "https://images.unsplash.com/photo-1610128980918-fbab07fac20e?w=1080&h=1080&fit=crop&auto=format",  # Opened
+            "https://images.unsplash.com/photo-1604144515235-4abd08c22ae4?w=1080&h=1080&fit=crop&auto=format",  # Close up
+        ],
+        "wikipedia": "Pomegranate", "usda_fdc_id": 9287,
+        "angles": [
+            {"hook": "Pomegranate juice has 3x more antioxidants than green tea or red wine.", "theme": "ANTIOXIDANTS", "label": "ANTIOXIDANT KING", "points": ["Punicalagins — among the most powerful antioxidants known", "3x more antioxidant capacity than green tea", "2x more than red wine", "Protects LDL cholesterol from oxidation", "ORAC score: 2860 per 100g — exceptional"], "tip": "Drink 8oz pomegranate juice daily — that's the dose used in heart studies!"},
+            {"hook": "Pomegranate may slow prostate cancer growth by 50% — UCLA study.", "theme": "CANCER", "label": "CANCER-FIGHTING", "points": ["Doubles PSA doubling time (slows cancer growth)", "Apoptosis induction — triggers cancer cell death", "Inhibits angiogenesis (tumor blood supply)", "Reduces breast cancer cell proliferation by 80%", "Ellagic acid blocks estrogen-driven cancer pathways"], "tip": "8oz pomegranate juice daily for prostate health — used in the UCLA clinical trial!"},
+            {"hook": "Pomegranate reduces blood pressure by 12% in just 2 weeks.", "theme": "HEART", "label": "HEART HEALTH", "points": ["Reduces systolic BP by 5-12% in 2 weeks", "ACE inhibitor effect — naturally blocks angiotensin", "Reduces arterial plaque thickness by 30%", "Improves endothelial function (blood vessel health)", "Prevents oxidation of LDL cholesterol"], "tip": "Drink pomegranate juice BEFORE meals — the nitrates work best on an empty stomach!"},
+            {"hook": "Pomegranate improves memory in older adults after just 4 weeks.", "theme": "BRAIN", "label": "MEMORY BOOSTER", "points": ["Improves visual memory by 30% in older adults", "Urolithin A clears damaged mitochondria from brain cells", "Reduces beta-amyloid plaque formation", "Enhances verbal and visual memory recall", "Anti-inflammatory protects brain tissue"], "tip": "8oz juice daily for 4 weeks — that's the protocol used in memory improvement studies!"},
         ],
     },
 ]
@@ -355,31 +367,70 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FETCH REAL FRUIT IMAGE
+# FETCH MULTIPLE FRUIT IMAGES — One per slide
 # ─────────────────────────────────────────────────────────────────────────────
-def fetch_fruit_image(image_url: str, category: str) -> Image.Image | None:
-    urls_to_try = [image_url]
-    fallback = FALLBACK_IMAGES.get(category)
-    if fallback: urls_to_try.append(fallback)
-    for url in urls_to_try:
-        try:
-            print(f"  📷 Fetching fruit image: {url[:80]}…")
-            r = requests.get(url, headers=HEADERS, timeout=20)
-            r.raise_for_status()
-            img = Image.open(BytesIO(r.content)).convert("RGB")
-            w, h = img.size
-            side = min(w, h)
-            left = (w - side) // 2
-            top  = (h - side) // 2
-            img  = img.crop((left, top, left + side, top + side))
-            img  = img.resize((IMG_W, IMG_H), Image.LANCZOS)
-            print("  ✅ Fruit image loaded!")
-            return img
-        except Exception as e:
-            print(f"  ⚠️  Could not fetch image: {e}")
-            continue
-    print("  ⚠️  All image URLs failed.")
-    return None
+def fetch_single_image(url: str) -> Image.Image | None:
+    """Download a single image and return as 1080×1080 cropped PIL image."""
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=20)
+        r.raise_for_status()
+        img = Image.open(BytesIO(r.content)).convert("RGB")
+        w, h = img.size
+        side = min(w, h)
+        left = (w - side) // 2
+        top  = (h - side) // 2
+        img  = img.crop((left, top, left + side, top + side))
+        img  = img.resize((IMG_W, IMG_H), Image.LANCZOS)
+        return img
+    except Exception as e:
+        print(f"    ⚠️  Failed: {url[:60]}… — {e}")
+        return None
+
+
+def fetch_fruit_images(image_urls: list[str], category: str, num_slides: int) -> list[Image.Image]:
+    """
+    Fetch a different image for each slide.
+    If a URL fails, fall back to the previous successful image or category fallback.
+    Returns a list of exactly num_slides PIL Images.
+    """
+    photos: list[Image.Image] = []
+    last_successful: Image.Image | None = None
+    
+    # Try to fetch category fallback first as ultimate safety net
+    fallback_url = FALLBACK_IMAGES.get(category, "")
+    fallback_photo = None
+    if fallback_url:
+        fallback_photo = fetch_single_image(fallback_url)
+    
+    print(f"  📷 Fetching {num_slides} different fruit photos…")
+    
+    for i in range(num_slides):
+        # Get URL for this slide index (cycle through available URLs)
+        url_idx = i % len(image_urls) if image_urls else 0
+        url = image_urls[url_idx] if image_urls else ""
+        
+        photo = None
+        if url:
+            photo = fetch_single_image(url)
+        
+        if photo:
+            photos.append(photo)
+            last_successful = photo
+            print(f"    ✅ Slide {i+1} photo loaded (image {url_idx+1}/{len(image_urls)})")
+        elif last_successful:
+            # Reuse previous successful image
+            photos.append(last_successful.copy())
+            print(f"    ℹ️  Slide {i+1} reusing previous photo (URL failed)")
+        elif fallback_photo:
+            photos.append(fallback_photo.copy())
+            print(f"    ℹ️  Slide {i+1} using category fallback photo")
+        else:
+            # Create a dark placeholder — should rarely happen
+            placeholder = Image.new("RGB", (IMG_W, IMG_H), BG_DARK)
+            photos.append(placeholder)
+            print(f"    ⚠️  Slide {i+1} using dark placeholder (no photo available)")
+    
+    return photos
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -514,18 +565,11 @@ def generate_slides(fruit: dict, angle: dict, wiki_text: str, nutrition_line: st
 # BACKGROUND — NO OVERLAY, FRUIT 100% VISIBLE
 # ─────────────────────────────────────────────────────────────────────────────
 def make_bg(photo: Image.Image | None, accent: tuple) -> Image.Image:
-    """
-    Return a 1080×1080 background.
-    - With photo: slight brightness boost, NO blur, NO overlay. Fruit is 100% visible.
-    - Without photo: dark gradient fallback.
-    """
     if photo:
         bg = photo.copy()
         bg = bg.resize((IMG_W, IMG_H), Image.LANCZOS)
-        # Slight brightness boost to make photo pop
         enhancer = ImageEnhance.Brightness(bg)
         bg = enhancer.enhance(1.05)
-        # Very subtle color tint (6%) — barely noticeable
         tint = Image.new("RGB", (IMG_W, IMG_H), accent)
         bg = Image.blend(bg, tint, alpha=0.04)
         return bg
@@ -554,26 +598,10 @@ def draw_rounded_rect(draw, x0, y0, x1, y1, r, fill):
 
 
 def draw_text_with_shadow(draw, xy, text, font, fill, shadow_offset=4):
-    """Draw text with a heavy drop shadow for readability over any photo."""
     x, y = xy
-    # Multi-layer shadow for stronger readability
     for dx, dy in [(shadow_offset, shadow_offset), (shadow_offset+1, shadow_offset), (shadow_offset, shadow_offset+1)]:
         draw.text((x + dx, y + dy), text, font=font, fill=(0, 0, 0, 200))
     draw.text((x, y), text, font=font, fill=fill)
-
-
-def draw_text_with_backdrop(draw, xy, text, font, fill, accent, padding=8):
-    """Draw text with a subtle semi-transparent accent-colored backdrop bar behind it.
-    Only covers the text area — fruit photo is visible everywhere else."""
-    x, y = xy
-    bbox = draw.textbbox((x, y), text, font=font)
-    # Draw a thin accent bar behind the text
-    bar_y0 = bbox[1] - padding
-    bar_y1 = bbox[3] + padding
-    bar_x0 = bbox[0] - padding * 2
-    bar_x1 = bbox[2] + padding * 2
-    # We draw directly on an RGBA layer
-    return (bar_x0, bar_y0, bar_x1, bar_y1, text, x, y)
 
 
 def fit_text(draw, text: str, font_size: int, max_w: int, max_lines: int, bold=True):
@@ -594,7 +622,7 @@ def fit_text(draw, text: str, font_size: int, max_w: int, max_lines: int, bold=T
 
 
 def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
-                 fruit_photo: Image.Image | None = None) -> Image.Image:
+                 slide_photo: Image.Image | None = None) -> Image.Image:
     cat_data = CATEGORIES.get(fruit["category"], CATEGORIES["SUPERFOOD"])
     accent = cat_data["rgb"]
     cat_label = cat_data["label"]
@@ -602,9 +630,9 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
     is_hook = idx == 0
     is_cta = idx == total - 1
 
-    # Background — NO overlay, fruit is fully visible
-    use_photo = fruit_photo and not is_cta
-    bg = make_bg(fruit_photo if use_photo else None, accent)
+    # Each slide gets its OWN photo
+    use_photo = slide_photo is not None and not is_cta
+    bg = make_bg(slide_photo if use_photo else None, accent)
 
     img = bg.copy()
     draw = ImageDraw.Draw(img)
@@ -612,7 +640,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
     # Top accent stripe
     draw.rectangle([(0, 0), (IMG_W, 10)], fill=accent)
 
-    # Category pill (top-left) with solid background so it's readable
+    # Category pill
     pill_font = get_font(24)
     pill_text = f"{fruit['emoji']}  {cat_label}"
     pill_bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
@@ -622,7 +650,6 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
     draw_rounded_rect(draw, px, py, px + pw, py + ph, 10, accent)
     draw.text((px + 18, py + 9), pill_text, font=pill_font, fill=C_WHITE)
 
-    # Fruit name + theme pill
     if not is_hook:
         name_font = get_font(22, bold=False)
         name_text = f"{fruit['name']} · {angle['theme']}"
@@ -632,7 +659,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         draw_rounded_rect(draw, nx, py, nx + nw, py + ph, 10, BG_CARD)
         draw.text((nx + 15, py + 9), name_text, font=name_font, fill=C_GRAY)
 
-    # Slide counter (top-right)
+    # Slide counter
     ctr_font = get_font(24, bold=False)
     draw.text((IMG_W - 56, 42), f"{idx+1}/{total}", font=ctr_font, anchor="rm", fill=C_GRAY)
 
@@ -641,7 +668,6 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         e_font = get_font(100)
         draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
 
-        # Hook headline — centered, with strong shadow
         font, lines = fit_text(draw, text.upper(), 62, IMG_W - 120, 4)
         fs = font.size
         lh = fs + 16
@@ -652,15 +678,12 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
             draw_text_with_shadow(draw, (x, y), line, font, C_WHITE, shadow_offset=5)
             y += lh
 
-        # Accent underline
         draw.rectangle([(IMG_W//2 - 80, y + 20), (IMG_W//2 + 80, y + 26)], fill=accent)
 
-        # Theme badge
         theme_font = get_font(22, bold=False)
         theme_text = f"🎯 {angle['theme']}"
         draw.text((IMG_W // 2, IMG_H - 160), theme_text, font=theme_font, anchor="mm", fill=accent)
 
-        # Swipe prompt
         prompt_font = get_font(24, bold=False)
         draw.text((IMG_W // 2, IMG_H - 130), "Swipe to learn why →", font=prompt_font, anchor="mm", fill=C_GRAY)
 
@@ -679,9 +702,6 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
     else:
         label = SLIDE_LABELS[idx] if idx < len(SLIDE_LABELS) else ""
 
-        # NO frosted card, NO overlay — fruit photo is fully visible
-
-        # Label
         if label:
             lbl_font = get_font(30)
             lbl_bbox = draw.textbbox((0, 0), label, font=lbl_font)
@@ -691,7 +711,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
             draw_text_with_shadow(draw, (lbl_x, lbl_y), label, lbl_font, accent, shadow_offset=3)
             draw.rectangle([(lbl_x, lbl_y + lbl_bbox[3] + 6), (lbl_x + lbl_w, lbl_y + lbl_bbox[3] + 10)], fill=accent)
 
-        # Body text — each line has its own thin backdrop bar
+        # Body text — each line has a thin backdrop bar
         pad = 70
         max_w = IMG_W - pad * 2
         font, lines = fit_text(draw, text, 54, max_w, 8)
@@ -700,24 +720,23 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         th = len(lines) * lh
         y = max(230, (IMG_H - th) // 2 + 10)
 
-        # First pass: draw thin backdrop bars behind each line
+        # Draw backdrop bars behind text
         if use_photo:
             overlay = Image.new("RGBA", (IMG_W, IMG_H), (0, 0, 0, 0))
             odraw = ImageDraw.Draw(overlay)
             for i, line in enumerate(lines):
                 bbox = draw.textbbox((pad, y + i * lh), line, font=font)
-                # Thin dark bar behind each text line
                 bar_padding = 6
                 odraw.rectangle(
                     [(pad - 12, bbox[1] - bar_padding), (bbox[2] + 12, bbox[3] + bar_padding)],
-                    fill=(0, 0, 0, 140)  # Semi-transparent dark bar
+                    fill=(0, 0, 0, 140)
                 )
             img_rgba = img.convert("RGBA")
             img_rgba.alpha_composite(overlay)
             img = img_rgba.convert("RGB")
             draw = ImageDraw.Draw(img)
 
-        # Second pass: draw the actual text
+        # Draw text
         for i, line in enumerate(lines):
             colour = accent if i == 0 else C_WHITE
             draw_text_with_shadow(draw, (pad, y), line, font, colour, shadow_offset=3)
@@ -755,12 +774,11 @@ def validate_access_token() -> bool:
             if not is_valid:
                 print("  ❌ Token is INVALID or EXPIRED!")
                 print("  → Go to: https://developers.facebook.com/tools/explorer/")
-                print("  → Update your GitHub Secret: FB_ACCESS_TOKEN")
                 return False
             current_time = int(time.time())
             days_left = (expires_at - current_time) // 86400
             if days_left <= 0:
-                print("  ⚠️  Token expires VERY SOON (or already expired)!")
+                print("  ⚠️  Token expires VERY SOON!")
                 return False
             elif days_left <= 7:
                 print(f"  ⚠️  WARNING: Token expires in {days_left} days!")
@@ -791,16 +809,14 @@ def upload_to_imgbb(img: Image.Image) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # INSTAGRAM GRAPH API
 # ─────────────────────────────────────────────────────────────────────────────
-def ig_post(path: str, token: str = None, **params) -> dict:
-    access_token = token or FB_ACCESS_TOKEN
-    r = requests.post(f"{IG_BASE}/{path}", params={"access_token": access_token, **params}, timeout=30)
+def ig_post(path: str, **params) -> dict:
+    r = requests.post(f"{IG_BASE}/{path}", params={"access_token": FB_ACCESS_TOKEN, **params}, timeout=30)
     if not r.ok: print(f"  IG API error: {r.status_code} — {r.text}")
     r.raise_for_status()
     return r.json()
 
-def ig_get(path: str, token: str = None, **params) -> dict:
-    access_token = token or FB_ACCESS_TOKEN
-    r = requests.get(f"{IG_BASE}/{path}", params={"access_token": access_token, **params}, timeout=15)
+def ig_get(path: str, **params) -> dict:
+    r = requests.get(f"{IG_BASE}/{path}", params={"access_token": FB_ACCESS_TOKEN, **params}, timeout=15)
     r.raise_for_status()
     return r.json()
 
@@ -825,14 +841,8 @@ def publish_media(creation_id: str) -> str:
     data = ig_post(f"{IG_USER_ID}/media_publish", creation_id=creation_id)
     return data["id"]
 
-def post_comment(media_id: str, message: str, token: str = None) -> str:
-    """Post a comment. Uses COMMENT account token if available, otherwise posting account."""
-    access_token = token or COMMENT_FB_ACCESS_TOKEN or FB_ACCESS_TOKEN
-    r = requests.post(
-        f"{IG_BASE}/{media_id}/comments",
-        params={"access_token": access_token, "message": message},
-        timeout=30,
-    )
+def post_comment(media_id: str, message: str) -> str:
+    r = requests.post(f"{IG_BASE}/{media_id}/comments", params={"access_token": FB_ACCESS_TOKEN, "message": message}, timeout=30)
     if not r.ok: print(f"  ⚠️  Comment API error: {r.status_code} — {r.text}")
     r.raise_for_status()
     return r.json().get("id", "")
@@ -864,7 +874,6 @@ def main():
     if not validate_access_token():
         print("\n❌ ABORTING: Access token is expired or invalid.")
         print("   Fix: https://developers.facebook.com/tools/explorer/")
-        print("   Update GitHub Secret: FB_ACCESS_TOKEN")
         sys.exit(1)
 
     print("\n📦 Setting up fonts…")
@@ -877,10 +886,7 @@ def main():
     print(f"   ✅ {fruit['emoji']} {fruit['name']} — Angle {angle_idx+1}/{total_angles}: {angle['theme']}")
     print(f"   Hook: {angle['hook']}")
 
-    print("\n📷 Fetching real fruit photo from Unsplash…")
-    fruit_photo = fetch_fruit_image(fruit["image_url"], fruit["category"])
-    if not fruit_photo: print("   ℹ️  Using dark branded background (no photo available).")
-
+    # Generate slide texts FIRST so we know how many slides we need
     print("\n📖 Fetching Wikipedia data…")
     wiki_text = ""
     if fruit.get("wikipedia"): wiki_text = fetch_wikipedia_extract(fruit["wikipedia"])
@@ -896,15 +902,21 @@ def main():
 
     print("\n✍️  Generating slide content…")
     slide_texts = generate_slides(fruit, angle, wiki_text, nutrition_line)
+    num_slides = len(slide_texts)
     for i, t in enumerate(slide_texts): print(f"   Slide {i+1}: {t[:70]}…")
+
+    # Fetch DIFFERENT photos for each slide
+    print(f"\n📷 Fetching {num_slides} different fruit photos…")
+    fruit_photos = fetch_fruit_images(fruit["image_urls"], fruit["category"], num_slides)
 
     print("\n🎨 Creating slide images…")
     images = []
     for i, text in enumerate(slide_texts):
-        img = create_slide(text, i, len(slide_texts), fruit, angle, fruit_photo=fruit_photo)
+        # Pass the SPECIFIC photo for this slide
+        img = create_slide(text, i, num_slides, fruit, angle, slide_photo=fruit_photos[i])
         images.append(img)
         img.save(f"/tmp/slide_{i+1}.jpg", quality=95)
-        print(f"   Slide {i+1}/{len(slide_texts)} ✓  → /tmp/slide_{i+1}.jpg")
+        print(f"   Slide {i+1}/{num_slides} ✓  → /tmp/slide_{i+1}.jpg")
 
     print("\n☁️  Uploading images to imgbb…")
     image_urls = []
@@ -924,8 +936,6 @@ def main():
             time.sleep(4)
         except Exception as e:
             print(f"   ❌ Failed to upload carousel item {i+1}: {e}")
-            if "190" in str(e) or "OAuthException" in str(e):
-                print("   🔑 ACCESS TOKEN EXPIRED! Update GitHub Secret: FB_ACCESS_TOKEN")
             sys.exit(1)
 
     print("\n⏳ Waiting for carousel items to process…")
@@ -960,23 +970,14 @@ def main():
         print(f"   ❌ Failed to publish: {e}")
         sys.exit(1)
 
-    # ── Comments — use different account if configured ──
+    # Single comment from main account only
     time.sleep(5)
     print("\n💬 Posting nutrition info comment…")
-
-    # Determine which account is commenting
-    if COMMENT_IG_USER_ID and COMMENT_FB_ACCESS_TOKEN:
-        print(f"   📝 Commenting as account ID: {COMMENT_IG_USER_ID} (different from poster)")
-        comment_token = COMMENT_FB_ACCESS_TOKEN
-    else:
-        print(f"   📝 Commenting as the same account (no COMMENT_IG_USER_ID configured)")
-        comment_token = FB_ACCESS_TOKEN
-
     try:
         comment = f"📊 {fruit['name']} Nutrition Highlights:\n{'─' * 30}\n"
         for p in angle["points"][:3]: comment += f"✓ {p}\n"
         comment += f"\n💡 {angle['tip']}"
-        c = post_comment(post_id, comment, token=comment_token)
+        c = post_comment(post_id, comment)
         print(f"   ✅ Comment posted: {c}")
     except Exception as e:
         print(f"   ⚠️  Could not post comment: {e}")
