@@ -20,6 +20,23 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from io import BytesIO
 from datetime import datetime
 
+def strip_emojis(text: str) -> str:
+    """Remove emoji characters that Poppins can't render."""
+    import unicodedata
+    result = []
+    for char in text:
+        cp = ord(char)
+        # Skip emoji ranges
+        if (0x1F300 <= cp <= 0x1FBFF or   # Misc symbols, emoticons, transport, etc.
+            0x2600  <= cp <= 0x27BF or    # Misc symbols & dingbats
+            0xFE00  <= cp <= 0xFE0F or    # Variation selectors
+            0x1F900 <= cp <= 0x1F9FF or   # Supplemental symbols
+            cp in (0x200D, 0xFE0F)):      # ZWJ, variation selector
+            continue
+        result.append(char)
+    return "".join(result).strip()
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────────────────────────────────────
@@ -693,7 +710,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         e_font = get_emoji_font(100)
         draw.text((IMG_W // 2, 240), fruit["emoji"], font=e_font, anchor="mm")
 
-        font, lines = fit_text(draw, text.upper(), 62, IMG_W - 120, 4)
+        font, lines = fit_text(draw, strip_emojis(text).upper(), 62, IMG_W - 120, 4)
         fs = font.size
         lh = fs + 16
         y = 420
@@ -710,7 +727,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         draw.text((IMG_W // 2, IMG_H - 160), theme_text, font=theme_font, anchor="mm", fill=accent)
 
         prompt_font = get_font(24, bold=False)
-        draw.text((IMG_W // 2, IMG_H - 130), "Swipe to learn why →", font=prompt_font, anchor="mm", fill=C_GRAY)
+        draw.text((IMG_W // 2, IMG_H - 130), "Swipe to learn why ->", font=prompt_font, anchor="mm", fill=C_GRAY)
 
     # ══════════════ CTA SLIDE ══════════════
     elif is_cta:
@@ -739,7 +756,7 @@ def create_slide(text: str, idx: int, total: int, fruit: dict, angle: dict,
         # Body text — each line has a thin backdrop bar
         pad = 70
         max_w = IMG_W - pad * 2
-        font, lines = fit_text(draw, text, 54, max_w, 8)
+        font, lines = fit_text(draw, strip_emojis(text), 54, max_w, 8)
         fs = font.size
         lh = fs + 18
         th = len(lines) * lh
