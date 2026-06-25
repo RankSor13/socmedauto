@@ -302,7 +302,7 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
     recent = get_recent()
     combos = []
     for fruit in FRUITS:
-        for angle_idx in range(len(fruit["angles"]):
+        for angle_idx in range(len(fruit["angles"])):
             key = f"{fruit['name']}:{angle_idx}"
             if key not in recent:
                 combos.append((fruit, angle_idx, key))
@@ -374,7 +374,7 @@ def fetch_single_image(url: str) -> Image.Image | None:
         side = min(w, h)
         left = (w - side) // 2
         top  = (h - side) // 2
-        img  = img.crop((left, top, left + side, top + side)
+        img  = img.crop((left, top, left + side, top + side))
         img  = img.resize((IMG_W, IMG_H), Image.LANCZOS)
         return img
     except Exception as e:
@@ -457,4 +457,10 @@ def fetch_wikipedia_extract(article_title: str) -> str:
         print(f"  ⚠️  Wikipedia fetch failed: {e}")
         return ""
 
-def extract_fun_facts_from_wiki(wiki_text: str, fruit_name:
+def extract_fun_facts_from_wiki(wiki_text: str, fruit_name: str) -> list[str]:
+    """Extract interesting fun facts from Wikipedia text."""
+    if not wiki_text:
+        return []
+    sentences = wiki_text.replace("\n", " ").split(". ")
+    facts = [s.strip() + "." for s in sentences if len(s.strip()) > 40]
+    return facts[:5]
