@@ -1,17 +1,17 @@
-name: Love Stories Facebook REEL (Animated Video)
+name: Love Stories Facebook REEL (Boiling Waters Style)
 
 on:
-  workflow_dispatch:       # trigger manually or via cron-job.org
-  # Uncomment below to auto-post on a schedule (times are UTC):
+  workflow_dispatch:       # Trigger manually from GitHub Actions tab
+  # Uncomment to post on a schedule (times are UTC):
   # schedule:
-  #   - cron: '0 1 * * *'    # once a day at 9AM Manila time (UTC+8 = 01:00 UTC)
-  #   - cron: '0 9 * * *'    # and again at 5PM Manila time
+  #   - cron: '0 1 * * *'   # 9:00 AM Manila (UTC+8)
+  #   - cron: '0 9 * * *'   # 5:00 PM Manila (UTC+8)
 
 jobs:
   post-love-reel:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # needed so GITHUB_TOKEN can create/delete releases
+      contents: write   # Required for GITHUB_TOKEN to create/delete releases
 
     steps:
       - name: Checkout repository
@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install system dependencies (ffmpeg for moviepy)
+      - name: Install system dependencies (ffmpeg)
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
@@ -34,9 +34,10 @@ jobs:
 
       - name: Run Love Stories Facebook Reel Poster
         env:
-          FB_PAGE_ID:       ${{ secrets.FB_PAGE_ID }}
-          FB_ACCESS_TOKEN:  ${{ secrets.FB_ACCESS_TOKEN }}
-          GROQ_API_KEY:     ${{ secrets.GROQ_API_KEY }}
-          PAGE_NAME:        ${{ secrets.PAGE_NAME }}
-          GH_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FB_PAGE_ID:        ${{ secrets.FB_PAGE_ID }}
+          FB_ACCESS_TOKEN:   ${{ secrets.FB_ACCESS_TOKEN }}
+          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
+          PAGE_NAME:         ${{ secrets.PAGE_NAME }}
+          COMMUNITY_NAME:    ${{ secrets.COMMUNITY_NAME }}
+          GH_RELEASE_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
         run: python post_love_stories_reel.py
