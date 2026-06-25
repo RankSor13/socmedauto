@@ -8,7 +8,7 @@ Required GitHub Secrets:
   FB_ACCESS_TOKEN      — Facebook Page Access Token (posting account)
   IMGBB_API_KEY        — Free at imgbb.com
   PAGE_NAME            — Your IG handle WITHOUT the @
-  PEXELS_API_KEY       — Free at https://www.pexels.com/api/ (for accurate fruit photos)
+  PIXABAY_API_KEY      — Free at https://pixabay.com/api/docs/
 
 Optional:
   USDA_API_KEY         — Free at https://api.data.gov/signup/
@@ -26,7 +26,7 @@ from datetime import datetime
 IG_USER_ID      = os.environ["IG_USER_ID"]
 FB_ACCESS_TOKEN = os.environ["FB_ACCESS_TOKEN"]
 IMGBB_API_KEY   = os.environ["IMGBB_API_KEY"]
-PEXELS_API_KEY  = os.environ.get("PEXELS_API_KEY", "")
+PIXABAY_API_KEY = os.environ.get("PIXABAY_API_KEY", "")
 USDA_API_KEY    = os.environ.get("USDA_API_KEY", "")
 GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
 PAGE_NAME       = os.environ.get("PAGE_NAME", "fruitfacts.daily")
@@ -320,40 +320,43 @@ def pick_fruit_and_angle() -> tuple[dict, int]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PEXELS API — Free, instant signup, search-based, accurate photos
+# PIXABAY API — Free, instant signup, search-based, accurate photos
 # ─────────────────────────────────────────────────────────────────────────────
-def search_pexels(query: str, per_page: int = 3, page: int = 1) -> list[str]:
+def search_pixabay(query: str, per_page: int = 3) -> list[str]:
     """
-    Search Pexels for photos matching the query.
-    Returns a list of image URLs (original size).
-    Free API: 200 requests/hour. Signup at https://www.pexels.com/api/
+    Search Pixabay for photos matching the query.
+    Returns a list of image URLs.
+    Free API: 5000 requests/hour. Signup at https://pixabay.com/api/docs/
     """
-    if not PEXELS_API_KEY:
+    if not PIXABAY_API_KEY:
         return []
     try:
         r = requests.get(
-            "https://api.pexels.com/v1/search",
-            headers={"Authorization": PEXELS_API_KEY},
+            "https://pixabay.com/api/",
             params={
-                "query": query,
+                "key": PIXABAY_API_KEY,
+                "q": query,
+                "image_type": "photo",
+                "orientation": "horizontal",
                 "per_page": per_page,
-                "page": page,
-                "orientation": "square",
+                "safesearch": "true",
+                "lang": "en",
+                "min_width": 800,
             },
+            headers=HEADERS,
             timeout=15,
         )
         r.raise_for_status()
         data = r.json()
-        photos = data.get("photos", [])
+        hits = data.get("hits", [])
         urls = []
-        for p in photos:
-            # Use 'large2x' (800px) or 'original' — both are high quality
-            url = p.get("src", {}).get("large2x", "")
+        for hit in hits:
+            url = hit.get("largeImageURL") or hit.get("webformatURL", "")
             if url:
                 urls.append(url)
         return urls
     except Exception as e:
-        print(f"    ⚠️  Pexels search failed for '{query}': {e}")
+        print(f"    ⚠️  Pixabay search failed for '{query}': {e}")
         return []
 
 
@@ -378,35 +381,35 @@ def fetch_single_image(url: str) -> Image.Image | None:
 
 def fetch_fruit_images(slide_searches: list[str], fruit_name: str, num_slides: int) -> list[Image.Image | None]:
     """
-    Fetch a different image for each slide using Pexels search API.
-    
+    Fetch a different image for each slide using Pixabay search API.
+
     Strategy:
     1. Pre-fetch ALL photo URLs for ALL search queries at once (fewer API calls)
     2. Assign different photos to different slides
-    3. If Pexels fails, use a generic fruit search
+    3. If Pixabay fails, use a generic fruit search
     4. If all fails, return None (will use dark background)
     """
     photos: list[Image.Image | None] = [None] * num_slides
     all_urls: list[str] = []
-    
-    print(f"  📷 Fetching {num_slides} fruit photos via Pexels API…")
-    
+
+    print(f"  📷 Fetching {num_slides} fruit photos via Pixabay API…")
+
     # Pre-fetch: Collect URLs from all search queries
-    if PEXELS_API_KEY:
+    if PIXABAY_API_KEY:
         for i, query in enumerate(slide_searches):
-            print(f"    🔍 Searching Pexels for: '{query}'")
-            urls = search_pexels(query, per_page=2, page=1)
+            print(f"    🔍 Searching Pixabay for: '{query}'")
+            urls = search_pixabay(query, per_page=2)
             all_urls.extend(urls)
             time.sleep(0.3)  # Be nice to the API
-        
+
         # Also search generic fruit name as backup
         if len(all_urls) < num_slides:
             print(f"    🔍 Backup search: '{fruit_name} fruit fresh'")
-            backup_urls = search_pexels(f"{fruit_name} fruit fresh", per_page=5)
+            backup_urls = search_pixabay(f"{fruit_name} fruit fresh", per_page=5)
             all_urls.extend(backup_urls)
     else:
-        print("    ⚠️  No PEXELS_API_KEY set — photos will use dark background!")
-        print("    → Get free key at: https://www.pexels.com/api/")
+        print("    ⚠️  No PIXABAY_API_KEY set — photos will use dark background!")
+        print("    → Get free key at: https://pixabay.com/api/docs/")
     
     # Download and assign photos to slides
     last_successful: Image.Image | None = None
