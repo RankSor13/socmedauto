@@ -190,51 +190,51 @@ CATEGORY_HASHTAGS = {
 # Format: list of queries to try in order (fallback if first returns nothing)
 # Split by gender so we can pick "pretty woman" or "handsome man" depending on the story.
 CATEGORY_PHOTO_KEYWORDS_FEMALE = {
-    "LOVE STORY":    ["korean couple romantic", "asian couple love", "japanese couple"],
-    "CHEATING":      ["asian beautiful woman sad", "korean woman alone sad", "vietnamese woman sad"],
-    "STRUGGLES":     ["asian woman thinking", "korean woman pensive", "chinese woman melancholy"],
-    "ADVICE":        ["japanese beautiful woman", "asian woman coffee thinking", "korean woman contemplating"],
-    "HIDDEN DESIRE": ["vietnamese beautiful woman", "asian woman mysterious", "korean beautiful woman"],
-    "CONFESSION":    ["asian woman writing", "korean woman diary", "japanese woman letter"],
-    "HEARTBREAK":    ["asian woman crying", "korean woman heartbreak", "chinese woman tears"],
-    "AGE GAP":              ["asian couple age difference", "older man younger woman asian", "korean couple romantic"],
-    "COUSIN LOVE":          ["asian woman secret love", "korean woman hidden feelings", "vietnamese woman thinking"],
-    "THIRD PARTY":          ["asian woman guilty", "korean woman conflicted", "vietnamese woman looking away"],
-    "SECRET ADMIRER":       ["asian woman shy smile", "korean woman blushing", "japanese woman looking afar"],
-    "FRIENDZONE":           ["asian woman and man friends", "korean friends laughing", "japanese friends close"],
-    "BALIK-LOVER":          ["asian woman looking back", "korean woman nostalgic", "vietnamese woman reunion"],
-    "ONLINE LOVE":          ["asian woman phone romantic", "korean woman texting smile", "japanese woman laptop love"],
-    "BROKEN ENGAGEMENT":    ["asian woman crying", "korean woman sad alone", "japanese woman heartbroken"],
-    "SUGAR RELATIONSHIP":   ["asian woman elegant", "korean woman luxury lifestyle", "vietnamese woman thoughtful"],
-    "SITUATIONSHIP":        ["asian woman confused love", "korean woman uncertain", "japanese woman thinking"],
-    "ASAWA VS KABIT":       ["asian woman confrontation", "korean woman angry sad", "vietnamese woman betrayed"],
-    "IN-LAW CONFLICT":      ["asian woman stressed", "korean woman family tension", "japanese woman conflict"],
-    "LONG DISTANCE":        ["asian woman missing someone", "korean woman alone window", "vietnamese woman waiting"],
-    "CHILDHOOD SWEETHEART": ["asian couple reunion", "korean couple nostalgic", "japanese couple memories"],
+    "LOVE STORY":           ["asian couple romantic", "asian couple love", "asian couple"],
+    "CHEATING":             ["asian woman sad", "asian woman alone sad", "asian woman crying"],
+    "STRUGGLES":            ["asian woman thinking", "asian woman pensive", "asian woman melancholy"],
+    "ADVICE":               ["asian beautiful woman", "asian woman coffee thinking", "asian woman contemplating"],
+    "HIDDEN DESIRE":        ["asian woman mysterious", "asian beautiful woman", "asian woman longing"],
+    "CONFESSION":           ["asian woman writing", "asian woman diary", "asian woman letter"],
+    "HEARTBREAK":           ["asian woman crying", "asian woman heartbreak", "asian woman tears"],
+    "AGE GAP":              ["asian couple age difference", "older man younger woman asian", "asian couple romantic"],
+    "COUSIN LOVE":          ["asian woman secret love", "asian woman hidden feelings", "asian woman thinking"],
+    "THIRD PARTY":          ["asian woman guilty", "asian woman conflicted", "asian woman looking away"],
+    "SECRET ADMIRER":       ["asian woman shy smile", "asian woman blushing", "asian woman looking afar"],
+    "FRIENDZONE":           ["asian woman and man friends", "asian friends laughing", "asian friends close"],
+    "BALIK-LOVER":          ["asian woman looking back", "asian woman nostalgic", "asian woman reunion"],
+    "ONLINE LOVE":          ["asian woman phone romantic", "asian woman texting smile", "asian woman laptop love"],
+    "BROKEN ENGAGEMENT":    ["asian woman crying", "asian woman sad alone", "asian woman heartbroken"],
+    "SUGAR RELATIONSHIP":   ["asian woman elegant", "asian woman luxury lifestyle", "asian woman thoughtful"],
+    "SITUATIONSHIP":        ["asian woman confused love", "asian woman uncertain", "asian woman thinking"],
+    "ASAWA VS KABIT":       ["asian woman confrontation", "asian woman angry sad", "asian woman betrayed"],
+    "IN-LAW CONFLICT":      ["asian woman stressed", "asian woman family tension", "asian woman conflict"],
+    "LONG DISTANCE":        ["asian woman missing someone", "asian woman alone window", "asian woman waiting"],
+    "CHILDHOOD SWEETHEART": ["asian couple reunion", "asian couple nostalgic", "asian couple memories"],
 }
 
 CATEGORY_PHOTO_KEYWORDS_MALE = {
-    "LOVE STORY":    ["korean couple romantic", "asian couple love", "japanese couple"],
-    "CHEATING":      ["asian handsome man sad", "korean man alone sad", "vietnamese man serious"],
-    "STRUGGLES":     ["asian man thinking", "korean man pensive", "japanese man tired"],
-    "ADVICE":        ["japanese handsome man", "asian man coffee thinking", "korean man contemplating"],
-    "HIDDEN DESIRE": ["vietnamese handsome man", "asian man mysterious", "korean handsome man"],
-    "CONFESSION":    ["asian man writing", "korean man diary", "japanese man letter"],
-    "HEARTBREAK":    ["asian man heartbreak", "korean man sad", "chinese man alone"],
-    "AGE GAP":              ["asian couple age difference", "older woman younger man asian", "korean couple romantic"],
-    "COUSIN LOVE":          ["asian man secret love", "korean man hidden feelings", "vietnamese man thinking"],
-    "THIRD PARTY":          ["asian man guilty", "korean man conflicted", "vietnamese man looking away"],
-    "SECRET ADMIRER":       ["asian man shy smile", "korean man admiring", "japanese man looking afar"],
-    "FRIENDZONE":           ["asian man and woman friends", "korean friends laughing", "japanese friends close"],
-    "BALIK-LOVER":          ["asian man looking back", "korean man nostalgic", "vietnamese man reunion"],
-    "ONLINE LOVE":          ["asian man phone romantic", "korean man texting smile", "japanese man laptop love"],
-    "BROKEN ENGAGEMENT":    ["asian man crying sad", "korean man alone heartbreak", "japanese man devastated"],
-    "SUGAR RELATIONSHIP":   ["asian man elegant", "korean man luxury lifestyle", "vietnamese man thoughtful"],
-    "SITUATIONSHIP":        ["asian man confused love", "korean man uncertain", "japanese man thinking"],
-    "ASAWA VS KABIT":       ["asian man confrontation", "korean man angry sad", "vietnamese man betrayed"],
-    "IN-LAW CONFLICT":      ["asian man stressed", "korean man family tension", "japanese man conflict"],
-    "LONG DISTANCE":        ["asian man missing someone", "korean man alone window", "vietnamese man waiting"],
-    "CHILDHOOD SWEETHEART": ["asian couple reunion", "korean couple nostalgic", "japanese couple memories"],
+    "LOVE STORY":           ["asian couple romantic", "asian couple love", "asian couple"],
+    "CHEATING":             ["asian man sad", "asian man alone sad", "asian man serious"],
+    "STRUGGLES":            ["asian man thinking", "asian man pensive", "asian man tired"],
+    "ADVICE":               ["asian handsome man", "asian man coffee thinking", "asian man contemplating"],
+    "HIDDEN DESIRE":        ["asian man mysterious", "asian handsome man", "asian man longing"],
+    "CONFESSION":           ["asian man writing", "asian man diary", "asian man letter"],
+    "HEARTBREAK":           ["asian man heartbreak", "asian man sad", "asian man alone"],
+    "AGE GAP":              ["asian couple age difference", "older woman younger man asian", "asian couple romantic"],
+    "COUSIN LOVE":          ["asian man secret love", "asian man hidden feelings", "asian man thinking"],
+    "THIRD PARTY":          ["asian man guilty", "asian man conflicted", "asian man looking away"],
+    "SECRET ADMIRER":       ["asian man shy smile", "asian man admiring", "asian man looking afar"],
+    "FRIENDZONE":           ["asian man and woman friends", "asian friends laughing", "asian friends close"],
+    "BALIK-LOVER":          ["asian man looking back", "asian man nostalgic", "asian man reunion"],
+    "ONLINE LOVE":          ["asian man phone romantic", "asian man texting smile", "asian man laptop love"],
+    "BROKEN ENGAGEMENT":    ["asian man crying sad", "asian man alone heartbreak", "asian man devastated"],
+    "SUGAR RELATIONSHIP":   ["asian man elegant", "asian man luxury lifestyle", "asian man thoughtful"],
+    "SITUATIONSHIP":        ["asian man confused love", "asian man uncertain", "asian man thinking"],
+    "ASAWA VS KABIT":       ["asian man confrontation", "asian man angry sad", "asian man betrayed"],
+    "IN-LAW CONFLICT":      ["asian man stressed", "asian man family tension", "asian man conflict"],
+    "LONG DISTANCE":        ["asian man missing someone", "asian man alone window", "asian man waiting"],
+    "CHILDHOOD SWEETHEART": ["asian couple reunion", "asian couple nostalgic", "asian couple memories"],
 }
 
 # Backwards-compat alias (some helper code/tests may still reference the old name)
@@ -246,8 +246,8 @@ COUPLE_CATEGORIES = {
     "LONG DISTANCE", "CHILDHOOD SWEETHEART", "FRIENDZONE",
 }
 
-# Nationality pool to rotate through for variety
-ASIAN_NATIONALITIES = ["korean", "japanese", "vietnamese", "chinese", "asian"]
+# All photo queries now use "asian" consistently for broader, more inclusive results
+ASIAN_NATIONALITIES = ["asian"]
 
 # Blur radius for background — high enough to obscure detail but keep silhouette
 BG_BLUR_RADIUS = 6
@@ -522,9 +522,9 @@ def fetch_background_photo(category: str) -> Image.Image:
     # Last resort fallback queries (match the gender we rolled, so it stays consistent)
     if img is None:
         if gender == "male":
-            fallbacks = ["asian handsome man", "korean man portrait", "asian man"]
+            fallbacks = ["asian handsome man", "asian man portrait", "asian man"]
         else:
-            fallbacks = ["asian beautiful woman", "korean woman portrait", "asian woman"]
+            fallbacks = ["asian beautiful woman", "asian woman portrait", "asian woman"]
         for fallback in fallbacks:
             img = _fetch_pixabay_photo(fallback)
             if img:
